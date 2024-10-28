@@ -10903,17 +10903,51 @@ index fda9dce3da99..e52fb045096a 100644
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <git@antheas.dev>
 Date: Sat, 26 Oct 2024 17:34:05 +0200
-Subject: hwmon: (oxp-sensors) Add charge limit and bypass to X1 models
+Subject: hwmon: (oxp-sensors) Add charge threshold and bypass to X1 models
 
 ---
- drivers/hwmon/oxp-sensors.c | 178 +++++++++++++++++++++++++++++++++++-
- 1 file changed, 174 insertions(+), 4 deletions(-)
+ Documentation/ABI/testing/sysfs-class-power |   8 +-
+ drivers/hwmon/oxp-sensors.c                 | 210 +++++++++++++++++++-
+ 2 files changed, 212 insertions(+), 6 deletions(-)
 
+diff --git a/Documentation/ABI/testing/sysfs-class-power b/Documentation/ABI/testing/sysfs-class-power
+index 7c81f0a25a48..e2bb87184bea 100644
+--- a/Documentation/ABI/testing/sysfs-class-power
++++ b/Documentation/ABI/testing/sysfs-class-power
+@@ -387,13 +387,17 @@ Description:
+ 		charging rate in order to prolong the battery health. "Bypass"
+ 		means the charger bypasses the charging path around the
+ 		integrated converter allowing for a "smart" wall adaptor to
+-		perform the power conversion externally.
++		perform the power conversion externally. In addition, certain
++		devices may allow for enabling bypass automatically only when 
++		the device is awake ("BypassAwake"), awake and asleep 
++		("BypassAsleep"), or always/undefined ("Bypass").
+ 
+ 		Access: Read, Write
+ 
+ 		Valid values:
+ 			      "Unknown", "N/A", "Trickle", "Fast", "Standard",
+-			      "Adaptive", "Custom", "Long Life", "Bypass"
++			      "Adaptive", "Custom", "Long Life",
++				  "Bypass", "BypassAwake", "BypassAsleep"
+ 
+ What:		/sys/class/power_supply/<supply_name>/charge_term_current
+ Date:		July 2014
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index b6d06370469d..12a519cfeec5 100644
+index b6d06370469d..19845117091e 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
-@@ -89,6 +89,35 @@ static enum oxp_board board;
+@@ -27,6 +27,8 @@
+ #include <linux/platform_device.h>
+ #include <linux/processor.h>
+ 
++#include <acpi/battery.h>
++
+ /* Handle ACPI lock mechanism */
+ static u32 oxp_mutex;
+ 
+@@ -89,6 +91,35 @@ static enum oxp_board board;
  
  #define OXP_TURBO_RETURN_VAL           0x00 /* Common return val */
  
@@ -10924,63 +10958,62 @@ index b6d06370469d..12a519cfeec5 100644
 +#define OXP_X1_CHARGE_BYPASS_MASK_SLEEP 0x02 /* Asleep and Off might be swapped */
 +#define OXP_X1_CHARGE_BYPASS_MASK_OFF   0x08
 +
-+enum charge_bypass_value_index {
-+	CBP_OFF,
-+	CBP_AWAKE,
-+	CBP_ASLEEP,
-+	CBP_ALWAYS,
++enum charge_type_value_index {
++	CT_OFF,
++	CT_AWAKE,
++	CT_ASLEEP,
++	CT_ALWAYS,
 +};
 +
-+static u8 charge_bypass_values_x1[] = {
-+	[CBP_OFF] = 0x00,
-+	[CBP_AWAKE] = OXP_X1_CHARGE_BYPASS_MASK_AWAKE,
-+	[CBP_ASLEEP] = OXP_X1_CHARGE_BYPASS_MASK_AWAKE | OXP_X1_CHARGE_BYPASS_MASK_SLEEP,
-+	[CBP_ALWAYS] = OXP_X1_CHARGE_BYPASS_MASK_AWAKE | OXP_X1_CHARGE_BYPASS_MASK_SLEEP | OXP_X1_CHARGE_BYPASS_MASK_OFF,
++static u8 charge_type_values_x1[] = {
++	[CT_OFF] = 0x00,
++	[CT_AWAKE] = OXP_X1_CHARGE_BYPASS_MASK_AWAKE,
++	[CT_ASLEEP] = OXP_X1_CHARGE_BYPASS_MASK_AWAKE | OXP_X1_CHARGE_BYPASS_MASK_SLEEP,
++	[CT_ALWAYS] = OXP_X1_CHARGE_BYPASS_MASK_AWAKE | OXP_X1_CHARGE_BYPASS_MASK_SLEEP | OXP_X1_CHARGE_BYPASS_MASK_OFF,
 +};
 +
-+static const char * const charge_bypass_strings[] = {
-+	[CBP_OFF] = "off",
-+	[CBP_AWAKE] = "awake",
-+	[CBP_ASLEEP] = "asleep",
-+	[CBP_ALWAYS] = "always",
++static const char * const charge_type_strings[] = {
++	[CT_OFF] = "Standard",
++	[CT_AWAKE] = "BypassAwake",
++	[CT_ASLEEP] = "BypassAsleep",
++	[CT_ALWAYS] = "Bypass",
 +};
 +
 +
  static const struct dmi_system_id dmi_table[] = {
  	{
  		.matches = {
-@@ -380,6 +409,135 @@ static ssize_t tt_toggle_show(struct device *dev,
+@@ -380,6 +411,172 @@ static ssize_t tt_toggle_show(struct device *dev,
  
  static DEVICE_ATTR_RW(tt_toggle);
  
 +/* Callbacks for turbo toggle attribute */
-+static umode_t charge_is_visible(struct kobject *kobj,
-+				    struct attribute *attr, int n)
++static bool charge_control_supported(void)
 +{
 +	switch (board) {
 +	case oxp_x1:
-+		return attr->mode;
++		return 1;
 +	default:
 +		break;
 +	}
 +	return 0;
 +}
 +
-+static ssize_t charge_bypass_store(struct device *dev,
++static ssize_t charge_type_store(struct device *dev,
 +			       struct device_attribute *attr, const char *buf,
 +			       size_t count)
 +{
 +	u64 val, reg;
 +	int ret;
 +
-+	ret = __sysfs_match_string(charge_bypass_strings,
-+				   ARRAY_SIZE(charge_bypass_strings), buf);
++	ret = __sysfs_match_string(charge_type_strings,
++				   ARRAY_SIZE(charge_type_strings), buf);
 +	if (ret < 0)
 +		return ret;
 +
 +	switch (board) {
 +	case oxp_x1:
-+		val = charge_bypass_values_x1[ret];
++		val = charge_type_values_x1[ret];
 +		reg = OXP_X1_CHARGE_BYPASS_REG;
 +		break;
 +	default:
@@ -10994,7 +11027,7 @@ index b6d06370469d..12a519cfeec5 100644
 +	return count;
 +}
 +
-+static ssize_t charge_bypass_show(struct device *dev,
++static ssize_t charge_type_show(struct device *dev,
 +			      struct device_attribute *attr, char *buf)
 +{
 +	int ret;
@@ -11005,7 +11038,7 @@ index b6d06370469d..12a519cfeec5 100644
 +
 +	switch (board) {
 +	case oxp_x1:
-+		vals = charge_bypass_values_x1;
++		vals = charge_type_values_x1;
 +		reg = OXP_X1_CHARGE_BYPASS_REG;
 +		break;
 +	default:
@@ -11016,10 +11049,10 @@ index b6d06370469d..12a519cfeec5 100644
 +	if (ret < 0)
 +		return ret;
 +
-+	str = (char *) charge_bypass_strings[0];
-+	for (ret = 0; ret < ARRAY_SIZE(charge_bypass_strings); ret++) {
++	str = (char *) charge_type_strings[0];
++	for (ret = 0; ret < ARRAY_SIZE(charge_type_strings); ret++) {
 +		if (val == vals[ret]) {
-+			str = (char *) charge_bypass_strings[ret];
++			str = (char *) charge_type_strings[ret];
 +			break;
 +		}
 +	}
@@ -11027,16 +11060,16 @@ index b6d06370469d..12a519cfeec5 100644
 +	return sysfs_emit(buf, "%s\n", str);
 +}
 +
-+static DEVICE_ATTR_RW(charge_bypass);
++static DEVICE_ATTR_RW(charge_type);
 +
-+static ssize_t charge_limit_store(struct device *dev,
++static ssize_t charge_control_end_threshold_store(struct device *dev,
 +			       struct device_attribute *attr, const char *buf,
 +			       size_t count)
 +{
 +	u64 val, reg;
 +	int ret;
 +
-+	ret = kstrtou64(buf, 0, &val);
++	ret = kstrtou64(buf, 10, &val);
 +	if (ret < 0)
 +		return ret;
 +
@@ -11058,7 +11091,7 @@ index b6d06370469d..12a519cfeec5 100644
 +	return count;
 +}
 +
-+static ssize_t charge_limit_show(struct device *dev,
++static ssize_t charge_control_end_threshold_show(struct device *dev,
 +			      struct device_attribute *attr, char *buf)
 +{
 +	int ret;
@@ -11080,12 +11113,50 @@ index b6d06370469d..12a519cfeec5 100644
 +	return sysfs_emit(buf, "%ld\n", val);
 +}
 +
-+static DEVICE_ATTR_RW(charge_limit);
++static DEVICE_ATTR_RW(charge_control_end_threshold);
++
++static int oxp_battery_add(struct power_supply *battery, struct acpi_battery_hook *hook)
++{
++	/* OneXPlayer devices only have one battery. */
++	if (strcmp(battery->desc->name, "BAT0") != 0 &&
++	    strcmp(battery->desc->name, "BAT1") != 0 &&
++	    strcmp(battery->desc->name, "BATC") != 0 &&
++	    strcmp(battery->desc->name, "BATT") != 0)
++		return -ENODEV;
++
++	if (device_create_file(&battery->dev,
++	    &dev_attr_charge_control_end_threshold))
++		return -ENODEV;
++	
++	if (device_create_file(&battery->dev,
++	    &dev_attr_charge_type)) {
++		device_remove_file(&battery->dev,
++				&dev_attr_charge_control_end_threshold);
++		return -ENODEV;
++	}
++
++	return 0;
++}
++
++static int oxp_battery_remove(struct power_supply *battery, struct acpi_battery_hook *hook)
++{
++	device_remove_file(&battery->dev,
++			   &dev_attr_charge_control_end_threshold);
++	device_remove_file(&battery->dev,
++			   &dev_attr_charge_type);
++	return 0;
++}
++
++static struct acpi_battery_hook battery_hook = {
++	.add_battery = oxp_battery_add,
++	.remove_battery = oxp_battery_remove,
++	.name = "OneXPlayer Battery",
++};
 +
  /* PWM enable/disable functions */
  static int oxp_pwm_enable(void)
  {
-@@ -623,18 +781,30 @@ static const struct hwmon_channel_info * const oxp_platform_sensors[] = {
+@@ -623,18 +820,18 @@ static const struct hwmon_channel_info * const oxp_platform_sensors[] = {
  	NULL,
  };
  
@@ -11100,26 +11171,33 @@ index b6d06370469d..12a519cfeec5 100644
  	.is_visible = tt_toggle_is_visible,
 -	.attrs = oxp_ec_attrs,
 +	.attrs = oxp_turbo_attrs,
-+};
-+
-+static struct attribute *oxp_charge_attrs[] = {
-+	&dev_attr_charge_bypass.attr,
-+	&dev_attr_charge_limit.attr,
-+	NULL
-+};
-+
-+static struct attribute_group oxp_charge_attribute_group = {
-+	.is_visible = charge_is_visible,
-+	.attrs = oxp_charge_attrs,
  };
  
  static const struct attribute_group *oxp_ec_groups[] = {
 -	&oxp_ec_attribute_group,
 +	&oxp_turbo_attribute_group,
-+	&oxp_charge_attribute_group,
  	NULL
  };
  
+@@ -693,6 +890,9 @@ static int __init oxp_platform_init(void)
+ 		platform_create_bundle(&oxp_platform_driver,
+ 				       oxp_platform_probe, NULL, 0, NULL, 0);
+ 
++	if (charge_control_supported())
++		battery_hook_register(&battery_hook);
++
+ 	return PTR_ERR_OR_ZERO(oxp_platform_device);
+ }
+ 
+@@ -700,6 +900,8 @@ static void __exit oxp_platform_exit(void)
+ {
+ 	platform_device_unregister(oxp_platform_device);
+ 	platform_driver_unregister(&oxp_platform_driver);
++	if (charge_control_supported())
++		battery_hook_unregister(&battery_hook);
+ }
+ 
+ MODULE_DEVICE_TABLE(dmi, dmi_table);
 -- 
 2.47.0
 
@@ -11134,10 +11212,10 @@ Subject: hwmon: (oxp-sensors) Add turbo led support (partial; for X1)
  1 file changed, 62 insertions(+)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index 12a519cfeec5..940b1cfb6466 100644
+index 19845117091e..fbe88dd59e87 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
-@@ -96,6 +96,11 @@ static enum oxp_board board;
+@@ -98,6 +98,11 @@ static enum oxp_board board;
  #define OXP_X1_CHARGE_BYPASS_MASK_SLEEP 0x02 /* Asleep and Off might be swapped */
  #define OXP_X1_CHARGE_BYPASS_MASK_OFF   0x08
  
@@ -11146,10 +11224,10 @@ index 12a519cfeec5..940b1cfb6466 100644
 +#define OXP_X1_TURBO_LED_OFF           0x01
 +#define OXP_X1_TURBO_LED_ON            0x02
 +
- enum charge_bypass_value_index {
- 	CBP_OFF,
- 	CBP_AWAKE,
-@@ -409,6 +414,62 @@ static ssize_t tt_toggle_show(struct device *dev,
+ enum charge_type_value_index {
+ 	CT_OFF,
+ 	CT_AWAKE,
+@@ -411,6 +416,62 @@ static ssize_t tt_toggle_show(struct device *dev,
  
  static DEVICE_ATTR_RW(tt_toggle);
  
@@ -11210,9 +11288,9 @@ index 12a519cfeec5..940b1cfb6466 100644
 +static DEVICE_ATTR_RW(tt_led);
 +
  /* Callbacks for turbo toggle attribute */
- static umode_t charge_is_visible(struct kobject *kobj,
- 				    struct attribute *attr, int n)
-@@ -783,6 +844,7 @@ static const struct hwmon_channel_info * const oxp_platform_sensors[] = {
+ static bool charge_control_supported(void)
+ {
+@@ -822,6 +883,7 @@ static const struct hwmon_channel_info * const oxp_platform_sensors[] = {
  
  static struct attribute *oxp_turbo_attrs[] = {
  	&dev_attr_tt_toggle.attr,
@@ -11360,6 +11438,66 @@ index e863ccd38c82..1d61e718dfd6 100644
  	}, {	/* AYA NEO NEXT */
  		.matches = {
  		  DMI_EXACT_MATCH(DMI_BOARD_VENDOR, "AYANEO"),
+-- 
+2.47.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alesh Slovak <alesh@playtron.one>
+Date: Tue, 30 Jul 2024 20:40:06 -0400
+Subject: drm: panel-orientation-quirks: Add Aya Neo 2S orientation quirk
+
+---
+ drivers/gpu/drm/drm_panel_orientation_quirks.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/gpu/drm/drm_panel_orientation_quirks.c b/drivers/gpu/drm/drm_panel_orientation_quirks.c
+index 1d61e718dfd6..26b800e30cc4 100644
+--- a/drivers/gpu/drm/drm_panel_orientation_quirks.c
++++ b/drivers/gpu/drm/drm_panel_orientation_quirks.c
+@@ -190,6 +190,12 @@ static const struct dmi_system_id orientation_data[] = {
+ 		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "AYANEO 2"),
+ 		},
+ 		.driver_data = (void *)&lcd1200x1920_rightside_up,
++	}, {	/* AYA NEO AYANEO 2S */
++		.matches = {
++		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "AYANEO"),
++		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "AYANEO 2S"),
++		},
++		.driver_data = (void *)&lcd1200x1920_rightside_up,
+ 	}, {	/* AYA NEO 2021 */
+ 		.matches = {
+ 		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "AYADEVICE"),
+-- 
+2.47.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Bouke Sybren Haarsma <boukehaarsma23@gmail.com>
+Date: Thu, 8 Aug 2024 15:19:32 +0200
+Subject: drm: panel-orientation-quirks: Add AYANEO FLIP DS quirk
+
+---
+ drivers/gpu/drm/drm_panel_orientation_quirks.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/gpu/drm/drm_panel_orientation_quirks.c b/drivers/gpu/drm/drm_panel_orientation_quirks.c
+index 26b800e30cc4..5eb1d9e26ee3 100644
+--- a/drivers/gpu/drm/drm_panel_orientation_quirks.c
++++ b/drivers/gpu/drm/drm_panel_orientation_quirks.c
+@@ -196,6 +196,12 @@ static const struct dmi_system_id orientation_data[] = {
+ 		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "AYANEO 2S"),
+ 		},
+ 		.driver_data = (void *)&lcd1200x1920_rightside_up,
++	}, {	/* AYA NEO FLIP DS */
++		.matches = {
++			DMI_EXACT_MATCH(DMI_SYS_VENDOR, "AYANEO"),
++			DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "FLIP DS"),
++		},
++		.driver_data = (void *)&lcd1080x1920_leftside_up,
+ 	}, {	/* AYA NEO 2021 */
+ 		.matches = {
+ 		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "AYADEVICE"),
 -- 
 2.47.0
 
@@ -31725,11 +31863,11 @@ Date: Mon, 28 Oct 2024 00:16:12 +0100
 Subject: Codec: aw87xxx: add dmi match for handheld devices
 
 ---
- sound/soc/codecs/aw87xxx/aw87xxx.c | 38 ++++++++++++++++++++++++++++--
- 1 file changed, 36 insertions(+), 2 deletions(-)
+ sound/soc/codecs/aw87xxx/aw87xxx.c | 51 ++++++++++++++++++++++++++++--
+ 1 file changed, 49 insertions(+), 2 deletions(-)
 
 diff --git a/sound/soc/codecs/aw87xxx/aw87xxx.c b/sound/soc/codecs/aw87xxx/aw87xxx.c
-index 710f9b6109de..44db61c01a25 100644
+index 710f9b6109de..2fa221aa9c9f 100644
 --- a/sound/soc/codecs/aw87xxx/aw87xxx.c
 +++ b/sound/soc/codecs/aw87xxx/aw87xxx.c
 @@ -33,6 +33,7 @@
@@ -31740,7 +31878,7 @@ index 710f9b6109de..44db61c01a25 100644
  #include <linux/dma-mapping.h>
  #include <linux/gameport.h>
  #include <linux/moduleparam.h>
-@@ -832,6 +833,35 @@ static void aw87xxx_fw_load_work_routine(struct work_struct *work)
+@@ -832,6 +833,48 @@ static void aw87xxx_fw_load_work_routine(struct work_struct *work)
  	}
  }
  
@@ -31766,6 +31904,19 @@ index 710f9b6109de..44db61c01a25 100644
 +	},
 +	{
 +		.matches = {
++			DMI_MATCH(DMI_PRODUCT_NAME, "AIR Plus"),
++		},
++		.driver_data = (void *)"aw87xxx_acf_airplus.bin",
++	},
++	{
++		.matches = {
++		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "AYANEO"),
++		  DMI_MATCH(DMI_PRODUCT_NAME, "FLIP"),
++		},
++		.driver_data = (void *)"aw87xxx_acf_flip.bin",
++	},
++	{
++		.matches = {
 +			DMI_MATCH(DMI_PRODUCT_NAME, "NEO-01"),
 +		},
 +		.driver_data = (void *)"aw87xxx_acf_orangepi.bin",
@@ -31776,7 +31927,7 @@ index 710f9b6109de..44db61c01a25 100644
  static void aw87xxx_fw_load_init(struct aw87xxx *aw87xxx)
  {
  #ifdef AW_CFG_UPDATE_DELAY
-@@ -839,8 +869,12 @@ static void aw87xxx_fw_load_init(struct aw87xxx *aw87xxx)
+@@ -839,8 +882,12 @@ static void aw87xxx_fw_load_init(struct aw87xxx *aw87xxx)
  #else
  	int cfg_timer_val = 0;
  #endif
@@ -33561,10 +33712,10 @@ Subject: drm: panel-orientation-quirks: Add quirk for Valve Galileo
  1 file changed, 7 insertions(+)
 
 diff --git a/drivers/gpu/drm/drm_panel_orientation_quirks.c b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-index 1d61e718dfd6..7df8f6b94ff0 100644
+index 5eb1d9e26ee3..91b0ce21aa1d 100644
 --- a/drivers/gpu/drm/drm_panel_orientation_quirks.c
 +++ b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-@@ -476,6 +476,13 @@ static const struct dmi_system_id orientation_data[] = {
+@@ -488,6 +488,13 @@ static const struct dmi_system_id orientation_data[] = {
  		  DMI_EXACT_MATCH(DMI_PRODUCT_VERSION, "1"),
  		},
  		.driver_data = (void *)&lcd800x1280_rightside_up,
