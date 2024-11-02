@@ -3,12 +3,8 @@ name: Build Bazzite Kernel
 on:
   workflow_dispatch:
     inputs:
-      # promote:
-      #   description: 'Promote after build'
-      #   type: boolean
-      #   default: true
       arm:
-        description: 'Build arm version'
+        description: 'Build arm version only'
         type: boolean
         default: false
   release:
@@ -23,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: ${{ github.event.inputs.arm == 'true' && fromJSON('["aarch64"]') || fromJSON('["x86_64"]') }}
+        arch: ${{ github.event.inputs.arm == 'true' && fromJSON('["aarch64"]') || fromJSON('["aarch64", "x86_64"]') }}
         fedora_version: [41]
     runs-on: ${{ matrix.arch == 'aarch64' && 'ARM64' || 'ubuntu-24.04' }}
 
@@ -116,4 +112,4 @@ jobs:
               x86_64/linux-*.pkg.tar.zst
               x86_64/linux-*.pkg.tar.zst.sig
             fail_on_unmatched_files: false
-            make_latest: true
+            make_latest: ${{ github.event.release.prerelease == false }}
