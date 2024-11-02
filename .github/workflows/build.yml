@@ -19,13 +19,13 @@ permissions:
 
 jobs:
   build_kernel:
-    runs-on: ${{ github.event.inputs.arm == 'true' && 'ARM64' || 'ubuntu-24.04' }}
     environment: prod
     strategy:
       fail-fast: false
       matrix:
-        arch: ${{ github.event.inputs.arm == 'true' && '[aarch64]' || '[x86_64]' }}
+        arch: ${{ github.event.inputs.arm == 'true' && [aarch64] || [x86_64] }}
         fedora_version: [41]
+    runs-on: ${{ matrix.arch == 'aarch64' && 'ARM64' || 'ubuntu-24.04' }}
 
     steps:
       - name: Maximize build space
