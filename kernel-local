@@ -117,7 +117,8 @@ CONFIG_SND_SOC_AW87XXX=m
 # Batocera ARM stuff
 CONFIG_PHY_QCOM_QMP=y
 CONFIG_PHY_QCOM_QMP_UFS=y
-CONFIG_SCSI_UFS_QCOM=y
+ # batocera had y
+CONFIG_SCSI_UFS_QCOM=m
 
 CONFIG_DRM_PANEL_DDIC_CH13726A=m
 
@@ -133,14 +134,14 @@ CONFIG_REGULATOR_QCOM_USB_VBUS=m
 CONFIG_CHARGER_QCOM_SMB5=m
 CONFIG_BATTERY_QCOM_FG=m
 
-CONFIG_DRM_HDLCD=n
-CONFIG_DRM_MALI_DISPLAY=n
-CONFIG_DRM_KOMEDA=n
-CONFIG_DRM_NOUVEAU=n
-CONFIG_DRM_EXYNOS=n
-CONFIG_DRM_ROCKCHIP=n
-CONFIG_DRM_RCAR_DU=n
-CONFIG_DRM_SUN4I=n
-CONFIG_DRM_RZG2L_MIPI_DSI=n
-CONFIG_DRM_RZG2L_DU=n
-CONFIG_DRM_TEGRA=n
+# from batoceran, ignore for now # CONFIG_DRM_HDLCD is not set
+# from batoceran, ignore for now # CONFIG_DRM_MALI_DISPLAY is not set
+# from batoceran, ignore for now # CONFIG_DRM_KOMEDA is not set
+# from batoceran, ignore for now # CONFIG_DRM_NOUVEAU is not set
+# from batoceran, ignore for now # CONFIG_DRM_EXYNOS is not set
+# from batoceran, ignore for now # CONFIG_DRM_ROCKCHIP is not set
+# from batoceran, ignore for now # CONFIG_DRM_RCAR_DU is not set
+# from batoceran, ignore for now # CONFIG_DRM_SUN4I is not set
+# from batoceran, ignore for now # CONFIG_DRM_RZG2L_MIPI_DSI is not set
+# from batoceran, ignore for now # CONFIG_DRM_RZG2L_DU is not set
+# from batoceran, ignore for now # CONFIG_DRM_TEGRA is not set
