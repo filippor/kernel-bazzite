@@ -161,18 +161,18 @@ Summary: The Linux kernel
 %define debugbuildsenabled 1
 %define buildid .bazzite
 # define buildid .local
-%define specrpmversion 6.11.5
-%define specversion 6.11.5
+%define specrpmversion 6.11.6
+%define specversion 6.11.6
 %define patchversion 6.11
 %define pkgrelease 300
 %define kversion 6
-%define tarfile_release 6.11.5
+%define tarfile_release 6.11.6
 # This is needed to do merge window version magic
 %define patchlevel 11
 # This allows pkg_release to have configurable %%{?dist} tag
 %define specrelease 310%{?buildid}%{?dist}
 # This defines the kabi tarball version
-%define kabiversion 6.11.5
+%define kabiversion 6.11.6
 
 # If this variable is set to 1, a bpf selftests build failure will cause a
 # fatal kernel package build error
@@ -4120,6 +4120,9 @@ fi\
 #
 #
 %changelog
+* Fri Nov 01 2024 Augusto Caringi <acaringi@redhat.com> [6.11.6-0]
+- Linux v6.11.6
+
 * Tue Oct 22 2024 Augusto Caringi <acaringi@redhat.com> [6.11.5-0]
 - Revert "fedora/configs: enable GPIO expander drivers" (Justin M. Forbes)
 - Add bluetooth bzs to BugsFixed (Justin M. Forbes)
