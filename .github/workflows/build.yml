@@ -29,18 +29,11 @@ jobs:
 
     steps:
       - name: Maximize build space
+        if: matrix.arch == 'x86_64'
         uses: ublue-os/remove-unwanted-software@v7
 
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      # - name: Get ccache key
-      #   id: ccache_key
-      #   run: |
-      #     KVER=$(cat kernel.spec | grep -m 1 '%define specversion' | rev | cut -d' ' -f 1 | rev)
-      #     CCACHE_KEY=$KVER-${{ matrix.arch }}-${{ matrix.fedora_version }}
-      #     echo "Ccache key is '$CCACHE_KEY'"
-      #     echo "ccache-key=$CCACHE_KEY" >> $GITHUB_OUTPUT
 
       - name: Create Build Environment
         run: |
