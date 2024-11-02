@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: ${{ github.event.inputs.arm == 'true' && "[aarch64]" || "[x86_64]" }}
+        arch: ${{ github.event.inputs.arm == 'true' && '[aarch64]' || '[x86_64]' }}
         fedora_version: [41]
 
     steps:
