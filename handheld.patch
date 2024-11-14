@@ -116,10 +116,10 @@ index 0fbcb5b6d7bf..8e9aa9131569 100644
  
  #define MEMBER(T, member, ...) T member;
 diff --git a/drivers/gpu/drm/xe/xe_device_types.h b/drivers/gpu/drm/xe/xe_device_types.h
-index a7c7812d5791..51ca0d6aea26 100644
+index ebdb6f2d1ca7..1d2900ad8477 100644
 --- a/drivers/gpu/drm/xe/xe_device_types.h
 +++ b/drivers/gpu/drm/xe/xe_device_types.h
-@@ -539,6 +539,9 @@ struct xe_device {
+@@ -533,6 +533,9 @@ struct xe_device {
  		unsigned int czclk_freq;
  		unsigned int fsb_freq, mem_freq, is_ddr3;
  	};
@@ -153,7 +153,7 @@ Subject: revert 1101185bc50f5e45b8b89300914d9aa35a0c8cbe
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 4f19e9736a67..029457a3e258 100644
+index 245a26cdfc52..1bef9af0dee6 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -6673,6 +6673,8 @@ create_stream_for_sink(struct drm_connector *connector,
@@ -226,7 +226,7 @@ Link: https://lore.kernel.org/r/20220830172851.269402-4-contact@emersion.fr
  6 files changed, 16 insertions(+)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 029457a3e258..fb0e63e6cdf2 100644
+index 1bef9af0dee6..42ef8d2bd225 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -4422,6 +4422,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
@@ -340,7 +340,7 @@ Link: https://lore.kernel.org/r/20220830172851.269402-7-contact@emersion.fr
  1 file changed, 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index fb0e63e6cdf2..029457a3e258 100644
+index 42ef8d2bd225..1bef9af0dee6 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -4422,7 +4422,6 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
@@ -384,7 +384,7 @@ Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 029457a3e258..5266424ce15b 100644
+index 1bef9af0dee6..f15c48f3a461 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -6673,7 +6673,7 @@ create_stream_for_sink(struct drm_connector *connector,
@@ -9907,10 +9907,10 @@ Signed-off-by: Jonathan LoBue <jlobue10@gmail.com>
  1 file changed, 8 insertions(+)
 
 diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
-index 2583081c0a3a..57e7ac46a9be 100644
+index 660fd984a928..28d64002645b 100644
 --- a/sound/pci/hda/patch_realtek.c
 +++ b/sound/pci/hda/patch_realtek.c
-@@ -7643,6 +7643,7 @@ enum {
+@@ -7645,6 +7645,7 @@ enum {
  	ALC285_FIXUP_THINKPAD_X1_GEN7,
  	ALC285_FIXUP_THINKPAD_HEADSET_JACK,
  	ALC294_FIXUP_ASUS_ALLY,
@@ -9918,7 +9918,7 @@ index 2583081c0a3a..57e7ac46a9be 100644
  	ALC294_FIXUP_ASUS_ALLY_PINS,
  	ALC294_FIXUP_ASUS_ALLY_VERBS,
  	ALC294_FIXUP_ASUS_ALLY_SPEAKER,
-@@ -9121,6 +9122,12 @@ static const struct hda_fixup alc269_fixups[] = {
+@@ -9135,6 +9136,12 @@ static const struct hda_fixup alc269_fixups[] = {
  		.chained = true,
  		.chain_id = ALC294_FIXUP_ASUS_ALLY_PINS
  	},
@@ -9931,7 +9931,7 @@ index 2583081c0a3a..57e7ac46a9be 100644
  	[ALC294_FIXUP_ASUS_ALLY_PINS] = {
  		.type = HDA_FIXUP_PINS,
  		.v.pins = (const struct hda_pintbl[]) {
-@@ -10596,6 +10603,7 @@ static const struct snd_pci_quirk alc269_fixup_tbl[] = {
+@@ -10610,6 +10617,7 @@ static const struct snd_pci_quirk alc269_fixup_tbl[] = {
  	SND_PCI_QUIRK(0x1043, 0x1740, "ASUS UX430UA", ALC295_FIXUP_ASUS_DACS),
  	SND_PCI_QUIRK(0x1043, 0x17d1, "ASUS UX431FL", ALC294_FIXUP_ASUS_DUAL_SPK),
  	SND_PCI_QUIRK(0x1043, 0x17f3, "ROG Ally NR2301L/X", ALC294_FIXUP_ASUS_ALLY),
@@ -31950,10 +31950,10 @@ Co-developed-by: linh1987
  1 file changed, 10 insertions(+)
 
 diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
-index 57e7ac46a9be..775b232b8de3 100644
+index 28d64002645b..6de3ad58ed63 100644
 --- a/sound/pci/hda/patch_realtek.c
 +++ b/sound/pci/hda/patch_realtek.c
-@@ -7525,6 +7525,7 @@ enum {
+@@ -7526,6 +7526,7 @@ enum {
  	ALC269VB_FIXUP_ASUS_ZENBOOK,
  	ALC269VB_FIXUP_ASUS_ZENBOOK_UX31A,
  	ALC269VB_FIXUP_ASUS_MIC_NO_PRESENCE,
@@ -31961,7 +31961,7 @@ index 57e7ac46a9be..775b232b8de3 100644
  	ALC269_FIXUP_LIMIT_INT_MIC_BOOST_MUTE_LED,
  	ALC269VB_FIXUP_ORDISSIMO_EVE2,
  	ALC283_FIXUP_CHROME_BOOK,
-@@ -8276,6 +8277,13 @@ static const struct hda_fixup alc269_fixups[] = {
+@@ -8284,6 +8285,13 @@ static const struct hda_fixup alc269_fixups[] = {
  		.chained = true,
  		.chain_id = ALC269_FIXUP_HEADSET_MIC
  	},
@@ -31975,7 +31975,7 @@ index 57e7ac46a9be..775b232b8de3 100644
  	[ALC269_FIXUP_LIMIT_INT_MIC_BOOST_MUTE_LED] = {
  		.type = HDA_FIXUP_FUNC,
  		.v.func = alc269_fixup_limit_int_mic_boost,
-@@ -10973,6 +10981,7 @@ static const struct snd_pci_quirk alc269_fixup_tbl[] = {
+@@ -10989,6 +10997,7 @@ static const struct snd_pci_quirk alc269_fixup_tbl[] = {
  	SND_PCI_QUIRK(0x2782, 0x0214, "VAIO VJFE-CL", ALC269_FIXUP_LIMIT_INT_MIC_BOOST),
  	SND_PCI_QUIRK(0x2782, 0x0232, "CHUWI CoreBook XPro", ALC269VB_FIXUP_CHUWI_COREBOOK_XPRO),
  	SND_PCI_QUIRK(0x2782, 0x1707, "Vaio VJFE-ADL", ALC298_FIXUP_SPK_VOLUME),
@@ -31983,7 +31983,7 @@ index 57e7ac46a9be..775b232b8de3 100644
  	SND_PCI_QUIRK(0x8086, 0x2074, "Intel NUC 8", ALC233_FIXUP_INTEL_NUC8_DMIC),
  	SND_PCI_QUIRK(0x8086, 0x2080, "Intel NUC 8 Rugged", ALC256_FIXUP_INTEL_NUC8_RUGGED),
  	SND_PCI_QUIRK(0x8086, 0x2081, "Intel NUC 10", ALC256_FIXUP_INTEL_NUC10),
-@@ -11095,6 +11104,7 @@ static const struct hda_model_fixup alc269_fixup_models[] = {
+@@ -11112,6 +11121,7 @@ static const struct hda_model_fixup alc269_fixup_models[] = {
  	{.id = ALC269VB_FIXUP_ASUS_ZENBOOK, .name = "asus-zenbook"},
  	{.id = ALC269VB_FIXUP_ASUS_ZENBOOK_UX31A, .name = "asus-zenbook-ux31a"},
  	{.id = ALC269VB_FIXUP_ORDISSIMO_EVE2, .name = "ordissimo"},
@@ -32007,7 +32007,7 @@ Co-developed-by: Bouke Sybren Haarsma <boukehaarsma23@gmail.com>
  1 file changed, 49 insertions(+)
 
 diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
-index 775b232b8de3..74bd15afedcc 100644
+index 6de3ad58ed63..d564f71d0b53 100644
 --- a/sound/pci/hda/patch_realtek.c
 +++ b/sound/pci/hda/patch_realtek.c
 @@ -6719,6 +6719,20 @@ static void alc294_gx502_toggle_output(struct hda_codec *codec,
@@ -32031,7 +32031,7 @@ index 775b232b8de3..74bd15afedcc 100644
  static void alc294_fixup_gx502_hp(struct hda_codec *codec,
  					const struct hda_fixup *fix, int action)
  {
-@@ -7512,6 +7526,8 @@ enum {
+@@ -7513,6 +7527,8 @@ enum {
  	ALC269_FIXUP_DELL4_MIC_NO_PRESENCE,
  	ALC269_FIXUP_DELL4_MIC_NO_PRESENCE_QUIET,
  	ALC269_FIXUP_HEADSET_MODE,
@@ -32040,7 +32040,7 @@ index 775b232b8de3..74bd15afedcc 100644
  	ALC269_FIXUP_HEADSET_MODE_NO_HP_MIC,
  	ALC269_FIXUP_ASPIRE_HEADSET_MIC,
  	ALC269_FIXUP_ASUS_X101_FUNC,
-@@ -7769,6 +7785,30 @@ enum {
+@@ -7771,6 +7787,30 @@ enum {
  	ALC245_FIXUP_CLEVO_NOISY_MIC,
  };
  
@@ -32071,7 +32071,7 @@ index 775b232b8de3..74bd15afedcc 100644
  /* A special fixup for Lenovo C940 and Yoga Duet 7;
   * both have the very same PCI SSID, and we need to apply different fixups
   * depending on the codec ID
-@@ -9064,6 +9104,14 @@ static const struct hda_fixup alc269_fixups[] = {
+@@ -9078,6 +9118,14 @@ static const struct hda_fixup alc269_fixups[] = {
  			{ 0x1b, 0x90170152 } /* use as internal speaker (back) */
  		}
  	},
@@ -32086,7 +32086,7 @@ index 775b232b8de3..74bd15afedcc 100644
  	[ALC299_FIXUP_PREDATOR_SPK] = {
  		.type = HDA_FIXUP_PINS,
  		.v.pins = (const struct hda_pintbl[]) {
-@@ -10981,6 +11029,7 @@ static const struct snd_pci_quirk alc269_fixup_tbl[] = {
+@@ -10997,6 +11045,7 @@ static const struct snd_pci_quirk alc269_fixup_tbl[] = {
  	SND_PCI_QUIRK(0x2782, 0x0214, "VAIO VJFE-CL", ALC269_FIXUP_LIMIT_INT_MIC_BOOST),
  	SND_PCI_QUIRK(0x2782, 0x0232, "CHUWI CoreBook XPro", ALC269VB_FIXUP_CHUWI_COREBOOK_XPRO),
  	SND_PCI_QUIRK(0x2782, 0x1707, "Vaio VJFE-ADL", ALC298_FIXUP_SPK_VOLUME),
@@ -33832,7 +33832,7 @@ index ebf83fee43bb..f0b759e8683d 100644
  	snprintf(bl_name, sizeof(bl_name),
  		 "amdgpu_bl%d", dev->primary->index);
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 5266424ce15b..b9fefe4e6d75 100644
+index f15c48f3a461..c6dc6132046e 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -162,6 +162,9 @@ MODULE_FIRMWARE(FIRMWARE_DCN_401_DMUB);
@@ -33868,7 +33868,7 @@ Signed-off-by: Gabriel Krisman Bertazi <krisman@collabora.com>
  1 file changed, 22 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index b9fefe4e6d75..872a17ff89e1 100644
+index c6dc6132046e..5276b9a4d1e6 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -4466,7 +4466,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
@@ -33952,7 +33952,7 @@ Scale back brightness range to 12bit max.
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 872a17ff89e1..ae5516c40d70 100644
+index 5276b9a4d1e6..de564aad15a4 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -163,7 +163,7 @@ MODULE_FIRMWARE(FIRMWARE_DCN_401_DMUB);
@@ -34061,7 +34061,7 @@ Signed-off-by: Joshua Ashton <joshua@froggi.es>
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index ae5516c40d70..7617bf23bcd2 100644
+index de564aad15a4..0be1f987ed8b 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -470,7 +470,7 @@ static void dm_pflip_high_irq(void *interrupt_params)
@@ -34115,7 +34115,7 @@ Should also improve latency/stutter on internal display potentially too.
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 7617bf23bcd2..9ca72b3ae912 100644
+index 0be1f987ed8b..20d884fb8be5 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -470,7 +470,7 @@ static void dm_pflip_high_irq(void *interrupt_params)
@@ -40918,7 +40918,7 @@ index df17e79c45c7..e454488c1a31 100644
 +
  endmenu
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 9ca72b3ae912..a853625955bb 100644
+index 20d884fb8be5..2355cb6d83a6 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -4448,7 +4448,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
@@ -41022,10 +41022,10 @@ This fixes 7700/7800 XT custom powercap.
  1 file changed, 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c b/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
-index 87672ca714de..d3ab0f9b5a97 100644
+index ee1bcfaae3e3..880ae00b0e6a 100644
 --- a/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
 +++ b/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
-@@ -2740,7 +2740,6 @@ int smu_get_power_limit(void *handle,
+@@ -2763,7 +2763,6 @@ int smu_get_power_limit(void *handle,
  		case SMU_PPT_LIMIT_CURRENT:
  			switch (amdgpu_ip_version(adev, MP1_HWIP, 0)) {
  			case IP_VERSION(13, 0, 2):
@@ -42139,7 +42139,7 @@ index c2f1fd95a821..fe782cd77388 100644
 +	    Documentation/scheduler/sched-ext.rst
 +	    https://github.com/sched-ext/scx
 diff --git a/kernel/fork.c b/kernel/fork.c
-index 6b97fb2ac4af..0844b59dc082 100644
+index dc08a2374733..2c41c91a6495 100644
 --- a/kernel/fork.c
 +++ b/kernel/fork.c
 @@ -23,6 +23,7 @@
@@ -42150,7 +42150,7 @@ index 6b97fb2ac4af..0844b59dc082 100644
  #include <linux/seq_file.h>
  #include <linux/rtmutex.h>
  #include <linux/init.h>
-@@ -969,6 +970,7 @@ void __put_task_struct(struct task_struct *tsk)
+@@ -970,6 +971,7 @@ void __put_task_struct(struct task_struct *tsk)
  	WARN_ON(refcount_read(&tsk->usage));
  	WARN_ON(tsk == current);
  
@@ -42158,7 +42158,7 @@ index 6b97fb2ac4af..0844b59dc082 100644
  	io_uring_free(tsk);
  	cgroup_free(tsk);
  	task_numa_free(tsk, true);
-@@ -2344,7 +2346,7 @@ __latent_entropy struct task_struct *copy_process(
+@@ -2346,7 +2348,7 @@ __latent_entropy struct task_struct *copy_process(
  
  	retval = perf_event_init_task(p, clone_flags);
  	if (retval)
@@ -42167,7 +42167,7 @@ index 6b97fb2ac4af..0844b59dc082 100644
  	retval = audit_alloc(p);
  	if (retval)
  		goto bad_fork_cleanup_perf;
-@@ -2477,7 +2479,9 @@ __latent_entropy struct task_struct *copy_process(
+@@ -2479,7 +2481,9 @@ __latent_entropy struct task_struct *copy_process(
  	 * cgroup specific, it unconditionally needs to place the task on a
  	 * runqueue.
  	 */
@@ -42178,7 +42178,7 @@ index 6b97fb2ac4af..0844b59dc082 100644
  
  	/*
  	 * From this point on we must avoid any synchronous user-space
-@@ -2523,13 +2527,13 @@ __latent_entropy struct task_struct *copy_process(
+@@ -2525,13 +2529,13 @@ __latent_entropy struct task_struct *copy_process(
  	/* Don't start children in a dying pid namespace */
  	if (unlikely(!(ns_of_pid(pid)->pid_allocated & PIDNS_ADDING))) {
  		retval = -ENOMEM;
@@ -42194,7 +42194,7 @@ index 6b97fb2ac4af..0844b59dc082 100644
  	}
  
  	/* No more failure paths after this point. */
-@@ -2603,10 +2607,11 @@ __latent_entropy struct task_struct *copy_process(
+@@ -2605,10 +2609,11 @@ __latent_entropy struct task_struct *copy_process(
  
  	return p;
  
@@ -42207,7 +42207,7 @@ index 6b97fb2ac4af..0844b59dc082 100644
  	cgroup_cancel_fork(p, args);
  bad_fork_put_pidfd:
  	if (clone_flags & CLONE_PIDFD) {
-@@ -2645,6 +2650,8 @@ __latent_entropy struct task_struct *copy_process(
+@@ -2647,6 +2652,8 @@ __latent_entropy struct task_struct *copy_process(
  	audit_free(p);
  bad_fork_cleanup_perf:
  	perf_event_free_task(p);
@@ -50410,7 +50410,7 @@ index 000000000000..246019519231
 +#endif	/* CONFIG_EXT_GROUP_SCHED */
 +#endif	/* CONFIG_CGROUP_SCHED */
 diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
-index 1d2cbdb162a6..718c92335979 100644
+index 425348b8d9eb..b27fd3fc7d67 100644
 --- a/kernel/sched/fair.c
 +++ b/kernel/sched/fair.c
 @@ -3844,7 +3844,8 @@ static void reweight_entity(struct cfs_rq *cfs_rq, struct sched_entity *se,
@@ -59225,10 +59225,10 @@ index 38ef6d06888e..253c566b5946 100644
  config SCHED_HRTICK
  	def_bool HIGH_RES_TIMERS
 diff --git a/kernel/fork.c b/kernel/fork.c
-index 0844b59dc082..cd74836fbe1f 100644
+index 2c41c91a6495..7714d639f4bf 100644
 --- a/kernel/fork.c
 +++ b/kernel/fork.c
-@@ -112,6 +112,8 @@
+@@ -113,6 +113,8 @@
  #include <asm/cacheflush.h>
  #include <asm/tlbflush.h>
  
@@ -59237,7 +59237,7 @@ index 0844b59dc082..cd74836fbe1f 100644
  #include <trace/events/sched.h>
  
  #define CREATE_TRACE_POINTS
-@@ -2343,6 +2345,9 @@ __latent_entropy struct task_struct *copy_process(
+@@ -2345,6 +2347,9 @@ __latent_entropy struct task_struct *copy_process(
  	retval = sched_fork(clone_flags, p);
  	if (retval)
  		goto bad_fork_cleanup_policy;
@@ -59776,7 +59776,7 @@ index c057ef46c5f8..3cab39e34824 100644
  	P(se.avg.runnable_sum);
  	P(se.avg.util_sum);
 diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
-index 718c92335979..603d72b9e6e8 100644
+index b27fd3fc7d67..b93a3beab6b7 100644
 --- a/kernel/sched/fair.c
 +++ b/kernel/sched/fair.c
 @@ -55,6 +55,8 @@
@@ -60787,10 +60787,10 @@ This reverts commit 907830b0fc9e374d00f3c83de5e426157b482c01.
  1 file changed, 1 insertion(+), 7 deletions(-)
 
 diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index 85ced6958d6d..a74c31e032c8 100644
+index 51407c376a22..b11aa92e8e97 100644
 --- a/drivers/pci/pci.c
 +++ b/drivers/pci/pci.c
-@@ -3743,14 +3743,8 @@ u32 pci_rebar_get_possible_sizes(struct pci_dev *pdev, int bar)
+@@ -3747,14 +3747,8 @@ u32 pci_rebar_get_possible_sizes(struct pci_dev *pdev, int bar)
  		return 0;
  
  	pci_read_config_dword(pdev, pos + PCI_REBAR_CAP, &cap);
@@ -61125,10 +61125,10 @@ index d5d6ab484e5a..dccba7bcdf97 100644
  }
  
 diff --git a/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c b/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
-index d3ab0f9b5a97..2ad827bcd8f1 100644
+index 880ae00b0e6a..07eb5dea799d 100644
 --- a/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
 +++ b/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
-@@ -2761,7 +2761,10 @@ int smu_get_power_limit(void *handle,
+@@ -2784,7 +2784,10 @@ int smu_get_power_limit(void *handle,
  			*limit = smu->max_power_limit;
  			break;
  		case SMU_PPT_LIMIT_MIN:
@@ -61140,7 +61140,7 @@ index d3ab0f9b5a97..2ad827bcd8f1 100644
  			break;
  		default:
  			return -EINVAL;
-@@ -2785,7 +2788,14 @@ static int smu_set_power_limit(void *handle, uint32_t limit)
+@@ -2808,7 +2811,14 @@ static int smu_set_power_limit(void *handle, uint32_t limit)
  		if (smu->ppt_funcs->set_power_limit)
  			return smu->ppt_funcs->set_power_limit(smu, limit_type, limit);
  
@@ -67715,7 +67715,7 @@ Closes: https://gitlab.freedesktop.org/drm/amd/-/issues/3732
  1 file changed, 12 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/pm/swsmu/smu13/smu_v13_0_0_ppt.c b/drivers/gpu/drm/amd/pm/swsmu/smu13/smu_v13_0_0_ppt.c
-index cb923e33fd6f..1d024b122b0c 100644
+index 5dd7ceca64fe..177f2db5701c 100644
 --- a/drivers/gpu/drm/amd/pm/swsmu/smu13/smu_v13_0_0_ppt.c
 +++ b/drivers/gpu/drm/amd/pm/swsmu/smu13/smu_v13_0_0_ppt.c
 @@ -2555,16 +2555,18 @@ static int smu_v13_0_0_set_power_profile_mode(struct smu_context *smu,
@@ -67746,7 +67746,37 @@ index cb923e33fd6f..1d024b122b0c 100644
 +		}
  	}
  
- 	ret = smu_cmn_send_smc_msg_with_param(smu,
+ 	smu->workload_mask |= workload_mask;
+-- 
+2.47.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: "Luke D. Jones" <luke@ljones.dev>
+Date: Thu, 10 Oct 2024 09:58:00 +1300
+Subject: ALSA: hda/realtek: fixup ASUS GA605W
+
+The GA605W laptop has almost the exact same codec setup as the GA403
+and so the same quirks apply to it.
+
+Signed-off-by: Luke D. Jones <luke@ljones.dev>
+---
+ sound/pci/hda/patch_realtek.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
+index d564f71d0b53..b8b10eb53410 100644
+--- a/sound/pci/hda/patch_realtek.c
++++ b/sound/pci/hda/patch_realtek.c
+@@ -10718,7 +10718,7 @@ static const struct snd_pci_quirk alc269_fixup_tbl[] = {
+ 	SND_PCI_QUIRK(0x1043, 0x1e51, "ASUS Zephyrus M15", ALC294_FIXUP_ASUS_GU502_PINS),
+ 	SND_PCI_QUIRK(0x1043, 0x1e5e, "ASUS ROG Strix G513", ALC294_FIXUP_ASUS_G513_PINS),
+ 	SND_PCI_QUIRK(0x1043, 0x1e63, "ASUS H7606W", ALC285_FIXUP_CS35L56_I2C_2),
+-	SND_PCI_QUIRK(0x1043, 0x1e83, "ASUS GA605W", ALC285_FIXUP_CS35L56_I2C_2),
++	SND_PCI_QUIRK(0x1043, 0x1e83, "ASUS GA605W", ALC285_FIXUP_ASUS_GA403U_HEADSET_MIC),
+ 	SND_PCI_QUIRK(0x1043, 0x1e8e, "ASUS Zephyrus G15", ALC289_FIXUP_ASUS_GA401),
+ 	SND_PCI_QUIRK(0x1043, 0x1ed3, "ASUS HN7306W", ALC287_FIXUP_CS35L41_I2C_2),
+ 	SND_PCI_QUIRK(0x1043, 0x1ee2, "ASUS UM6702RA/RC", ALC287_FIXUP_CS35L41_I2C_2),
 -- 
 2.47.0
 
