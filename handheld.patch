@@ -69007,11 +69007,14 @@ if necessary.
 Link: https://github.com/ROCm/ROCK-Kernel-Driver/issues/174
 Link: https://gitlab.freedesktop.org/drm/amd/-/issues/3476
 Closes: https://gitlab.freedesktop.org/drm/amd/-/issues/2362
+
+Suggested-by: Antheas Kapenekakis <lkml@antheas.dev>
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
 ---
  drivers/gpu/drm/amd/amdgpu/amdgpu.h        |  1 +
- drivers/gpu/drm/amd/amdgpu/amdgpu_device.c | 40 ++++++++++++++++++++++
- 2 files changed, 41 insertions(+)
+ drivers/gpu/drm/amd/amdgpu/amdgpu_device.c | 42 ++++++++++++++++++++++
+ 2 files changed, 43 insertions(+)
 
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu.h b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
 index 233c17537492..dc05df25be91 100644
@@ -69026,7 +69029,7 @@ index 233c17537492..dc05df25be91 100644
  	struct debugfs_blob_wrapper     debugfs_vbios_blob;
  	struct debugfs_blob_wrapper     debugfs_discovery_blob;
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
-index 6fc3454e49c6..7fc9afacb355 100644
+index 6fc3454e49c6..9edb6faae605 100644
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
 @@ -145,6 +145,8 @@ const char *amdgpu_asic_name[] = {
@@ -69059,7 +69062,7 @@ index 6fc3454e49c6..7fc9afacb355 100644
  	/* make sure IB test finished before entering exclusive mode
  	 * to avoid preemption on IB test
  	 */
-@@ -4617,6 +4626,37 @@ static int amdgpu_device_evict_resources(struct amdgpu_device *adev)
+@@ -4617,6 +4626,39 @@ static int amdgpu_device_evict_resources(struct amdgpu_device *adev)
  /*
   * Suspend & resume.
   */
@@ -69087,7 +69090,9 @@ index 6fc3454e49c6..7fc9afacb355 100644
 +		r = amdgpu_device_evict_resources(adev);
 +		adev->in_s4 = false;
 +		if (r)
-+			return NOTIFY_BAD;
++			dev_err(adev->dev,
++				"presuspend eviction failed (presumably due to active"
++				"application). Suspend eviction will cleanup.\n");
 +		break;
 +	}
 +
@@ -69097,39 +69102,6 @@ index 6fc3454e49c6..7fc9afacb355 100644
  /**
   * amdgpu_device_prepare - prepare for device suspend
   *
--- 
-2.47.0
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Mario Limonciello <mario.limonciello@amd.com>
-Date: Fri, 22 Nov 2024 13:06:26 -0600
-Subject: drm/amd: Drop needless call to evict resources in prepare()
-
-As resources are now evicted by the pm notifier chain, there is
-no need to also evict them during the pm prepare() callback.
-
-Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
----
- drivers/gpu/drm/amd/amdgpu/amdgpu_device.c | 5 -----
- 1 file changed, 5 deletions(-)
-
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
-index 7fc9afacb355..9c097be4d29a 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
-@@ -4676,11 +4676,6 @@ int amdgpu_device_prepare(struct drm_device *dev)
- 	if (dev->switch_power_state == DRM_SWITCH_POWER_OFF)
- 		return 0;
- 
--	/* Evict the majority of BOs before starting suspend sequence */
--	r = amdgpu_device_evict_resources(adev);
--	if (r)
--		goto unprepare;
--
- 	flush_delayed_work(&adev->gfx.gfx_off_delay_work);
- 
- 	for (i = 0; i < adev->num_ip_blocks; i++) {
 -- 
 2.47.0
 
