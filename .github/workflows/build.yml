@@ -31,6 +31,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Backup ccache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ github.workspace }}/ccache
+          key: ccache-${{ matrix.arch }}
+
       - name: Create Build Environment
         run: |
           FEDORA_VERSION="${{ matrix.fedora_version }}"
@@ -45,7 +52,11 @@ jobs:
         run: |
           FEDORA_VERSION="${{ matrix.fedora_version }}"
           ARCH="${{ matrix.arch }}"
-          sudo podman run --rm -v $(pwd):/workspace fedora_builder fedpkg \
+          sudo podman run --rm -v $(pwd):/workspace \
+            --env CCACHE_DIR=/workspace/ccache \
+            --env CCACHE_MAXSIZE=5G \
+            --env CCACHE_COMPRESS=1 \
+            fedora_builder fedpkg \
             --name kernel --namespace rpms --release "f${FEDORA_VERSION:-41}" \
             local --arch ${ARCH:-x86_64} --with baseonly \
             --builddir build --buildrootdir buildroot
