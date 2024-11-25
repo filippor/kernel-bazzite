@@ -34,12 +34,8 @@ jobs:
       - name: Backup ccache
         uses: actions/cache@v4
         with:
-          path: |
-            ${{ github.workspace }}/ccache
+          path: ccache
           key: ccache-${{ matrix.arch }}
-          restore-keys: |
-            ccache-${{ matrix.arch }}
-          save-always: true
 
       - name: Create Build Environment
         run: |
