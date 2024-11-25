@@ -32,6 +32,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Restore ccache
+        # Don't use cache on releases as github does not allow it
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         uses: actions/cache/restore@v4
         with:
           path: ccache
@@ -54,6 +56,7 @@ jobs:
           FEDORA_VERSION="${{ matrix.fedora_version }}"
           ARCH="${{ matrix.arch }}"
           sudo podman run --rm -v $(pwd):/workspace \
+            --env CCACHE_DISABLE=${{ startsWith(github.ref, 'refs/tags/') && '1' || '0' }} \
             --env CCACHE_DIR=/workspace/ccache \
             --env CCACHE_MAXSIZE=5G \
             --env CCACHE_COMPRESS=1 \
@@ -127,6 +130,8 @@ jobs:
 
       # We always want to save the newest ccache
       - name: Backup ccache
+        # Don't use cache on releases as github does not allow it
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         uses: actions/cache/save@v4
         with:
           path: ccache
