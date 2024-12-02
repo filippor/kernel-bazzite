@@ -245,7 +245,7 @@ Subject: revert 1101185bc50f5e45b8b89300914d9aa35a0c8cbe
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 245a26cdfc52..1bef9af0dee6 100644
+index 339bdfb7af2f..bc477a591124 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -6673,6 +6673,8 @@ create_stream_for_sink(struct drm_connector *connector,
@@ -318,7 +318,7 @@ Link: https://lore.kernel.org/r/20220830172851.269402-4-contact@emersion.fr
  6 files changed, 16 insertions(+)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 1bef9af0dee6..42ef8d2bd225 100644
+index bc477a591124..a6ed27a88895 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -4422,6 +4422,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
@@ -432,7 +432,7 @@ Link: https://lore.kernel.org/r/20220830172851.269402-7-contact@emersion.fr
  1 file changed, 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 42ef8d2bd225..1bef9af0dee6 100644
+index a6ed27a88895..bc477a591124 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -4422,7 +4422,6 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
@@ -476,7 +476,7 @@ Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 1bef9af0dee6..f15c48f3a461 100644
+index bc477a591124..77830a7a70c3 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -6673,7 +6673,7 @@ create_stream_for_sink(struct drm_connector *connector,
@@ -518,10 +518,10 @@ Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
  1 file changed, 12 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.c
-index 99014339aaa3..1726bd1f3de4 100644
+index df3d124c4d7a..7db9b8939af5 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.c
-@@ -603,18 +603,6 @@ static int amdgpu_dm_crtc_helper_atomic_check(struct drm_crtc *crtc,
+@@ -608,18 +608,6 @@ static int amdgpu_dm_crtc_helper_atomic_check(struct drm_crtc *crtc,
  		return -EINVAL;
  	}
  
@@ -9999,10 +9999,10 @@ Signed-off-by: Jonathan LoBue <jlobue10@gmail.com>
  1 file changed, 8 insertions(+)
 
 diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
-index d1d39f4cc942..43be6b94bbc9 100644
+index 833635aaee1d..0bdfdf3dbe02 100644
 --- a/sound/pci/hda/patch_realtek.c
 +++ b/sound/pci/hda/patch_realtek.c
-@@ -7645,6 +7645,7 @@ enum {
+@@ -7651,6 +7651,7 @@ enum {
  	ALC285_FIXUP_THINKPAD_X1_GEN7,
  	ALC285_FIXUP_THINKPAD_HEADSET_JACK,
  	ALC294_FIXUP_ASUS_ALLY,
@@ -10010,7 +10010,7 @@ index d1d39f4cc942..43be6b94bbc9 100644
  	ALC294_FIXUP_ASUS_ALLY_PINS,
  	ALC294_FIXUP_ASUS_ALLY_VERBS,
  	ALC294_FIXUP_ASUS_ALLY_SPEAKER,
-@@ -9135,6 +9136,12 @@ static const struct hda_fixup alc269_fixups[] = {
+@@ -9141,6 +9142,12 @@ static const struct hda_fixup alc269_fixups[] = {
  		.chained = true,
  		.chain_id = ALC294_FIXUP_ASUS_ALLY_PINS
  	},
@@ -10023,7 +10023,7 @@ index d1d39f4cc942..43be6b94bbc9 100644
  	[ALC294_FIXUP_ASUS_ALLY_PINS] = {
  		.type = HDA_FIXUP_PINS,
  		.v.pins = (const struct hda_pintbl[]) {
-@@ -10616,6 +10623,7 @@ static const struct snd_pci_quirk alc269_fixup_tbl[] = {
+@@ -10623,6 +10630,7 @@ static const struct snd_pci_quirk alc269_fixup_tbl[] = {
  	SND_PCI_QUIRK(0x1043, 0x1740, "ASUS UX430UA", ALC295_FIXUP_ASUS_DACS),
  	SND_PCI_QUIRK(0x1043, 0x17d1, "ASUS UX431FL", ALC294_FIXUP_ASUS_DUAL_SPK),
  	SND_PCI_QUIRK(0x1043, 0x17f3, "ROG Ally NR2301L/X", ALC294_FIXUP_ASUS_ALLY),
@@ -11383,6 +11383,66 @@ index 281bf54a0a18..282389f9375d 100644
  	NULL
  };
  
+-- 
+2.47.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Mon, 2 Dec 2024 19:27:56 +0100
+Subject: hwmon: (oxp-sensors) Add other OneXFly models
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/hwmon/oxp-sensors.c | 35 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
+
+diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
+index 282389f9375d..b95f19568927 100644
+--- a/drivers/hwmon/oxp-sensors.c
++++ b/drivers/hwmon/oxp-sensors.c
+@@ -220,6 +220,41 @@ static const struct dmi_system_id dmi_table[] = {
+ 		},
+ 		.driver_data = (void *)oxp_fly,
+ 	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
++			DMI_MATCH(DMI_BOARD_NAME, "ONEXPLAYER F1 "),
++		},
++		.driver_data = (void *)oxp_fly,
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
++			DMI_EXACT_MATCH(DMI_BOARD_NAME, "ONEXPLAYER F1L"),
++		},
++		.driver_data = (void *)oxp_fly,
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
++			DMI_MATCH(DMI_BOARD_NAME, "ONEXPLAYER F1L "),
++		},
++		.driver_data = (void *)oxp_fly,
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
++			DMI_EXACT_MATCH(DMI_BOARD_NAME, "ONEXPLAYER F1Pro"),
++		},
++		.driver_data = (void *)oxp_fly,
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
++			DMI_MATCH(DMI_BOARD_NAME, "ONEXPLAYER F1Pro "),
++		},
++		.driver_data = (void *)oxp_fly,
++	},
+ 	{
+ 		.matches = {
+ 			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
 -- 
 2.47.0
 
@@ -32042,10 +32102,10 @@ Co-developed-by: linh1987
  1 file changed, 10 insertions(+)
 
 diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
-index 43be6b94bbc9..0c0456af6c3b 100644
+index 0bdfdf3dbe02..ac9f3a23cc33 100644
 --- a/sound/pci/hda/patch_realtek.c
 +++ b/sound/pci/hda/patch_realtek.c
-@@ -7526,6 +7526,7 @@ enum {
+@@ -7532,6 +7532,7 @@ enum {
  	ALC269VB_FIXUP_ASUS_ZENBOOK,
  	ALC269VB_FIXUP_ASUS_ZENBOOK_UX31A,
  	ALC269VB_FIXUP_ASUS_MIC_NO_PRESENCE,
@@ -32053,7 +32113,7 @@ index 43be6b94bbc9..0c0456af6c3b 100644
  	ALC269_FIXUP_LIMIT_INT_MIC_BOOST_MUTE_LED,
  	ALC269VB_FIXUP_ORDISSIMO_EVE2,
  	ALC283_FIXUP_CHROME_BOOK,
-@@ -8284,6 +8285,13 @@ static const struct hda_fixup alc269_fixups[] = {
+@@ -8290,6 +8291,13 @@ static const struct hda_fixup alc269_fixups[] = {
  		.chained = true,
  		.chain_id = ALC269_FIXUP_HEADSET_MIC
  	},
@@ -32067,7 +32127,7 @@ index 43be6b94bbc9..0c0456af6c3b 100644
  	[ALC269_FIXUP_LIMIT_INT_MIC_BOOST_MUTE_LED] = {
  		.type = HDA_FIXUP_FUNC,
  		.v.func = alc269_fixup_limit_int_mic_boost,
-@@ -11018,6 +11026,7 @@ static const struct snd_pci_quirk alc269_fixup_tbl[] = {
+@@ -11025,6 +11033,7 @@ static const struct snd_pci_quirk alc269_fixup_tbl[] = {
  	SND_PCI_QUIRK(0x2782, 0x0214, "VAIO VJFE-CL", ALC269_FIXUP_LIMIT_INT_MIC_BOOST),
  	SND_PCI_QUIRK(0x2782, 0x0232, "CHUWI CoreBook XPro", ALC269VB_FIXUP_CHUWI_COREBOOK_XPRO),
  	SND_PCI_QUIRK(0x2782, 0x1707, "Vaio VJFE-ADL", ALC298_FIXUP_SPK_VOLUME),
@@ -32075,7 +32135,7 @@ index 43be6b94bbc9..0c0456af6c3b 100644
  	SND_PCI_QUIRK(0x8086, 0x2074, "Intel NUC 8", ALC233_FIXUP_INTEL_NUC8_DMIC),
  	SND_PCI_QUIRK(0x8086, 0x2080, "Intel NUC 8 Rugged", ALC256_FIXUP_INTEL_NUC8_RUGGED),
  	SND_PCI_QUIRK(0x8086, 0x2081, "Intel NUC 10", ALC256_FIXUP_INTEL_NUC10),
-@@ -11141,6 +11150,7 @@ static const struct hda_model_fixup alc269_fixup_models[] = {
+@@ -11148,6 +11157,7 @@ static const struct hda_model_fixup alc269_fixup_models[] = {
  	{.id = ALC269VB_FIXUP_ASUS_ZENBOOK, .name = "asus-zenbook"},
  	{.id = ALC269VB_FIXUP_ASUS_ZENBOOK_UX31A, .name = "asus-zenbook-ux31a"},
  	{.id = ALC269VB_FIXUP_ORDISSIMO_EVE2, .name = "ordissimo"},
@@ -32099,7 +32159,7 @@ Co-developed-by: Bouke Sybren Haarsma <boukehaarsma23@gmail.com>
  1 file changed, 49 insertions(+)
 
 diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
-index 0c0456af6c3b..a7db7ee664cd 100644
+index ac9f3a23cc33..825b62e245c1 100644
 --- a/sound/pci/hda/patch_realtek.c
 +++ b/sound/pci/hda/patch_realtek.c
 @@ -6719,6 +6719,20 @@ static void alc294_gx502_toggle_output(struct hda_codec *codec,
@@ -32123,7 +32183,7 @@ index 0c0456af6c3b..a7db7ee664cd 100644
  static void alc294_fixup_gx502_hp(struct hda_codec *codec,
  					const struct hda_fixup *fix, int action)
  {
-@@ -7513,6 +7527,8 @@ enum {
+@@ -7519,6 +7533,8 @@ enum {
  	ALC269_FIXUP_DELL4_MIC_NO_PRESENCE,
  	ALC269_FIXUP_DELL4_MIC_NO_PRESENCE_QUIET,
  	ALC269_FIXUP_HEADSET_MODE,
@@ -32132,7 +32192,7 @@ index 0c0456af6c3b..a7db7ee664cd 100644
  	ALC269_FIXUP_HEADSET_MODE_NO_HP_MIC,
  	ALC269_FIXUP_ASPIRE_HEADSET_MIC,
  	ALC269_FIXUP_ASUS_X101_FUNC,
-@@ -7771,6 +7787,30 @@ enum {
+@@ -7777,6 +7793,30 @@ enum {
  	ALC245_FIXUP_CLEVO_NOISY_MIC,
  };
  
@@ -32163,7 +32223,7 @@ index 0c0456af6c3b..a7db7ee664cd 100644
  /* A special fixup for Lenovo C940 and Yoga Duet 7;
   * both have the very same PCI SSID, and we need to apply different fixups
   * depending on the codec ID
-@@ -9078,6 +9118,14 @@ static const struct hda_fixup alc269_fixups[] = {
+@@ -9084,6 +9124,14 @@ static const struct hda_fixup alc269_fixups[] = {
  			{ 0x1b, 0x90170152 } /* use as internal speaker (back) */
  		}
  	},
@@ -32178,7 +32238,7 @@ index 0c0456af6c3b..a7db7ee664cd 100644
  	[ALC299_FIXUP_PREDATOR_SPK] = {
  		.type = HDA_FIXUP_PINS,
  		.v.pins = (const struct hda_pintbl[]) {
-@@ -11026,6 +11074,7 @@ static const struct snd_pci_quirk alc269_fixup_tbl[] = {
+@@ -11033,6 +11081,7 @@ static const struct snd_pci_quirk alc269_fixup_tbl[] = {
  	SND_PCI_QUIRK(0x2782, 0x0214, "VAIO VJFE-CL", ALC269_FIXUP_LIMIT_INT_MIC_BOOST),
  	SND_PCI_QUIRK(0x2782, 0x0232, "CHUWI CoreBook XPro", ALC269VB_FIXUP_CHUWI_COREBOOK_XPRO),
  	SND_PCI_QUIRK(0x2782, 0x1707, "Vaio VJFE-ADL", ALC298_FIXUP_SPK_VOLUME),
@@ -33788,37 +33848,6 @@ index 99986090b4a6..e259be44ce8f 100644
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: John Schoenick <johns@valvesoftware.com>
-Date: Tue, 11 Jul 2023 15:27:33 -0700
-Subject: drm: panel-orientation-quirks: Add quirk for Valve Galileo
-
----
- drivers/gpu/drm/drm_panel_orientation_quirks.c | 7 +++++++
- 1 file changed, 7 insertions(+)
-
-diff --git a/drivers/gpu/drm/drm_panel_orientation_quirks.c b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-index 5eb1d9e26ee3..91b0ce21aa1d 100644
---- a/drivers/gpu/drm/drm_panel_orientation_quirks.c
-+++ b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-@@ -488,6 +488,13 @@ static const struct dmi_system_id orientation_data[] = {
- 		  DMI_EXACT_MATCH(DMI_PRODUCT_VERSION, "1"),
- 		},
- 		.driver_data = (void *)&lcd800x1280_rightside_up,
-+	}, {	/* Valve Steam Deck */
-+		.matches = {
-+		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "Valve"),
-+		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Galileo"),
-+		  DMI_EXACT_MATCH(DMI_PRODUCT_VERSION, "1"),
-+		},
-+		.driver_data = (void *)&lcd800x1280_rightside_up,
- 	}, {	/* VIOS LTH17 */
- 		.matches = {
- 		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "VIOS"),
--- 
-2.47.0
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Swapnil Patel <swapatel@amd.com>
 Date: Thu, 2 Nov 2023 16:16:49 -0400
 Subject: Disable modes with >1200 MHz Pixel clocks when connected via dock
@@ -33864,11 +33893,17 @@ index 1aed55b0ab6a..27af7505caca 100644
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Jeremy Selan <jeremys@valvesoftware.com>
 Date: Wed, 28 Apr 2021 14:33:36 -0700
-Subject: drm/amd: bump backlight brightness precision from 8 -> 16-bits
+Subject: drm/amd: bump backlight brightness precision from 8 -> 12-bits
 
 Signed-off-by: Gabriel Krisman Bertazi <krisman@collabora.com>
 [Fwd-ported to DC_VER 3.2.237]
 Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
+
+But that overflowed...
+500k uNits * 65k max brightness range overflows in the conversion code.
+Scale back brightness range to 12bit max.
+
+So Pierre backed it down to 0xFFF
 ---
  drivers/gpu/drm/amd/amdgpu/amdgpu_mode.h          |  2 --
  drivers/gpu/drm/amd/amdgpu/atombios_encoders.c    | 10 +++++++---
@@ -33924,7 +33959,7 @@ index ebf83fee43bb..f0b759e8683d 100644
  	snprintf(bl_name, sizeof(bl_name),
  		 "amdgpu_bl%d", dev->primary->index);
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index f15c48f3a461..c6dc6132046e 100644
+index 77830a7a70c3..4af29edc69da 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -162,6 +162,9 @@ MODULE_FIRMWARE(FIRMWARE_DCN_401_DMUB);
@@ -33932,7 +33967,7 @@ index f15c48f3a461..c6dc6132046e 100644
  #define PSP_FOOTER_BYTES 0x100
  
 +/* Maximum backlight level. */
-+#define AMDGPU_MAX_BL_LEVEL 0xFFFF
++#define AMDGPU_MAX_BL_LEVEL 0xFFF
 +
  /**
   * DOC: overview
@@ -33960,7 +33995,7 @@ Signed-off-by: Gabriel Krisman Bertazi <krisman@collabora.com>
  1 file changed, 22 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index c6dc6132046e..5276b9a4d1e6 100644
+index 4af29edc69da..5318ad61b077 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -4466,7 +4466,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
@@ -34033,29 +34068,55 @@ index c6dc6132046e..5276b9a4d1e6 100644
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: "Pierre-Loup A. Griffais" <pgriffais@valvesoftware.com>
-Date: Wed, 8 Nov 2023 19:45:52 -0800
-Subject: amdgpu: fix Galileo desktop brightness overflowing
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Mon, 2 Dec 2024 19:13:08 +0100
+Subject: amd/drm: apply backlight override only to the Steam Deck OLED
 
-500k uNits * 65k max brightness range overflows in the conversion code.
-Scale back brightness range to 12bit max.
+It causes issues with other devices. Currently, this is the OneXPlayer
+F1 Pro with an OLED panel.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 5276b9a4d1e6..de564aad15a4 100644
+index 5318ad61b077..730c123f9189 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -163,7 +163,7 @@ MODULE_FIRMWARE(FIRMWARE_DCN_401_DMUB);
- #define PSP_FOOTER_BYTES 0x100
+@@ -4471,6 +4471,17 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
+ #define AMDGPU_DM_MIN_SPREAD ((AMDGPU_DM_DEFAULT_MAX_BACKLIGHT - AMDGPU_DM_DEFAULT_MIN_BACKLIGHT) / 2)
+ #define AUX_BL_DEFAULT_TRANSITION_TIME_MS 50
  
- /* Maximum backlight level. */
--#define AMDGPU_MAX_BL_LEVEL 0xFFFF
-+#define AMDGPU_MAX_BL_LEVEL 0xFFF
++static const struct dmi_system_id backlight_override_quirks[] = {
++	{	/* Valve Steam Deck (Galileo) */
++		.matches = {
++		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "Valve"),
++		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Galileo"),
++		  DMI_EXACT_MATCH(DMI_PRODUCT_VERSION, "1"),
++		},
++	},
++	{}
++};
++
+ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
+ 					    int bl_idx)
+ {
+@@ -4504,8 +4515,12 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
+ 		printk(KERN_NOTICE"VLV Successfully queried backlight range over ACPI: %d %d\n",
+ 		       (int) caps.min_input_signal, (int) caps.max_input_signal);
  
- /**
-  * DOC: overview
+-		if ( caps.min_input_signal != AMDGPU_DM_DEFAULT_MIN_BACKLIGHT ||
+-			caps.max_input_signal != AMDGPU_DM_DEFAULT_MAX_BACKLIGHT )
++		const struct dmi_system_id *override_sysid =
++			dmi_first_match(backlight_override_quirks);
++
++		if ( override_sysid &&
++			(caps.min_input_signal != AMDGPU_DM_DEFAULT_MIN_BACKLIGHT ||
++			caps.max_input_signal != AMDGPU_DM_DEFAULT_MAX_BACKLIGHT) )
+ 		{
+ 			caps.min_input_signal = AMDGPU_DM_DEFAULT_MIN_BACKLIGHT;
+ 			caps.max_input_signal = AMDGPU_DM_DEFAULT_MAX_BACKLIGHT;
 -- 
 2.47.0
 
@@ -34153,7 +34214,7 @@ Signed-off-by: Joshua Ashton <joshua@froggi.es>
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index de564aad15a4..0be1f987ed8b 100644
+index 730c123f9189..47c68af9bddc 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -470,7 +470,7 @@ static void dm_pflip_high_irq(void *interrupt_params)
@@ -34179,7 +34240,7 @@ index de564aad15a4..0be1f987ed8b 100644
  			    adev->family < AMDGPU_FAMILY_AI) {
  				spin_lock_irqsave(&adev_to_drm(adev)->event_lock, flags);
  				mod_freesync_handle_v_update(
-@@ -8871,7 +8871,7 @@ static void amdgpu_dm_commit_planes(struct drm_atomic_state *state,
+@@ -8936,7 +8936,7 @@ static void amdgpu_dm_commit_planes(struct drm_atomic_state *state,
  	int planes_count = 0, vpos, hpos;
  	unsigned long flags;
  	u32 target_vblank, last_flip_vblank;
@@ -34207,7 +34268,7 @@ Should also improve latency/stutter on internal display potentially too.
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 0be1f987ed8b..20d884fb8be5 100644
+index 47c68af9bddc..734b71698372 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -470,7 +470,7 @@ static void dm_pflip_high_irq(void *interrupt_params)
@@ -41525,7 +41586,7 @@ index df17e79c45c7..e454488c1a31 100644
 +
  endmenu
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 20d884fb8be5..2355cb6d83a6 100644
+index 734b71698372..e42e77af50b6 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -4448,7 +4448,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
@@ -41551,10 +41612,10 @@ index ebabfe3a512f..4d3ebcaacca1 100644
   *
   * AMD driver supports pre-defined mathematical functions for transferring
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.c
-index 1726bd1f3de4..d5a3e1293bf5 100644
+index 7db9b8939af5..76eca3cbd76b 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.c
-@@ -426,7 +426,7 @@ static int amdgpu_dm_crtc_late_register(struct drm_crtc *crtc)
+@@ -431,7 +431,7 @@ static int amdgpu_dm_crtc_late_register(struct drm_crtc *crtc)
  }
  #endif
  
@@ -41563,7 +41624,7 @@ index 1726bd1f3de4..d5a3e1293bf5 100644
  /**
   * dm_crtc_additional_color_mgmt - enable additional color properties
   * @crtc: DRM CRTC
-@@ -508,7 +508,7 @@ static const struct drm_crtc_funcs amdgpu_dm_crtc_funcs = {
+@@ -513,7 +513,7 @@ static const struct drm_crtc_funcs amdgpu_dm_crtc_funcs = {
  #if defined(CONFIG_DEBUG_FS)
  	.late_register = amdgpu_dm_crtc_late_register,
  #endif
@@ -41572,7 +41633,7 @@ index 1726bd1f3de4..d5a3e1293bf5 100644
  	.atomic_set_property = amdgpu_dm_atomic_crtc_set_property,
  	.atomic_get_property = amdgpu_dm_atomic_crtc_get_property,
  #endif
-@@ -675,7 +675,7 @@ int amdgpu_dm_crtc_init(struct amdgpu_display_manager *dm,
+@@ -680,7 +680,7 @@ int amdgpu_dm_crtc_init(struct amdgpu_display_manager *dm,
  
  	drm_mode_crtc_set_gamma_size(&acrtc->base, MAX_COLOR_LEGACY_LUT_ENTRIES);
  
@@ -41629,10 +41690,10 @@ This fixes 7700/7800 XT custom powercap.
  1 file changed, 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c b/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
-index ee1bcfaae3e3..880ae00b0e6a 100644
+index 80e60ea2d11e..b5da64b1bca7 100644
 --- a/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
 +++ b/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
-@@ -2763,7 +2763,6 @@ int smu_get_power_limit(void *handle,
+@@ -2753,7 +2753,6 @@ int smu_get_power_limit(void *handle,
  		case SMU_PPT_LIMIT_CURRENT:
  			switch (amdgpu_ip_version(adev, MP1_HWIP, 0)) {
  			case IP_VERSION(13, 0, 2):
@@ -61732,10 +61793,10 @@ index d5d6ab484e5a..dccba7bcdf97 100644
  }
  
 diff --git a/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c b/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
-index 880ae00b0e6a..07eb5dea799d 100644
+index b5da64b1bca7..7a4bae3d010d 100644
 --- a/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
 +++ b/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
-@@ -2784,7 +2784,10 @@ int smu_get_power_limit(void *handle,
+@@ -2774,7 +2774,10 @@ int smu_get_power_limit(void *handle,
  			*limit = smu->max_power_limit;
  			break;
  		case SMU_PPT_LIMIT_MIN:
@@ -61747,7 +61808,7 @@ index 880ae00b0e6a..07eb5dea799d 100644
  			break;
  		default:
  			return -EINVAL;
-@@ -2808,7 +2811,14 @@ static int smu_set_power_limit(void *handle, uint32_t limit)
+@@ -2798,7 +2801,14 @@ static int smu_set_power_limit(void *handle, uint32_t limit)
  		if (smu->ppt_funcs->set_power_limit)
  			return smu->ppt_funcs->set_power_limit(smu, limit_type, limit);
  
@@ -68274,41 +68335,6 @@ index 000000000000..cbdc716e9dd0
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <git@antheas.dev>
-Date: Wed, 30 Oct 2024 20:06:07 +0100
-Subject: drm/amdgpu: apply GTT only as fallback for VRAM|GTT only to dGPUs
-
-Fixes issue caused by 216c1282dde38ca87ebdf1ccacee5a0682901574.
-
-Which causes a crash when AutoUMA is used, see:
-https://gitlab.freedesktop.org/drm/amd/-/issues/3704
----
- drivers/gpu/drm/amd/amdgpu/amdgpu_object.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_object.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_object.c
-index e32161f6b67a..e40bf487259b 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_object.c
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_object.c
-@@ -179,8 +179,12 @@ void amdgpu_bo_placement_from_domain(struct amdgpu_bo *abo, u32 domain)
- 		/*
- 		 * When GTT is just an alternative to VRAM make sure that we
- 		 * only use it as fallback and still try to fill up VRAM first.
-+		 * 
-+		 * APUs really hate doing this and will crash when AutoUMA is 
-+		 * on, only apply to dGPU cards that actually benefit.
- 		 */
--		if (domain & abo->preferred_domains & AMDGPU_GEM_DOMAIN_VRAM)
-+		if (!(adev->flags & AMD_IS_APU) &&
-+		    domain & abo->preferred_domains & AMDGPU_GEM_DOMAIN_VRAM)
- 			places[c].flags |= TTM_PL_FLAG_FALLBACK;
- 		c++;
- 	}
--- 
-2.47.0
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <git@antheas.dev>
 Date: Mon, 11 Nov 2024 19:57:04 +0100
 Subject: Revert "drm/amdgpu/smu13: always apply the powersave optimization"
 
@@ -68322,11 +68348,11 @@ Closes: https://gitlab.freedesktop.org/drm/amd/-/issues/3732
  1 file changed, 12 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/pm/swsmu/smu13/smu_v13_0_0_ppt.c b/drivers/gpu/drm/amd/pm/swsmu/smu13/smu_v13_0_0_ppt.c
-index 5dd7ceca64fe..177f2db5701c 100644
+index d53e162dcd8d..678a33a522e2 100644
 --- a/drivers/gpu/drm/amd/pm/swsmu/smu13/smu_v13_0_0_ppt.c
 +++ b/drivers/gpu/drm/amd/pm/swsmu/smu13/smu_v13_0_0_ppt.c
 @@ -2555,16 +2555,18 @@ static int smu_v13_0_0_set_power_profile_mode(struct smu_context *smu,
- 	workload_mask = 1 << workload_type;
+ 	selected_workload_mask = workload_mask = 1 << workload_type;
  
  	/* Add optimizations for SMU13.0.0/10.  Reuse the power saving profile */
 -	if ((amdgpu_ip_version(smu->adev, MP1_HWIP, 0) == IP_VERSION(13, 0, 0) &&
@@ -68353,7 +68379,7 @@ index 5dd7ceca64fe..177f2db5701c 100644
 +		}
  	}
  
- 	smu->workload_mask |= workload_mask;
+ 	ret = smu_cmn_send_smc_msg_with_param(smu,
 -- 
 2.47.0
 
@@ -68372,10 +68398,10 @@ Signed-off-by: Luke D. Jones <luke@ljones.dev>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
-index a7db7ee664cd..48cf7d1f17b6 100644
+index 825b62e245c1..6a11e158f92a 100644
 --- a/sound/pci/hda/patch_realtek.c
 +++ b/sound/pci/hda/patch_realtek.c
-@@ -10724,7 +10724,7 @@ static const struct snd_pci_quirk alc269_fixup_tbl[] = {
+@@ -10731,7 +10731,7 @@ static const struct snd_pci_quirk alc269_fixup_tbl[] = {
  	SND_PCI_QUIRK(0x1043, 0x1e51, "ASUS Zephyrus M15", ALC294_FIXUP_ASUS_GU502_PINS),
  	SND_PCI_QUIRK(0x1043, 0x1e5e, "ASUS ROG Strix G513", ALC294_FIXUP_ASUS_G513_PINS),
  	SND_PCI_QUIRK(0x1043, 0x1e63, "ASUS H7606W", ALC285_FIXUP_CS35L56_I2C_2),
