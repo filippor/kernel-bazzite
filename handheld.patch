@@ -33892,92 +33892,6 @@ index 1aed55b0ab6a..27af7505caca 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Jeremy Selan <jeremys@valvesoftware.com>
-Date: Wed, 28 Apr 2021 14:33:36 -0700
-Subject: drm/amd: bump backlight brightness precision from 8 -> 12-bits
-
-Signed-off-by: Gabriel Krisman Bertazi <krisman@collabora.com>
-[Fwd-ported to DC_VER 3.2.237]
-Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
-
-But that overflowed...
-500k uNits * 65k max brightness range overflows in the conversion code.
-Scale back brightness range to 12bit max.
-
-So Pierre backed it down to 0xFFF
----
- drivers/gpu/drm/amd/amdgpu/amdgpu_mode.h          |  2 --
- drivers/gpu/drm/amd/amdgpu/atombios_encoders.c    | 10 +++++++---
- drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c |  3 +++
- 3 files changed, 10 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_mode.h b/drivers/gpu/drm/amd/amdgpu/amdgpu_mode.h
-index d002b845d8ac..78a8aac99f24 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_mode.h
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_mode.h
-@@ -435,8 +435,6 @@ struct amdgpu_mode_info {
- 	struct drm_property *regamma_tf_property;
- };
- 
--#define AMDGPU_MAX_BL_LEVEL 0xFF
--
- struct amdgpu_backlight_privdata {
- 	struct amdgpu_encoder *encoder;
- 	uint8_t negative;
-diff --git a/drivers/gpu/drm/amd/amdgpu/atombios_encoders.c b/drivers/gpu/drm/amd/amdgpu/atombios_encoders.c
-index ebf83fee43bb..f0b759e8683d 100644
---- a/drivers/gpu/drm/amd/amdgpu/atombios_encoders.c
-+++ b/drivers/gpu/drm/amd/amdgpu/atombios_encoders.c
-@@ -39,6 +39,10 @@
- #include <linux/backlight.h>
- #include "bif/bif_4_1_d.h"
- 
-+
-+/* Maximum backlight level. */
-+#define AMDGPU_ATOM_MAX_BL_LEVEL 0xFF
-+
- u8
- amdgpu_atombios_encoder_get_backlight_level_from_reg(struct amdgpu_device *adev)
- {
-@@ -127,8 +131,8 @@ static u8 amdgpu_atombios_encoder_backlight_level(struct backlight_device *bd)
- 	/* Convert brightness to hardware level */
- 	if (bd->props.brightness < 0)
- 		level = 0;
--	else if (bd->props.brightness > AMDGPU_MAX_BL_LEVEL)
--		level = AMDGPU_MAX_BL_LEVEL;
-+	else if (bd->props.brightness > AMDGPU_ATOM_MAX_BL_LEVEL)
-+		level = AMDGPU_ATOM_MAX_BL_LEVEL;
- 	else
- 		level = bd->props.brightness;
- 
-@@ -198,7 +202,7 @@ void amdgpu_atombios_encoder_init_backlight(struct amdgpu_encoder *amdgpu_encode
- 	}
- 
- 	memset(&props, 0, sizeof(props));
--	props.max_brightness = AMDGPU_MAX_BL_LEVEL;
-+	props.max_brightness = AMDGPU_ATOM_MAX_BL_LEVEL;
- 	props.type = BACKLIGHT_RAW;
- 	snprintf(bl_name, sizeof(bl_name),
- 		 "amdgpu_bl%d", dev->primary->index);
-diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 77830a7a70c3..4af29edc69da 100644
---- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-+++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -162,6 +162,9 @@ MODULE_FIRMWARE(FIRMWARE_DCN_401_DMUB);
- /* Number of bytes in PSP footer for firmware. */
- #define PSP_FOOTER_BYTES 0x100
- 
-+/* Maximum backlight level. */
-+#define AMDGPU_MAX_BL_LEVEL 0xFFF
-+
- /**
-  * DOC: overview
-  *
--- 
-2.47.0
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Jeremy Selan <jeremys@valvesoftware.com>
 Date: Fri, 12 Nov 2021 10:03:20 -0800
 Subject: amd/drm: override backlight min value from 12 -> 0
 
@@ -33995,10 +33909,10 @@ Signed-off-by: Gabriel Krisman Bertazi <krisman@collabora.com>
  1 file changed, 22 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 4af29edc69da..5318ad61b077 100644
+index 77830a7a70c3..e92e52bc90ef 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4466,7 +4466,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
+@@ -4463,7 +4463,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
  	return 0;
  }
  
@@ -34007,7 +33921,7 @@ index 4af29edc69da..5318ad61b077 100644
  #define AMDGPU_DM_DEFAULT_MAX_BACKLIGHT 255
  #define AMDGPU_DM_MIN_SPREAD ((AMDGPU_DM_DEFAULT_MAX_BACKLIGHT - AMDGPU_DM_DEFAULT_MIN_BACKLIGHT) / 2)
  #define AUX_BL_DEFAULT_TRANSITION_TIME_MS 50
-@@ -4500,11 +4500,27 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
+@@ -4497,11 +4497,27 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
  
  	if (caps.caps_valid) {
  		dm->backlight_caps[bl_idx].caps_valid = true;
@@ -34035,7 +33949,7 @@ index 4af29edc69da..5318ad61b077 100644
  		dm->backlight_caps[bl_idx].min_input_signal =
  				AMDGPU_DM_DEFAULT_MIN_BACKLIGHT;
  		dm->backlight_caps[bl_idx].max_input_signal =
-@@ -4514,6 +4530,9 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
+@@ -4511,6 +4527,9 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
  	if (dm->backlight_caps[bl_idx].aux_support)
  		return;
  
@@ -34045,7 +33959,7 @@ index 4af29edc69da..5318ad61b077 100644
  	dm->backlight_caps[bl_idx].min_input_signal = AMDGPU_DM_DEFAULT_MIN_BACKLIGHT;
  	dm->backlight_caps[bl_idx].max_input_signal = AMDGPU_DM_DEFAULT_MAX_BACKLIGHT;
  #endif
-@@ -4545,7 +4564,7 @@ static u32 convert_brightness_from_user(const struct amdgpu_dm_backlight_caps *c
+@@ -4542,7 +4561,7 @@ static u32 convert_brightness_from_user(const struct amdgpu_dm_backlight_caps *c
  	if (!get_brightness_range(caps, &min, &max))
  		return brightness;
  
@@ -34054,7 +33968,7 @@ index 4af29edc69da..5318ad61b077 100644
  	return min + DIV_ROUND_CLOSEST((max - min) * brightness,
  				       AMDGPU_MAX_BL_LEVEL);
  }
-@@ -4560,7 +4579,7 @@ static u32 convert_brightness_to_user(const struct amdgpu_dm_backlight_caps *cap
+@@ -4557,7 +4576,7 @@ static u32 convert_brightness_to_user(const struct amdgpu_dm_backlight_caps *cap
  
  	if (brightness < min)
  		return 0;
@@ -34070,21 +33984,21 @@ index 4af29edc69da..5318ad61b077 100644
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
 Date: Mon, 2 Dec 2024 19:13:08 +0100
-Subject: amd/drm: apply backlight override only to the Steam Deck OLED
+Subject: amd/drm: apply backlight override only to the Steam Deck models
 
 It causes issues with other devices. Currently, this is the OneXPlayer
 F1 Pro with an OLED panel.
 
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 19 +++++++++++++++++--
- 1 file changed, 17 insertions(+), 2 deletions(-)
+ .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 26 +++++++++++++++++--
+ 1 file changed, 24 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 5318ad61b077..730c123f9189 100644
+index e92e52bc90ef..746243bd8664 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4471,6 +4471,17 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
+@@ -4468,6 +4468,24 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
  #define AMDGPU_DM_MIN_SPREAD ((AMDGPU_DM_DEFAULT_MAX_BACKLIGHT - AMDGPU_DM_DEFAULT_MIN_BACKLIGHT) / 2)
  #define AUX_BL_DEFAULT_TRANSITION_TIME_MS 50
  
@@ -34096,13 +34010,20 @@ index 5318ad61b077..730c123f9189 100644
 +		  DMI_EXACT_MATCH(DMI_PRODUCT_VERSION, "1"),
 +		},
 +	},
++	{	/* Valve Steam Deck (Jupiter) */
++		.matches = {
++		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "Valve"),
++		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Jupiter"),
++		  DMI_EXACT_MATCH(DMI_PRODUCT_VERSION, "1"),
++		},
++	},
 +	{}
 +};
 +
  static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
  					    int bl_idx)
  {
-@@ -4504,8 +4515,12 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
+@@ -4501,8 +4519,12 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
  		printk(KERN_NOTICE"VLV Successfully queried backlight range over ACPI: %d %d\n",
  		       (int) caps.min_input_signal, (int) caps.max_input_signal);
  
@@ -34214,10 +34135,10 @@ Signed-off-by: Joshua Ashton <joshua@froggi.es>
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 730c123f9189..47c68af9bddc 100644
+index 746243bd8664..65f05f9198d5 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -470,7 +470,7 @@ static void dm_pflip_high_irq(void *interrupt_params)
+@@ -467,7 +467,7 @@ static void dm_pflip_high_irq(void *interrupt_params)
  
  	WARN_ON(!e);
  
@@ -34226,7 +34147,7 @@ index 730c123f9189..47c68af9bddc 100644
  
  	/* Fixed refresh rate, or VRR scanout position outside front-porch? */
  	if (!vrr_active ||
-@@ -567,11 +567,11 @@ static void dm_vupdate_high_irq(void *interrupt_params)
+@@ -564,11 +564,11 @@ static void dm_vupdate_high_irq(void *interrupt_params)
  		 * page-flip completion events that have been queued to us
  		 * if a pageflip happened inside front-porch.
  		 */
@@ -34240,7 +34161,7 @@ index 730c123f9189..47c68af9bddc 100644
  			    adev->family < AMDGPU_FAMILY_AI) {
  				spin_lock_irqsave(&adev_to_drm(adev)->event_lock, flags);
  				mod_freesync_handle_v_update(
-@@ -8936,7 +8936,7 @@ static void amdgpu_dm_commit_planes(struct drm_atomic_state *state,
+@@ -8940,7 +8940,7 @@ static void amdgpu_dm_commit_planes(struct drm_atomic_state *state,
  	int planes_count = 0, vpos, hpos;
  	unsigned long flags;
  	u32 target_vblank, last_flip_vblank;
@@ -34268,10 +34189,10 @@ Should also improve latency/stutter on internal display potentially too.
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 47c68af9bddc..734b71698372 100644
+index 65f05f9198d5..6cc507cb43b8 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -470,7 +470,7 @@ static void dm_pflip_high_irq(void *interrupt_params)
+@@ -467,7 +467,7 @@ static void dm_pflip_high_irq(void *interrupt_params)
  
  	WARN_ON(!e);
  
@@ -34280,7 +34201,7 @@ index 47c68af9bddc..734b71698372 100644
  
  	/* Fixed refresh rate, or VRR scanout position outside front-porch? */
  	if (!vrr_active ||
-@@ -567,11 +567,11 @@ static void dm_vupdate_high_irq(void *interrupt_params)
+@@ -564,11 +564,11 @@ static void dm_vupdate_high_irq(void *interrupt_params)
  		 * page-flip completion events that have been queued to us
  		 * if a pageflip happened inside front-porch.
  		 */
@@ -41586,10 +41507,10 @@ index df17e79c45c7..e454488c1a31 100644
 +
  endmenu
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 734b71698372..e42e77af50b6 100644
+index 6cc507cb43b8..a8669fc8be86 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4448,7 +4448,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
+@@ -4445,7 +4445,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
  		return r;
  	}
  
