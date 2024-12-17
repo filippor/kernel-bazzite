@@ -47,7 +47,7 @@ rules:
   - drivers/cdx/.*: modules-core
   - drivers/char/mwave.*: modules
   - drivers/char/.*: modules-core
-  - drivers/clk/.*test.*: modules-internal
+  - drivers/clk/.*(test|kunit).*: modules-internal
   - drivers/clk/.*: modules-core
   - drivers/counter/.*: modules-core
   - drivers/cpufreq/amd-pstate-ut.ko: modules-internal
@@ -350,7 +350,7 @@ rules:
   - drivers/usb/misc/.*: modules
   - drivers/usb/serial/.*: modules
   - drivers/usb/typec/mux/nb7vpq904m.*: modules
-  - drivers/usb/usbip/.*: modules-extra
+  - drivers/usb/usbip/.*: modules-internal
   - drivers/usb/.*: modules-core
 
   - drivers/vdpa/mlx5/mlx5_vdpa.*: modules
@@ -433,6 +433,7 @@ rules:
 
   - lib/test_lockup.*: modules-extra
   - lib/.*(test|kunit).*: modules-internal
+    exact_pkg: True
   - lib/.*: modules-core
 
   - mm/kasan/kasan_test: modules-internal
