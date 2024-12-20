@@ -32833,21 +32833,28 @@ index 7258e46212b0..4dac39694368 100644
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
 Date: Mon, 2 Dec 2024 19:13:08 +0100
-Subject: amd/drm: apply backlight override only to the Steam Deck models
+Subject: amd/drm: apply backlight override only to the Steam Deck models and
+ add F1 Pro
 
-It causes issues with other devices. Currently, this is the OneXPlayer
-F1 Pro with an OLED panel.
+Should not be on by default for all devices. In addition, add a larger
+min to the F1 Pro, as it seems to have issues with 1% brightness.
 
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 26 +++++++++++++++++--
- 1 file changed, 24 insertions(+), 2 deletions(-)
+ .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 50 +++++++++++++++++--
+ 1 file changed, 45 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 4dac39694368..2dbe98601e71 100644
+index 4dac39694368..2ab7cdd83614 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4524,6 +4524,24 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
+@@ -4519,11 +4519,45 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
+ 	return 0;
+ }
+ 
+-#define AMDGPU_DM_DEFAULT_MIN_BACKLIGHT 0
++#define AMDGPU_DM_DEFAULT_MIN_BACKLIGHT 12
+ #define AMDGPU_DM_DEFAULT_MAX_BACKLIGHT 255
  #define AMDGPU_DM_MIN_SPREAD ((AMDGPU_DM_DEFAULT_MAX_BACKLIGHT - AMDGPU_DM_DEFAULT_MIN_BACKLIGHT) / 2)
  #define AUX_BL_DEFAULT_TRANSITION_TIME_MS 50
  
@@ -32858,6 +32865,7 @@ index 4dac39694368..2dbe98601e71 100644
 +		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Galileo"),
 +		  DMI_EXACT_MATCH(DMI_PRODUCT_VERSION, "1"),
 +		},
++		.driver_data = (void *)0,
 +	},
 +	{	/* Valve Steam Deck (Jupiter) */
 +		.matches = {
@@ -32865,6 +32873,21 @@ index 4dac39694368..2dbe98601e71 100644
 +		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Jupiter"),
 +		  DMI_EXACT_MATCH(DMI_PRODUCT_VERSION, "1"),
 +		},
++		.driver_data = (void *)0,
++	},
++	{	/* F1 Pro OLED */
++		.matches = {
++		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "ONE-NETBOOK"),
++		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "ONEXPLAYER F1Pro"),
++		},
++		.driver_data = (void *)16,
++	},
++	{	/* F1 Pro Limited Edition */
++		.matches = {
++		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "ONE-NETBOOK"),
++		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "ONEXPLAYER F1 EVA-02"),
++		},
++		.driver_data = (void *)16,
 +	},
 +	{}
 +};
@@ -32872,21 +32895,27 @@ index 4dac39694368..2dbe98601e71 100644
  static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
  					    int bl_idx)
  {
-@@ -4557,8 +4575,12 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
+@@ -4557,10 +4591,16 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
  		printk(KERN_NOTICE"VLV Successfully queried backlight range over ACPI: %d %d\n",
  		       (int) caps.min_input_signal, (int) caps.max_input_signal);
  
 -		if ( caps.min_input_signal != AMDGPU_DM_DEFAULT_MIN_BACKLIGHT ||
 -			caps.max_input_signal != AMDGPU_DM_DEFAULT_MAX_BACKLIGHT )
+-		{
+-			caps.min_input_signal = AMDGPU_DM_DEFAULT_MIN_BACKLIGHT;
 +		const struct dmi_system_id *override_sysid =
 +			dmi_first_match(backlight_override_quirks);
 +
-+		if ( override_sysid &&
-+			(caps.min_input_signal != AMDGPU_DM_DEFAULT_MIN_BACKLIGHT ||
-+			caps.max_input_signal != AMDGPU_DM_DEFAULT_MAX_BACKLIGHT) )
- 		{
- 			caps.min_input_signal = AMDGPU_DM_DEFAULT_MIN_BACKLIGHT;
++		if (override_sysid &&
++		    (caps.min_input_signal !=
++			     (long)override_sysid->driver_data ||
++		     caps.max_input_signal !=
++			     AMDGPU_DM_DEFAULT_MAX_BACKLIGHT)) {
++			caps.min_input_signal =
++				(long)override_sysid->driver_data;
  			caps.max_input_signal = AMDGPU_DM_DEFAULT_MAX_BACKLIGHT;
+ 
+ 			printk(KERN_NOTICE"VLV OVERRIDE backlight range: %d %d\n",
 -- 
 2.47.0
 
@@ -32984,7 +33013,7 @@ Signed-off-by: Joshua Ashton <joshua@froggi.es>
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 2dbe98601e71..6fabfae19bac 100644
+index 2ab7cdd83614..76023c0739c3 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -467,7 +467,7 @@ static void dm_pflip_high_irq(void *interrupt_params)
@@ -33010,7 +33039,7 @@ index 2dbe98601e71..6fabfae19bac 100644
  			    adev->family < AMDGPU_FAMILY_AI) {
  				spin_lock_irqsave(&adev_to_drm(adev)->event_lock, flags);
  				mod_freesync_handle_v_update(
-@@ -9022,7 +9022,7 @@ static void amdgpu_dm_commit_planes(struct drm_atomic_state *state,
+@@ -9040,7 +9040,7 @@ static void amdgpu_dm_commit_planes(struct drm_atomic_state *state,
  	int planes_count = 0, vpos, hpos;
  	unsigned long flags;
  	u32 target_vblank, last_flip_vblank;
@@ -33038,7 +33067,7 @@ Should also improve latency/stutter on internal display potentially too.
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 6fabfae19bac..22be407875aa 100644
+index 76023c0739c3..19179b90b0ba 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -467,7 +467,7 @@ static void dm_pflip_high_irq(void *interrupt_params)
@@ -40251,7 +40280,7 @@ index df17e79c45c7..e454488c1a31 100644
 +
  endmenu
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 22be407875aa..a93d60c788cf 100644
+index 19179b90b0ba..005072121a55 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -4501,7 +4501,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
