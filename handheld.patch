@@ -31746,6 +31746,88 @@ index 08029fcf5f4a..9ed42a146b06 100644
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Tue, 24 Dec 2024 23:42:07 +0100
+Subject: Input: xpad - add support for ZOTAC Gaming Zone
+
+ZOTAC Gaming Zone is ZOTAC's 2024 handheld release.
+As it is common with these handhelds, it uses a
+hybrid USB device with an xpad endpoint, a
+keyboard endpoint, and a vendor-specific
+endpoint for RGB control et al.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/input/joystick/xpad.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/input/joystick/xpad.c b/drivers/input/joystick/xpad.c
+index 22ea58bf76cb..a86efce37dbf 100644
+--- a/drivers/input/joystick/xpad.c
++++ b/drivers/input/joystick/xpad.c
+@@ -341,6 +341,7 @@ static const struct xpad_device {
+ 	{ 0x1bad, 0xfa01, "MadCatz GamePad", 0, XTYPE_XBOX360 },
+ 	{ 0x1bad, 0xfd00, "Razer Onza TE", 0, XTYPE_XBOX360 },
+ 	{ 0x1bad, 0xfd01, "Razer Onza", 0, XTYPE_XBOX360 },
++	{ 0x1ee9, 0x1590, "ZOTAC Gaming Zone", 0, XTYPE_XBOX360 },
+ 	{ 0x20d6, 0x2001, "BDA Xbox Series X Wired Controller", 0, XTYPE_XBOXONE },
+ 	{ 0x20d6, 0x2009, "PowerA Enhanced Wired Controller for Xbox Series X|S", 0, XTYPE_XBOXONE },
+ 	{ 0x20d6, 0x281f, "PowerA Wired Controller For Xbox 360", 0, XTYPE_XBOX360 },
+@@ -515,6 +516,7 @@ static const struct usb_device_id xpad_table[] = {
+ 	XPAD_XBOX360_VENDOR(0x17ef),		/* Lenovo */
+ 	XPAD_XBOX360_VENDOR(0x1949),		/* Amazon controllers */
+ 	XPAD_XBOX360_VENDOR(0x1bad),		/* Harmonix Rock Band guitar and drums */
++	XPAD_XBOX360_VENDOR(0x1ee9),		/* ZOTAC Technology Limited */
+ 	XPAD_XBOX360_VENDOR(0x20d6),		/* PowerA controllers */
+ 	XPAD_XBOXONE_VENDOR(0x20d6),		/* PowerA controllers */
+ 	XPAD_XBOX360_VENDOR(0x2345),		/* Machenike Controllers */
+-- 
+2.47.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Tue, 24 Dec 2024 23:48:01 +0100
+Subject: Input: xpad - add support for TECNO Pocket Go
+
+TECNO Pocket Go is a kickstarter handheld by
+manufacturer TECNO Mobile. It poses a unique
+feature: it does not have a display. Instead,
+the handheld is essentially a pc in a
+controller. As customary, it has an xpad
+endpoint, a keyboard endpoint, and a vendor
+endpoint for its vendor software.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/input/joystick/xpad.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/input/joystick/xpad.c b/drivers/input/joystick/xpad.c
+index a86efce37dbf..94ce40792f18 100644
+--- a/drivers/input/joystick/xpad.c
++++ b/drivers/input/joystick/xpad.c
+@@ -373,6 +373,7 @@ static const struct xpad_device {
+ 	{ 0x2563, 0x058d, "OneXPlayer Gamepad", 0, XTYPE_XBOX360 },
+ 	{ 0x294b, 0x3303, "Snakebyte GAMEPAD BASE X", 0, XTYPE_XBOXONE },
+ 	{ 0x294b, 0x3404, "Snakebyte GAMEPAD RGB X", 0, XTYPE_XBOXONE },
++	{ 0x2993, 0x2001, "TECNO Pocket Go", 0, XTYPE_XBOX360 },
+ 	{ 0x2dc8, 0x2000, "8BitDo Pro 2 Wired Controller fox Xbox", 0, XTYPE_XBOXONE },
+ 	{ 0x2dc8, 0x3106, "8BitDo Pro 2 Wired Controller", 0, XTYPE_XBOX360 },
+ 	{ 0x2dc8, 0x310a, "8BitDo Ultimate 2C Wireless Controller", 0, XTYPE_XBOX360 },
+@@ -525,6 +526,7 @@ static const struct usb_device_id xpad_table[] = {
+ 	XPAD_XBOX360_VENDOR(0x2563),		/* OneXPlayer Gamepad */
+ 	XPAD_XBOX360_VENDOR(0x260d),		/* Dareu H101 */
+        XPAD_XBOXONE_VENDOR(0x294b),            /* Snakebyte */
++	XPAD_XBOX360_VENDOR(0x2993),		/* TECNO Mobile */
+ 	XPAD_XBOX360_VENDOR(0x2c22),		/* Qanba Controllers */
+ 	XPAD_XBOX360_VENDOR(0x2dc8),            /* 8BitDo Pro 2 Wired Controller */
+ 	XPAD_XBOXONE_VENDOR(0x2dc8),		/* 8BitDo Pro 2 Wired Controller for Xbox */
+-- 
+2.47.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <git@antheas.dev>
 Date: Sat, 12 Oct 2024 19:33:24 +0200
 Subject: [BEGIN] Steam Deck fixes
@@ -42753,6 +42835,212 @@ index c9e677e3af1d..84d4fa142830 100644
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: xiota <>
+Date: Wed, 13 Mar 2024 02:36:37 +0000
+Subject: PCI: Add ACI override to allow GPU passthrough in older motherboards
+
+---
+ .../admin-guide/kernel-parameters.txt         |   8 ++
+ drivers/pci/quirks.c                          | 102 ++++++++++++++++++
+ 2 files changed, 110 insertions(+)
+
+diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
+index 5a812e0b740a..025629853b47 100644
+--- a/Documentation/admin-guide/kernel-parameters.txt
++++ b/Documentation/admin-guide/kernel-parameters.txt
+@@ -4478,6 +4478,14 @@
+ 		nomsi		[MSI] If the PCI_MSI kernel config parameter is
+ 				enabled, this kernel boot option can be used to
+ 				disable the use of MSI interrupts system-wide.
++		pci_acs_override [PCIE] Override missing PCIe ACS support for:
++				downstream
++					All downstream ports - full ACS capabilities
++				multifunction
++					Add multifunction devices - multifunction ACS subset
++				id:nnnn:nnnn
++					Specific device - full ACS capabilities
++					Specified as vid:did (vendor/device ID) in hex
+ 		noioapicquirk	[APIC] Disable all boot interrupt quirks.
+ 				Safety option to keep boot IRQs enabled. This
+ 				should never be necessary.
+diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
+index 3b4fbc24ec91..f34d3dd6a81c 100644
+--- a/drivers/pci/quirks.c
++++ b/drivers/pci/quirks.c
+@@ -5040,6 +5040,106 @@ static int  pci_quirk_wangxun_nic_acs(struct pci_dev *dev, u16 acs_flags)
+ 	return false;
+ }
+ 
++static bool acs_on_downstream;
++static bool acs_on_multifunction;
++
++#define NUM_ACS_IDS 16
++struct acs_on_id {
++	unsigned short vendor;
++	unsigned short device;
++};
++static struct acs_on_id acs_on_ids[NUM_ACS_IDS];
++static u8 max_acs_id;
++
++static __init int pcie_acs_override_setup(char *p)
++{
++	if (!p)
++		return -EINVAL;
++
++	while (*p) {
++		if (!strncmp(p, "downstream", 10))
++			acs_on_downstream = true;
++		if (!strncmp(p, "multifunction", 13))
++			acs_on_multifunction = true;
++		if (!strncmp(p, "id:", 3)) {
++			char opt[5];
++			int ret;
++			long val;
++
++			if (max_acs_id >= NUM_ACS_IDS - 1) {
++				pr_warn("Out of PCIe ACS override slots (%d)\n",
++						NUM_ACS_IDS);
++				goto next;
++			}
++
++			p += 3;
++			snprintf(opt, 5, "%s", p);
++			ret = kstrtol(opt, 16, &val);
++			if (ret) {
++				pr_warn("PCIe ACS ID parse error %d\n", ret);
++				goto next;
++			}
++			acs_on_ids[max_acs_id].vendor = val;
++		p += strcspn(p, ":");
++		if (*p != ':') {
++			pr_warn("PCIe ACS invalid ID\n");
++			goto next;
++			}
++
++			p++;
++			snprintf(opt, 5, "%s", p);
++			ret = kstrtol(opt, 16, &val);
++			if (ret) {
++				pr_warn("PCIe ACS ID parse error %d\n", ret);
++				goto next;
++			}
++			acs_on_ids[max_acs_id].device = val;
++			max_acs_id++;
++		}
++next:
++		p += strcspn(p, ",");
++		if (*p == ',')
++			p++;
++	}
++
++	if (acs_on_downstream || acs_on_multifunction || max_acs_id)
++		pr_warn("Warning: PCIe ACS overrides enabled; This may allow non-IOMMU protected peer-to-peer DMA\n");
++
++	return 0;
++}
++early_param("pcie_acs_override", pcie_acs_override_setup);
++
++static int pcie_acs_overrides(struct pci_dev *dev, u16 acs_flags)
++{
++	int i;
++
++	/* Never override ACS for legacy devices or devices with ACS caps */
++	if (!pci_is_pcie(dev) ||
++		pci_find_ext_capability(dev, PCI_EXT_CAP_ID_ACS))
++			return -ENOTTY;
++
++	for (i = 0; i < max_acs_id; i++)
++		if (acs_on_ids[i].vendor == dev->vendor &&
++			acs_on_ids[i].device == dev->device)
++				return 1;
++
++switch (pci_pcie_type(dev)) {
++	case PCI_EXP_TYPE_DOWNSTREAM:
++	case PCI_EXP_TYPE_ROOT_PORT:
++		if (acs_on_downstream)
++			return 1;
++		break;
++	case PCI_EXP_TYPE_ENDPOINT:
++	case PCI_EXP_TYPE_UPSTREAM:
++	case PCI_EXP_TYPE_LEG_END:
++	case PCI_EXP_TYPE_RC_END:
++		if (acs_on_multifunction && dev->multifunction)
++			return 1;
++	}
++
++	return -ENOTTY;
++}
++
+ static const struct pci_dev_acs_enabled {
+ 	u16 vendor;
+ 	u16 device;
+@@ -5193,6 +5293,8 @@ static const struct pci_dev_acs_enabled {
+ 	{ PCI_VENDOR_ID_ZHAOXIN, PCI_ANY_ID, pci_quirk_zhaoxin_pcie_ports_acs },
+ 	/* Wangxun nics */
+ 	{ PCI_VENDOR_ID_WANGXUN, PCI_ANY_ID, pci_quirk_wangxun_nic_acs },
++	/* allow acs for any */
++	{ PCI_ANY_ID, PCI_ANY_ID, pcie_acs_overrides },
+ 	{ 0 }
+ };
+ 
+-- 
+2.47.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Wed, 25 Dec 2024 16:46:03 +0100
+Subject: PCI: Have ACI override bail if no parameter is provided
+
+This is to make sure we do not taint the kernel for users
+that do not need the feature.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/pci/quirks.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
+index f34d3dd6a81c..145459301730 100644
+--- a/drivers/pci/quirks.c
++++ b/drivers/pci/quirks.c
+@@ -5040,6 +5040,7 @@ static int  pci_quirk_wangxun_nic_acs(struct pci_dev *dev, u16 acs_flags)
+ 	return false;
+ }
+ 
++static bool acs_ovf_enabled;
+ static bool acs_on_downstream;
+ static bool acs_on_multifunction;
+ 
+@@ -5102,8 +5103,10 @@ static __init int pcie_acs_override_setup(char *p)
+ 			p++;
+ 	}
+ 
+-	if (acs_on_downstream || acs_on_multifunction || max_acs_id)
++	if (acs_on_downstream || acs_on_multifunction || max_acs_id) {
+ 		pr_warn("Warning: PCIe ACS overrides enabled; This may allow non-IOMMU protected peer-to-peer DMA\n");
++		acs_ovf_enabled = true;
++	}
+ 
+ 	return 0;
+ }
+@@ -5113,6 +5116,11 @@ static int pcie_acs_overrides(struct pci_dev *dev, u16 acs_flags)
+ {
+ 	int i;
+ 
++	// Do not taint installations without a provided param
++	// by running the following code segment
++	if (!acs_ovf_enabled)
++		return -ENOTTY;
++
+ 	/* Never override ACS for legacy devices or devices with ACS caps */
+ 	if (!pci_is_pcie(dev) ||
+ 		pci_find_ext_capability(dev, PCI_EXT_CAP_ID_ACS))
+-- 
+2.47.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <git@antheas.dev>
 Date: Sat, 12 Oct 2024 19:24:08 +0200
 Subject: Fix HAINAN amdgpu card not being bootable
@@ -43199,10 +43487,10 @@ Subject: Allow to set custom USB pollrate for specific devices like so:
  4 files changed, 179 insertions(+), 1 deletion(-)
 
 diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-index 5a812e0b740a..6ca7968aab03 100644
+index 025629853b47..d9a335037a52 100644
 --- a/Documentation/admin-guide/kernel-parameters.txt
 +++ b/Documentation/admin-guide/kernel-parameters.txt
-@@ -7217,6 +7217,14 @@
+@@ -7225,6 +7225,14 @@
  					request from 5000 ms to 500 ms);
  			Example: quirks=0781:5580:bk,0a5c:5834:gij
  
