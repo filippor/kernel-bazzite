@@ -33839,11 +33839,11 @@ Signed-off-by: Robert Beckett <bob.beckett@collabora.com>
 ---
  drivers/bluetooth/btrtl.c | 114 ++++++++++++++++++++++++++++++++++++++
  drivers/bluetooth/btrtl.h |  13 +++++
- drivers/bluetooth/btusb.c |  16 ++++++
- 3 files changed, 143 insertions(+)
+ drivers/bluetooth/btusb.c |   2 +
+ 3 files changed, 129 insertions(+)
 
 diff --git a/drivers/bluetooth/btrtl.c b/drivers/bluetooth/btrtl.c
-index 0bcb44cf7b31..9979638cae8c 100644
+index 0bcb44cf7b31..1fdb30b2449c 100644
 --- a/drivers/bluetooth/btrtl.c
 +++ b/drivers/bluetooth/btrtl.c
 @@ -9,6 +9,7 @@
@@ -33948,7 +33948,7 @@ index 0bcb44cf7b31..9979638cae8c 100644
  }
  EXPORT_SYMBOL_GPL(btrtl_get_uart_settings);
  
-+int btrtl_suspend(struct hci_dev *hdev, pm_message_t message)
++int btrtl_suspend(struct hci_dev *hdev)
 +{
 +	int ret = 0;
 +	u16 ignore_mask;
@@ -33998,7 +33998,7 @@ index 0bcb44cf7b31..9979638cae8c 100644
  MODULE_DESCRIPTION("Bluetooth support for Realtek devices ver " VERSION);
  MODULE_VERSION(VERSION);
 diff --git a/drivers/bluetooth/btrtl.h b/drivers/bluetooth/btrtl.h
-index a2d9d34f9fb0..98d7322da7ee 100644
+index a2d9d34f9fb0..ee576dd8f35b 100644
 --- a/drivers/bluetooth/btrtl.h
 +++ b/drivers/bluetooth/btrtl.h
 @@ -105,6 +105,7 @@ struct rtl_vendor_cmd {
@@ -34013,7 +34013,7 @@ index a2d9d34f9fb0..98d7322da7ee 100644
  			    unsigned int *controller_baudrate,
  			    u32 *device_baudrate, bool *flow_control);
  void btrtl_set_driver_name(struct hci_dev *hdev, const char *driver_name);
-+int btrtl_suspend(struct hci_dev *hdev, pm_message_t message);
++int btrtl_suspend(struct hci_dev *hdev);
 +int btrtl_resume(struct hci_dev *hdev);
  
  #else
@@ -34022,7 +34022,7 @@ index a2d9d34f9fb0..98d7322da7ee 100644
  {
  }
  
-+static inline int btrtl_suspend(struct hci_dev *hdev, pm_message_t message)
++static inline int btrtl_suspend(struct hci_dev *hdev)
 +{
 +	return -EOPNOTSUPP;
 +}
@@ -34034,19 +34034,10 @@ index a2d9d34f9fb0..98d7322da7ee 100644
 +
  #endif
 diff --git a/drivers/bluetooth/btusb.c b/drivers/bluetooth/btusb.c
-index 7fee67e629b7..73f88ad96e84 100644
+index 7fee67e629b7..829e6ad690e5 100644
 --- a/drivers/bluetooth/btusb.c
 +++ b/drivers/bluetooth/btusb.c
-@@ -871,6 +871,8 @@ struct btusb_data {
- 	int (*recv_bulk)(struct btusb_data *data, void *buffer, int count);
- 
- 	int (*setup_on_usb)(struct hci_dev *hdev);
-+	int (*suspend)(struct hci_dev *hdev, pm_message_t message);
-+	int (*resume)(struct hci_dev *hdev);
- 
- 	int (*suspend)(struct hci_dev *hdev);
- 	int (*resume)(struct hci_dev *hdev);
-@@ -3925,6 +3927,8 @@ static int btusb_probe(struct usb_interface *intf,
+@@ -3925,6 +3925,8 @@ static int btusb_probe(struct usb_interface *intf,
  		hdev->shutdown = btrtl_shutdown_realtek;
  		hdev->cmd_timeout = btusb_rtl_cmd_timeout;
  		hdev->hw_error = btusb_rtl_hw_error;
@@ -34055,39 +34046,6 @@ index 7fee67e629b7..73f88ad96e84 100644
  
  		/* Realtek devices need to set remote wakeup on auto-suspend */
  		set_bit(BTUSB_WAKEUP_AUTOSUSPEND, &data->flags);
-@@ -4087,6 +4091,8 @@ static void btusb_disconnect(struct usb_interface *intf)
- static int btusb_suspend(struct usb_interface *intf, pm_message_t message)
- {
- 	struct btusb_data *data = usb_get_intfdata(intf);
-+	struct hci_dev *hdev = data->hdev;
-+	int ret = 0;
- 
- 	BT_DBG("intf %p", intf);
- 
-@@ -4099,6 +4105,11 @@ static int btusb_suspend(struct usb_interface *intf, pm_message_t message)
- 	if (data->suspend_count++)
- 		return 0;
- 
-+	if (data->suspend)
-+		ret = data->suspend(hdev, message);
-+	if (ret && ret != -EOPNOTSUPP)
-+		return ret;
-+
- 	spin_lock_irq(&data->txlock);
- 	if (!(PMSG_IS_AUTO(message) && data->tx_in_flight)) {
- 		set_bit(BTUSB_SUSPENDING, &data->flags);
-@@ -4226,6 +4237,11 @@ static int btusb_resume(struct usb_interface *intf)
- 	spin_unlock_irq(&data->txlock);
- 	schedule_work(&data->work);
- 
-+	if (data->resume)
-+		err = data->resume(hdev);
-+	if (err && err != -EOPNOTSUPP)
-+		goto done;
-+
- 	return 0;
- 
- failed:
 -- 
 2.47.1
 
@@ -50723,10 +50681,10 @@ index 5df7c3296624..c61337123a19 100644
  {
  	return -EOPNOTSUPP;
 diff --git a/drivers/bluetooth/btusb.c b/drivers/bluetooth/btusb.c
-index 73f88ad96e84..90a895a6ac4f 100644
+index 829e6ad690e5..534dc9f7643d 100644
 --- a/drivers/bluetooth/btusb.c
 +++ b/drivers/bluetooth/btusb.c
-@@ -2632,41 +2632,6 @@ static int btusb_recv_event_realtek(struct hci_dev *hdev, struct sk_buff *skb)
+@@ -2630,41 +2630,6 @@ static int btusb_recv_event_realtek(struct hci_dev *hdev, struct sk_buff *skb)
  	return hci_recv_frame(hdev, skb);
  }
  
@@ -50768,7 +50726,7 @@ index 73f88ad96e84..90a895a6ac4f 100644
  static int btusb_mtk_reset(struct hci_dev *hdev, void *rst_data)
  {
  	struct btusb_data *data = hci_get_drvdata(hdev);
-@@ -2683,9 +2648,6 @@ static int btusb_mtk_reset(struct hci_dev *hdev, void *rst_data)
+@@ -2681,9 +2646,6 @@ static int btusb_mtk_reset(struct hci_dev *hdev, void *rst_data)
  	if (err < 0)
  		return err;
  
@@ -50778,7 +50736,7 @@ index 73f88ad96e84..90a895a6ac4f 100644
  	btusb_stop_traffic(data);
  	usb_kill_anchored_urbs(&data->tx_anchor);
  
-@@ -2697,23 +2659,6 @@ static int btusb_mtk_reset(struct hci_dev *hdev, void *rst_data)
+@@ -2695,23 +2657,6 @@ static int btusb_mtk_reset(struct hci_dev *hdev, void *rst_data)
  	return err;
  }
  
@@ -50802,7 +50760,7 @@ index 73f88ad96e84..90a895a6ac4f 100644
  static int btusb_mtk_setup(struct hci_dev *hdev)
  {
  	struct btusb_data *data = hci_get_drvdata(hdev);
-@@ -2728,22 +2673,11 @@ static int btusb_mtk_setup(struct hci_dev *hdev)
+@@ -2726,22 +2671,11 @@ static int btusb_mtk_setup(struct hci_dev *hdev)
  	btmtk_data->ctrl_anchor = &data->ctrl_anchor;
  	btmtk_data->reset_sync = btusb_mtk_reset;
  
@@ -50825,7 +50783,7 @@ index 73f88ad96e84..90a895a6ac4f 100644
  	return btmtk_usb_shutdown(hdev);
  }
  
-@@ -3863,12 +3797,9 @@ static int btusb_probe(struct usb_interface *intf,
+@@ -3861,12 +3795,9 @@ static int btusb_probe(struct usb_interface *intf,
  		hdev->manufacturer = 70;
  		hdev->cmd_timeout = btmtk_reset_sync;
  		hdev->set_bdaddr = btmtk_set_bdaddr;
