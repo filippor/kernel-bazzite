@@ -33826,6 +33826,273 @@ index fab9a787a40c..85612e059452 100644
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Robert Beckett <bob.beckett@collabora.com>
+Date: Thu, 21 Nov 2024 21:12:03 +0000
+Subject: Bluetooth: btrtl: add suspend handling to ignore BT_DIS
+
+With new fw, btrtl can be set to ignore the BT_DIS
+pin that is usually asserted during suspend.
+This allows the device to be a wakeup source and
+allows us to wakeup via bluetooth peripherals.
+
+Signed-off-by: Robert Beckett <bob.beckett@collabora.com>
+---
+ drivers/bluetooth/btrtl.c | 114 ++++++++++++++++++++++++++++++++++++++
+ drivers/bluetooth/btrtl.h |  13 +++++
+ drivers/bluetooth/btusb.c |  16 ++++++
+ 3 files changed, 143 insertions(+)
+
+diff --git a/drivers/bluetooth/btrtl.c b/drivers/bluetooth/btrtl.c
+index 0bcb44cf7b31..9979638cae8c 100644
+--- a/drivers/bluetooth/btrtl.c
++++ b/drivers/bluetooth/btrtl.c
+@@ -9,6 +9,7 @@
+ #include <linux/firmware.h>
+ #include <linux/unaligned.h>
+ #include <linux/usb.h>
++#include <linux/dmi.h>
+ 
+ #include <net/bluetooth/bluetooth.h>
+ #include <net/bluetooth/hci_core.h>
+@@ -51,6 +52,9 @@
+ #define	RTL_CHIP_SUBVER (&(struct rtl_vendor_cmd) {{0x10, 0x38, 0x04, 0x28, 0x80}})
+ #define	RTL_CHIP_REV    (&(struct rtl_vendor_cmd) {{0x10, 0x3A, 0x04, 0x28, 0x80}})
+ #define	RTL_SEC_PROJ    (&(struct rtl_vendor_cmd) {{0x10, 0xA4, 0x0D, 0x00, 0xb0}})
++#define	RTL_IGNORE_MASK (&(struct rtl_vendor_cmd) {{0x10, 0x34, 0x60, 0x00, 0xb0}})
++
++#define	RTL_IGNORE_BT_DIS BIT(0)
+ 
+ #define RTL_PATCH_SNIPPETS		0x01
+ #define RTL_PATCH_DUMMY_HEADER		0x02
+@@ -439,6 +443,34 @@ static int btrtl_vendor_read_reg16(struct hci_dev *hdev,
+ 	return 0;
+ }
+ 
++static int btrtl_vendor_write_reg16(struct hci_dev *hdev,
++				    struct rtl_vendor_cmd *cmd, const u8 * const rp)
++{
++	struct sk_buff *skb;
++	u8 buf[sizeof(*cmd) + 2];
++	int err = 0;
++
++	memcpy(buf, cmd, sizeof(*cmd));
++	memcpy(buf + sizeof(*cmd), rp, 2);
++
++	skb = __hci_cmd_sync(hdev, 0xfc62, sizeof(buf), buf, HCI_INIT_TIMEOUT);
++	if (IS_ERR(skb)) {
++		err = PTR_ERR(skb);
++		rtl_dev_err(hdev, "RTL: Write reg16 failed (%d)", err);
++		return err;
++	}
++
++	if (skb->len != 1 || skb->data[0]) {
++		bt_dev_err(hdev, "RTL: Write reg16 length mismatch");
++		kfree_skb(skb);
++		return -EIO;
++	}
++
++	kfree_skb(skb);
++
++	return 0;
++}
++
+ static void *rtl_iov_pull_data(struct rtl_iovec *iov, u32 len)
+ {
+ 	void *data = iov->data;
+@@ -1280,8 +1312,44 @@ int btrtl_download_firmware(struct hci_dev *hdev,
+ }
+ EXPORT_SYMBOL_GPL(btrtl_download_firmware);
+ 
++static const struct dmi_system_id btrtl_can_ignore_bt_dis_table[] = {
++	{
++		.matches = {
++			DMI_EXACT_MATCH(DMI_SYS_VENDOR, "Valve"),
++			DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Jupiter"),
++		},
++	},
++	{}
++};
++
++static bool btrtl_fw_can_ignore_bt_dis(struct hci_dev *hdev)
++{
++	struct sk_buff *skb;
++	struct hci_rp_read_local_version *rp;
++	bool ret = false;
++
++	if (!dmi_check_system(btrtl_can_ignore_bt_dis_table))
++		return false;
++
++	skb = btrtl_read_local_version(hdev);
++	if (IS_ERR(skb))
++		return false;
++
++	rp = (struct hci_rp_read_local_version *)skb->data;
++	if (le16_to_cpu(rp->hci_rev) == 0x98d7 &&
++	    le16_to_cpu(rp->lmp_subver) == 0x081e)
++		ret = true;
++
++	kfree_skb(skb);
++
++	return ret;
++}
++
+ void btrtl_set_quirks(struct hci_dev *hdev, struct btrtl_device_info *btrtl_dev)
+ {
++	if (btrtl_fw_can_ignore_bt_dis(hdev))
++		btrealtek_set_flag(hdev, REALTEK_CAN_IGNORE_BT_DIS);
++
+ 	/* Enable controller to do both LE scan and BR/EDR inquiry
+ 	 * simultaneously.
+ 	 */
+@@ -1491,6 +1559,52 @@ int btrtl_get_uart_settings(struct hci_dev *hdev,
+ }
+ EXPORT_SYMBOL_GPL(btrtl_get_uart_settings);
+ 
++int btrtl_suspend(struct hci_dev *hdev, pm_message_t message)
++{
++	int ret = 0;
++	u16 ignore_mask;
++	u8 buf[2];
++
++	if (!btrealtek_test_flag(hdev, REALTEK_CAN_IGNORE_BT_DIS))
++		return -EOPNOTSUPP;
++
++	ret = btrtl_vendor_read_reg16(hdev, RTL_IGNORE_MASK, buf);
++	if (ret)
++		return ret;
++
++	ignore_mask = get_unaligned_le16(buf);
++	ignore_mask |= RTL_IGNORE_BT_DIS;
++	put_unaligned_le16(ignore_mask, buf);
++
++	ret = btrtl_vendor_write_reg16(hdev, RTL_IGNORE_MASK, buf);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(btrtl_suspend);
++
++int btrtl_resume(struct hci_dev *hdev)
++{
++	int ret = 0;
++	u16 ignore_mask;
++	u8 buf[2];
++
++	if (!btrealtek_test_flag(hdev, REALTEK_CAN_IGNORE_BT_DIS))
++		return -EOPNOTSUPP;
++
++	ret = btrtl_vendor_read_reg16(hdev, RTL_IGNORE_MASK, buf);
++	if (ret)
++		return ret;
++
++	ignore_mask = get_unaligned_le16(buf);
++	ignore_mask &= ~RTL_IGNORE_BT_DIS;
++	put_unaligned_le16(ignore_mask, buf);
++
++	ret = btrtl_vendor_write_reg16(hdev, RTL_IGNORE_MASK, buf);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(btrtl_resume);
++
+ MODULE_AUTHOR("Daniel Drake <drake@endlessm.com>");
+ MODULE_DESCRIPTION("Bluetooth support for Realtek devices ver " VERSION);
+ MODULE_VERSION(VERSION);
+diff --git a/drivers/bluetooth/btrtl.h b/drivers/bluetooth/btrtl.h
+index a2d9d34f9fb0..98d7322da7ee 100644
+--- a/drivers/bluetooth/btrtl.h
++++ b/drivers/bluetooth/btrtl.h
+@@ -105,6 +105,7 @@ struct rtl_vendor_cmd {
+ 
+ enum {
+ 	REALTEK_ALT6_CONTINUOUS_TX_CHIP,
++	REALTEK_CAN_IGNORE_BT_DIS,
+ 
+ 	__REALTEK_NUM_FLAGS,
+ };
+@@ -148,6 +149,8 @@ int btrtl_get_uart_settings(struct hci_dev *hdev,
+ 			    unsigned int *controller_baudrate,
+ 			    u32 *device_baudrate, bool *flow_control);
+ void btrtl_set_driver_name(struct hci_dev *hdev, const char *driver_name);
++int btrtl_suspend(struct hci_dev *hdev, pm_message_t message);
++int btrtl_resume(struct hci_dev *hdev);
+ 
+ #else
+ 
+@@ -195,4 +198,14 @@ static inline void btrtl_set_driver_name(struct hci_dev *hdev, const char *drive
+ {
+ }
+ 
++static inline int btrtl_suspend(struct hci_dev *hdev, pm_message_t message)
++{
++	return -EOPNOTSUPP;
++}
++
++static inline int btrtl_resume(struct hci_dev *hdev)
++{
++	return -EOPNOTSUPP;
++}
++
+ #endif
+diff --git a/drivers/bluetooth/btusb.c b/drivers/bluetooth/btusb.c
+index 7fee67e629b7..73f88ad96e84 100644
+--- a/drivers/bluetooth/btusb.c
++++ b/drivers/bluetooth/btusb.c
+@@ -871,6 +871,8 @@ struct btusb_data {
+ 	int (*recv_bulk)(struct btusb_data *data, void *buffer, int count);
+ 
+ 	int (*setup_on_usb)(struct hci_dev *hdev);
++	int (*suspend)(struct hci_dev *hdev, pm_message_t message);
++	int (*resume)(struct hci_dev *hdev);
+ 
+ 	int (*suspend)(struct hci_dev *hdev);
+ 	int (*resume)(struct hci_dev *hdev);
+@@ -3925,6 +3927,8 @@ static int btusb_probe(struct usb_interface *intf,
+ 		hdev->shutdown = btrtl_shutdown_realtek;
+ 		hdev->cmd_timeout = btusb_rtl_cmd_timeout;
+ 		hdev->hw_error = btusb_rtl_hw_error;
++		data->suspend = btrtl_suspend;
++		data->resume = btrtl_resume;
+ 
+ 		/* Realtek devices need to set remote wakeup on auto-suspend */
+ 		set_bit(BTUSB_WAKEUP_AUTOSUSPEND, &data->flags);
+@@ -4087,6 +4091,8 @@ static void btusb_disconnect(struct usb_interface *intf)
+ static int btusb_suspend(struct usb_interface *intf, pm_message_t message)
+ {
+ 	struct btusb_data *data = usb_get_intfdata(intf);
++	struct hci_dev *hdev = data->hdev;
++	int ret = 0;
+ 
+ 	BT_DBG("intf %p", intf);
+ 
+@@ -4099,6 +4105,11 @@ static int btusb_suspend(struct usb_interface *intf, pm_message_t message)
+ 	if (data->suspend_count++)
+ 		return 0;
+ 
++	if (data->suspend)
++		ret = data->suspend(hdev, message);
++	if (ret && ret != -EOPNOTSUPP)
++		return ret;
++
+ 	spin_lock_irq(&data->txlock);
+ 	if (!(PMSG_IS_AUTO(message) && data->tx_in_flight)) {
+ 		set_bit(BTUSB_SUSPENDING, &data->flags);
+@@ -4226,6 +4237,11 @@ static int btusb_resume(struct usb_interface *intf)
+ 	spin_unlock_irq(&data->txlock);
+ 	schedule_work(&data->work);
+ 
++	if (data->resume)
++		err = data->resume(hdev);
++	if (err && err != -EOPNOTSUPP)
++		goto done;
++
+ 	return 0;
+ 
+ failed:
+-- 
+2.47.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <git@antheas.dev>
 Date: Sat, 12 Oct 2024 19:14:10 +0200
 Subject: [BEGIN] Modern Suspend patchset
@@ -41218,27 +41485,27 @@ index a3df782fa687..940d8f514341 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Masahito S <firelzrd@gmail.com>
-Date: Thu, 7 Nov 2024 01:47:21 +0900
-Subject: linux6.12.y-bore5.7.3
+Date: Sat, 28 Dec 2024 02:04:36 +0900
+Subject: linux6.12.y-bore5.7.15
 
 ---
  include/linux/sched.h      |  17 ++
- include/linux/sched/bore.h |  37 ++++
+ include/linux/sched/bore.h |  40 ++++
  init/Kconfig               |  17 ++
  kernel/Kconfig.hz          |  17 ++
  kernel/fork.c              |   5 +
  kernel/sched/Makefile      |   1 +
- kernel/sched/bore.c        | 381 +++++++++++++++++++++++++++++++++++++
- kernel/sched/core.c        |   7 +
+ kernel/sched/bore.c        | 424 +++++++++++++++++++++++++++++++++++++
+ kernel/sched/core.c        |   6 +
  kernel/sched/debug.c       |  61 +++++-
- kernel/sched/fair.c        |  75 +++++++-
+ kernel/sched/fair.c        |  76 ++++++-
  kernel/sched/sched.h       |   9 +
- 11 files changed, 622 insertions(+), 5 deletions(-)
+ 11 files changed, 668 insertions(+), 5 deletions(-)
  create mode 100644 include/linux/sched/bore.h
  create mode 100644 kernel/sched/bore.c
 
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index bb343136ddd0..c86185f87e7b 100644
+index c14446c6164d..83e35dfbbc50 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
 @@ -538,6 +538,14 @@ struct sched_statistics {
@@ -41274,16 +41541,17 @@ index bb343136ddd0..c86185f87e7b 100644
  
 diff --git a/include/linux/sched/bore.h b/include/linux/sched/bore.h
 new file mode 100644
-index 000000000000..12a613a94ff0
+index 000000000000..653b918d36c0
 --- /dev/null
 +++ b/include/linux/sched/bore.h
-@@ -0,0 +1,37 @@
+@@ -0,0 +1,40 @@
 +
 +#include <linux/sched.h>
 +#include <linux/sched/cputime.h>
 +
 +#ifndef _LINUX_SCHED_BORE_H
 +#define _LINUX_SCHED_BORE_H
++#define SCHED_BORE_VERSION "5.7.15"
 +
 +#ifdef CONFIG_SCHED_BORE
 +extern u8   __read_mostly sched_bore;
@@ -41294,6 +41562,7 @@ index 000000000000..12a613a94ff0
 +extern u8   __read_mostly sched_burst_parity_threshold;
 +extern u8   __read_mostly sched_burst_penalty_offset;
 +extern uint __read_mostly sched_burst_penalty_scale;
++extern uint __read_mostly sched_burst_cache_stop_count;
 +extern uint __read_mostly sched_burst_cache_lifetime;
 +extern uint __read_mostly sched_deadline_boost_mask;
 +
@@ -41304,12 +41573,13 @@ index 000000000000..12a613a94ff0
 +extern void restart_burst_rescale_deadline(struct sched_entity *se);
 +
 +extern int sched_bore_update_handler(const struct ctl_table *table, int write,
-+		void __user *buffer, size_t *lenp, loff_t *ppos);
++	void __user *buffer, size_t *lenp, loff_t *ppos);
 +
 +extern void sched_clone_bore(
 +	struct task_struct *p, struct task_struct *parent, u64 clone_flags);
 +
 +extern void init_task_bore(struct task_struct *p);
++extern void sched_bore_init(void);
 +
 +extern void reweight_entity(
 +	struct cfs_rq *cfs_rq, struct sched_entity *se, unsigned long weight);
@@ -41404,15 +41674,16 @@ index 976092b7bd45..293aad675444 100644
 +obj-y += bore.o
 diff --git a/kernel/sched/bore.c b/kernel/sched/bore.c
 new file mode 100644
-index 000000000000..cd7e8a8d6075
+index 000000000000..46d1e86f1e4e
 --- /dev/null
 +++ b/kernel/sched/bore.c
-@@ -0,0 +1,381 @@
+@@ -0,0 +1,424 @@
 +/*
 + *  Burst-Oriented Response Enhancer (BORE) CPU Scheduler
 + *  Copyright (C) 2021-2024 Masahito Suzuki <firelzrd@gmail.com>
 + */
 +#include <linux/cpuset.h>
++#include <linux/sched/task.h>
 +#include <linux/sched/bore.h>
 +#include "sched.h"
 +
@@ -41425,7 +41696,8 @@ index 000000000000..cd7e8a8d6075
 +u8   __read_mostly sched_burst_parity_threshold = 2;
 +u8   __read_mostly sched_burst_penalty_offset   = 24;
 +uint __read_mostly sched_burst_penalty_scale    = 1280;
-+uint __read_mostly sched_burst_cache_lifetime   = 60000000;
++uint __read_mostly sched_burst_cache_stop_count = 64;
++uint __read_mostly sched_burst_cache_lifetime   = 75000000;
 +uint __read_mostly sched_deadline_boost_mask    = ENQUEUE_INITIAL
 +                                                | ENQUEUE_WAKEUP;
 +static int __maybe_unused sixty_four     = 64;
@@ -41529,7 +41801,7 @@ index 000000000000..cd7e8a8d6075
 +}
 +
 +static inline bool task_is_bore_eligible(struct task_struct *p)
-+{return p->sched_class == &fair_sched_class;}
++{return p && p->sched_class == &fair_sched_class && !p->exit_state;}
 +
 +static void reset_task_weights_bore(void) {
 +	struct task_struct *task;
@@ -41540,15 +41812,16 @@ index 000000000000..cd7e8a8d6075
 +	for_each_process(task) {
 +		if (!task_is_bore_eligible(task)) continue;
 +		rq = task_rq(task);
-+		rq_lock_irqsave(rq, &rf);
++		rq_pin_lock(rq, &rf);
++		update_rq_clock(rq);
 +		reweight_task_by_prio(task, effective_prio(task));
-+		rq_unlock_irqrestore(rq, &rf);
++		rq_unpin_lock(rq, &rf);
 +	}
 +	write_unlock_irq(&tasklist_lock);
 +}
 +
 +int sched_bore_update_handler(const struct ctl_table *table, int write,
-+		void __user *buffer, size_t *lenp, loff_t *ppos) {
++	void __user *buffer, size_t *lenp, loff_t *ppos) {
 +	int ret = proc_dou8vec_minmax(table, write, buffer, lenp, ppos);
 +	if (ret || !write)
 +		return ret;
@@ -41558,10 +41831,13 @@ index 000000000000..cd7e8a8d6075
 +	return 0;
 +}
 +
-+static u32 count_child_tasks(struct task_struct *p) {
-+	struct task_struct *child;
++#define for_each_child(p, t) \
++	list_for_each_entry(t, &(p)->children, sibling)
++
++static u32 count_children_max2(struct task_struct *p) {
 +	u32 cnt = 0;
-+	list_for_each_entry(child, &p->children, sibling) {cnt++;}
++	struct task_struct *child;
++	for_each_child(p, child) {if (2 <= ++cnt) break;}
 +	return cnt;
 +}
 +
@@ -41569,7 +41845,7 @@ index 000000000000..cd7e8a8d6075
 +{return (s64)(bc->timestamp + sched_burst_cache_lifetime - now) < 0;}
 +
 +static void update_burst_cache(struct sched_burst_cache *bc,
-+		struct task_struct *p, u32 cnt, u32 sum, u64 now) {
++	struct task_struct *p, u32 cnt, u32 sum, u64 now) {
 +	u8 avg = cnt ? sum / cnt : 0;
 +	bc->score = max(avg, p->se.burst_penalty);
 +	bc->count = cnt;
@@ -41580,7 +41856,7 @@ index 000000000000..cd7e8a8d6075
 +	u32 cnt = 0, sum = 0;
 +	struct task_struct *child;
 +
-+	list_for_each_entry(child, &p->children, sibling) {
++	for_each_child(p, child) {
 +		if (!task_is_bore_eligible(child)) continue;
 +		cnt++;
 +		sum += child->se.burst_penalty;
@@ -41589,8 +41865,13 @@ index 000000000000..cd7e8a8d6075
 +	update_burst_cache(&p->se.child_burst, p, cnt, sum, now);
 +}
 +
-+static inline u8 inherit_burst_direct(struct task_struct *p, u64 now) {
++static inline u8 inherit_burst_direct(
++	struct task_struct *p, u64 now, u64 clone_flags) {
 +	struct task_struct *parent = p;
++
++	if (clone_flags & CLONE_PARENT)
++		parent = parent->real_parent;
++
 +	if (burst_cache_expired(&parent->se.child_burst, now))
 +		update_child_burst_direct(parent, now);
 +
@@ -41602,9 +41883,9 @@ index 000000000000..cd7e8a8d6075
 +	u32 cnt = 0, dcnt = 0, sum = 0;
 +	struct task_struct *child, *dec;
 +
-+	list_for_each_entry(child, &p->children, sibling) {
++	for_each_child(p, child) {
 +		dec = child;
-+		while ((dcnt = count_child_tasks(dec)) == 1)
++		while ((dcnt = count_children_max2(dec)) == 1)
 +			dec = list_first_entry(&dec->children, struct task_struct, sibling);
 +		
 +		if (!dcnt || !depth) {
@@ -41616,6 +41897,7 @@ index 000000000000..cd7e8a8d6075
 +		if (!burst_cache_expired(&dec->se.child_burst, now)) {
 +			cnt += dec->se.child_burst.count;
 +			sum += (u32)dec->se.child_burst.score * dec->se.child_burst.count;
++			if (sched_burst_cache_stop_count <= cnt) break;
 +			continue;
 +		}
 +		update_child_burst_topological(dec, now, depth - 1, &cnt, &sum);
@@ -41626,12 +41908,23 @@ index 000000000000..cd7e8a8d6075
 +	*asum += sum;
 +}
 +
-+static inline u8 inherit_burst_topological(struct task_struct *p, u64 now) {
++static inline u8 inherit_burst_topological(
++	struct task_struct *p, u64 now, u64 clone_flags) {
 +	struct task_struct *anc = p;
 +	u32 cnt = 0, sum = 0;
++	u32 base_child_cnt = 0;
 +
-+	while (anc->real_parent != anc && count_child_tasks(anc) == 1)
++	if (clone_flags & CLONE_PARENT) {
 +		anc = anc->real_parent;
++		base_child_cnt = 1;
++	}
++
++	for (struct task_struct *next;
++		 anc != (next = anc->real_parent) &&
++		 	count_children_max2(anc) <= base_child_cnt;) {
++		anc = next;
++		base_child_cnt = 1;
++	}
 +
 +	if (burst_cache_expired(&anc->se.child_burst, now))
 +		update_child_burst_topological(
@@ -41654,7 +41947,7 @@ index 000000000000..cd7e8a8d6075
 +}
 +
 +static inline u8 inherit_burst_tg(struct task_struct *p, u64 now) {
-+	struct task_struct *parent = p->group_leader;
++	struct task_struct *parent = rcu_dereference(p->group_leader);
 +	if (burst_cache_expired(&parent->se.group_burst, now))
 +		update_tg_burst(parent, now);
 +
@@ -41663,18 +41956,26 @@ index 000000000000..cd7e8a8d6075
 +
 +void sched_clone_bore(
 +	struct task_struct *p, struct task_struct *parent, u64 clone_flags) {
++	struct sched_entity *se = &p->se;
++	u64 now;
++	u8 penalty;
++
 +	if (!task_is_bore_eligible(p)) return;
 +
-+	u64 now = ktime_get_ns();
-+	read_lock(&tasklist_lock);
-+	u8 penalty = (clone_flags & CLONE_THREAD) ?
-+		inherit_burst_tg(parent, now) :
-+		likely(sched_burst_fork_atavistic) ?
-+			inherit_burst_topological(parent, now):
-+			inherit_burst_direct(parent, now);
-+	read_unlock(&tasklist_lock);
++	if (clone_flags & CLONE_THREAD) {
++		rcu_read_lock();
++		now = jiffies_to_nsecs(jiffies);
++		penalty = inherit_burst_tg(parent, now);
++		rcu_read_unlock();
++	} else {
++		read_lock(&tasklist_lock);
++		now = jiffies_to_nsecs(jiffies);
++		penalty = likely(sched_burst_fork_atavistic) ?
++			inherit_burst_topological(parent, now, clone_flags):
++			inherit_burst_direct(parent, now, clone_flags);
++		read_unlock(&tasklist_lock);
++	}
 +
-+	struct sched_entity *se = &p->se;
 +	revolve_burst_penalty(se);
 +	se->burst_penalty = se->prev_burst_penalty =
 +		max(se->prev_burst_penalty, penalty);
@@ -41690,6 +41991,11 @@ index 000000000000..cd7e8a8d6075
 +	p->se.burst_score = 0;
 +	memset(&p->se.child_burst, 0, sizeof(struct sched_burst_cache));
 +	memset(&p->se.group_burst, 0, sizeof(struct sched_burst_cache));
++}
++
++void __init sched_bore_init(void) {
++	printk(KERN_INFO "BORE (Burst-Oriented Response Enhancer) CPU Scheduler modification %s by Masahito Suzuki", SCHED_BORE_VERSION);
++    init_task_bore(&init_task);
 +}
 +
 +#ifdef CONFIG_SYSCTL
@@ -41767,6 +42073,13 @@ index 000000000000..cd7e8a8d6075
 +		.extra2		= &maxval_12_bits,
 +	},
 +	{
++		.procname	= "sched_burst_cache_stop_count",
++		.data		= &sched_burst_cache_stop_count,
++		.maxlen		= sizeof(uint),
++		.mode		= 0644,
++		.proc_handler = proc_douintvec,
++	},
++	{
 +		.procname	= "sched_burst_cache_lifetime",
 +		.data		= &sched_burst_cache_lifetime,
 +		.maxlen		= sizeof(uint),
@@ -41790,7 +42103,7 @@ index 000000000000..cd7e8a8d6075
 +#endif // CONFIG_SYSCTL
 +#endif // CONFIG_SCHED_BORE
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 6cc12777bb11..aefedae462f0 100644
+index d07dc87787df..3829d932a028 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -97,6 +97,8 @@
@@ -41802,20 +42115,19 @@ index 6cc12777bb11..aefedae462f0 100644
  EXPORT_TRACEPOINT_SYMBOL_GPL(ipi_send_cpu);
  EXPORT_TRACEPOINT_SYMBOL_GPL(ipi_send_cpumask);
  
-@@ -8377,6 +8379,11 @@ void __init sched_init(void)
+@@ -8377,6 +8379,10 @@ void __init sched_init(void)
  	BUG_ON(!sched_class_above(&ext_sched_class, &idle_sched_class));
  #endif
  
 +#ifdef CONFIG_SCHED_BORE
-+	printk(KERN_INFO "BORE (Burst-Oriented Response Enhancer) CPU Scheduler modification 5.7.3 by Masahito Suzuki");
-+	init_task_bore(&init_task);
++	sched_bore_init();
 +#endif // CONFIG_SCHED_BORE
 +
  	wait_bit_init();
  
  #ifdef CONFIG_FAIR_GROUP_SCHED
 diff --git a/kernel/sched/debug.c b/kernel/sched/debug.c
-index f4035c7a0fa1..0edb3a216f5d 100644
+index 82b165bf48c4..d2d48cb6a668 100644
 --- a/kernel/sched/debug.c
 +++ b/kernel/sched/debug.c
 @@ -167,7 +167,53 @@ static const struct file_operations sched_feat_fops = {
@@ -41912,7 +42224,7 @@ index f4035c7a0fa1..0edb3a216f5d 100644
  #ifdef CONFIG_NUMA_BALANCING
  	SEQ_printf(m, "   %d      %d", task_node(p), task_numa_group_id(p));
  #endif
-@@ -1243,6 +1299,9 @@ void proc_sched_show_task(struct task_struct *p, struct pid_namespace *ns,
+@@ -1244,6 +1300,9 @@ void proc_sched_show_task(struct task_struct *p, struct pid_namespace *ns,
  
  	P(se.load.weight);
  #ifdef CONFIG_SMP
@@ -41923,7 +42235,7 @@ index f4035c7a0fa1..0edb3a216f5d 100644
  	P(se.avg.runnable_sum);
  	P(se.avg.util_sum);
 diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
-index 782ce70ebd1b..48dea624ccf0 100644
+index 1ca96c99872f..da27682ab602 100644
 --- a/kernel/sched/fair.c
 +++ b/kernel/sched/fair.c
 @@ -55,6 +55,8 @@
@@ -42027,7 +42339,7 @@ index 782ce70ebd1b..48dea624ccf0 100644
  #endif
  #endif
  
-@@ -1227,6 +1259,10 @@ static void update_curr(struct cfs_rq *cfs_rq)
+@@ -1225,6 +1257,10 @@ static void update_curr(struct cfs_rq *cfs_rq)
  	if (unlikely(delta_exec <= 0))
  		return;
  
@@ -42038,7 +42350,7 @@ index 782ce70ebd1b..48dea624ccf0 100644
  	curr->vruntime += calc_delta_fair(delta_exec, curr);
  	resched = update_deadline(cfs_rq, curr);
  	update_min_vruntime(cfs_rq);
-@@ -3877,7 +3913,7 @@ static void reweight_eevdf(struct sched_entity *se, u64 avruntime,
+@@ -3880,7 +3916,7 @@ static void reweight_eevdf(struct sched_entity *se, u64 avruntime,
  	se->deadline = avruntime + vslice;
  }
  
@@ -42047,7 +42359,7 @@ index 782ce70ebd1b..48dea624ccf0 100644
  			    unsigned long weight)
  {
  	bool curr = cfs_rq->curr == se;
-@@ -5286,6 +5322,9 @@ place_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
+@@ -5289,6 +5325,9 @@ place_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
  	 *
  	 * EEVDF: placement strategy #1 / #2
  	 */
@@ -42057,7 +42369,7 @@ index 782ce70ebd1b..48dea624ccf0 100644
  	if (sched_feat(PLACE_LAG) && cfs_rq->nr_running) {
  		struct sched_entity *curr = cfs_rq->curr;
  		unsigned long load;
-@@ -5361,7 +5400,11 @@ place_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
+@@ -5364,7 +5403,11 @@ place_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
  		se->rel_deadline = 0;
  		return;
  	}
@@ -42070,22 +42382,23 @@ index 782ce70ebd1b..48dea624ccf0 100644
  	/*
  	 * When joining the competition; the existing tasks will be,
  	 * on average, halfway through their slice, as such start tasks
-@@ -7103,6 +7146,14 @@ static int dequeue_entities(struct rq *rq, struct sched_entity *se, int flags)
- 		p = task_of(se);
- 		h_nr_running = 1;
- 		idle_h_nr_running = task_has_idle_policy(p);
+@@ -7246,6 +7289,15 @@ static bool dequeue_task_fair(struct rq *rq, struct task_struct *p, int flags)
+ 		util_est_dequeue(&rq->cfs, p);
+ 
+ 	util_est_update(&rq->cfs, p, flags & DEQUEUE_SLEEP);
 +#ifdef CONFIG_SCHED_BORE
-+		if (task_sleep) {
-+			cfs_rq = cfs_rq_of(se);
-+			if (cfs_rq->curr == se)
-+				update_curr(cfs_rq);
-+			restart_burst(se);
-+		}
++	struct cfs_rq *cfs_rq = &rq->cfs;
++	struct sched_entity *se = &p->se;
++	if (flags & DEQUEUE_SLEEP && entity_is_task(se)) {
++		if (cfs_rq->curr == se)
++			update_curr(cfs_rq);
++		restart_burst(se);
++	}
 +#endif // CONFIG_SCHED_BORE
- 	} else {
- 		cfs_rq = group_cfs_rq(se);
- 		slice = cfs_rq_min_slice(cfs_rq);
-@@ -9018,16 +9069,25 @@ static void yield_task_fair(struct rq *rq)
+ 	if (dequeue_entities(rq, &p->se, flags) < 0)
+ 		return false;
+ 
+@@ -9059,16 +9111,25 @@ static void yield_task_fair(struct rq *rq)
  	/*
  	 * Are we the only task in the tree?
  	 */
@@ -42111,7 +42424,7 @@ index 782ce70ebd1b..48dea624ccf0 100644
  	/*
  	 * Tell update_rq_clock() that we've just updated,
  	 * so we don't do microscopic update in schedule()
-@@ -13079,6 +13139,9 @@ static void task_tick_fair(struct rq *rq, struct task_struct *curr, int queued)
+@@ -13120,6 +13181,9 @@ static void task_tick_fair(struct rq *rq, struct task_struct *curr, int queued)
  static void task_fork_fair(struct task_struct *p)
  {
  	set_task_max_allowed_capacity(p);
@@ -42121,7 +42434,7 @@ index 782ce70ebd1b..48dea624ccf0 100644
  }
  
  /*
-@@ -13189,6 +13252,10 @@ static void attach_task_cfs_rq(struct task_struct *p)
+@@ -13230,6 +13294,10 @@ static void attach_task_cfs_rq(struct task_struct *p)
  
  static void switched_from_fair(struct rq *rq, struct task_struct *p)
  {
@@ -42133,10 +42446,10 @@ index 782ce70ebd1b..48dea624ccf0 100644
  }
  
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index c03b3d7b320e..bbe2f77aa42d 100644
+index f2ef520513c4..6322dc48600b 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
-@@ -2075,7 +2075,11 @@ static inline void update_sched_domain_debugfs(void) { }
+@@ -2084,7 +2084,11 @@ static inline void update_sched_domain_debugfs(void) { }
  static inline void dirty_sched_domain_sysctl(int cpu) { }
  #endif
  
@@ -42148,7 +42461,7 @@ index c03b3d7b320e..bbe2f77aa42d 100644
  
  static inline const struct cpumask *task_user_cpus(struct task_struct *p)
  {
-@@ -2825,7 +2829,12 @@ extern void wakeup_preempt(struct rq *rq, struct task_struct *p, int flags);
+@@ -2834,7 +2838,12 @@ extern void wakeup_preempt(struct rq *rq, struct task_struct *p, int flags);
  extern const_debug unsigned int sysctl_sched_nr_migrate;
  extern const_debug unsigned int sysctl_sched_migration_cost;
  
@@ -50410,10 +50723,10 @@ index 5df7c3296624..c61337123a19 100644
  {
  	return -EOPNOTSUPP;
 diff --git a/drivers/bluetooth/btusb.c b/drivers/bluetooth/btusb.c
-index 7fee67e629b7..197066a1304e 100644
+index 73f88ad96e84..90a895a6ac4f 100644
 --- a/drivers/bluetooth/btusb.c
 +++ b/drivers/bluetooth/btusb.c
-@@ -2630,41 +2630,6 @@ static int btusb_recv_event_realtek(struct hci_dev *hdev, struct sk_buff *skb)
+@@ -2632,41 +2632,6 @@ static int btusb_recv_event_realtek(struct hci_dev *hdev, struct sk_buff *skb)
  	return hci_recv_frame(hdev, skb);
  }
  
@@ -50455,7 +50768,7 @@ index 7fee67e629b7..197066a1304e 100644
  static int btusb_mtk_reset(struct hci_dev *hdev, void *rst_data)
  {
  	struct btusb_data *data = hci_get_drvdata(hdev);
-@@ -2681,9 +2646,6 @@ static int btusb_mtk_reset(struct hci_dev *hdev, void *rst_data)
+@@ -2683,9 +2648,6 @@ static int btusb_mtk_reset(struct hci_dev *hdev, void *rst_data)
  	if (err < 0)
  		return err;
  
@@ -50465,7 +50778,7 @@ index 7fee67e629b7..197066a1304e 100644
  	btusb_stop_traffic(data);
  	usb_kill_anchored_urbs(&data->tx_anchor);
  
-@@ -2695,23 +2657,6 @@ static int btusb_mtk_reset(struct hci_dev *hdev, void *rst_data)
+@@ -2697,23 +2659,6 @@ static int btusb_mtk_reset(struct hci_dev *hdev, void *rst_data)
  	return err;
  }
  
@@ -50489,7 +50802,7 @@ index 7fee67e629b7..197066a1304e 100644
  static int btusb_mtk_setup(struct hci_dev *hdev)
  {
  	struct btusb_data *data = hci_get_drvdata(hdev);
-@@ -2726,22 +2671,11 @@ static int btusb_mtk_setup(struct hci_dev *hdev)
+@@ -2728,22 +2673,11 @@ static int btusb_mtk_setup(struct hci_dev *hdev)
  	btmtk_data->ctrl_anchor = &data->ctrl_anchor;
  	btmtk_data->reset_sync = btusb_mtk_reset;
  
@@ -50512,7 +50825,7 @@ index 7fee67e629b7..197066a1304e 100644
  	return btmtk_usb_shutdown(hdev);
  }
  
-@@ -3861,12 +3795,9 @@ static int btusb_probe(struct usb_interface *intf,
+@@ -3863,12 +3797,9 @@ static int btusb_probe(struct usb_interface *intf,
  		hdev->manufacturer = 70;
  		hdev->cmd_timeout = btmtk_reset_sync;
  		hdev->set_bdaddr = btmtk_set_bdaddr;
