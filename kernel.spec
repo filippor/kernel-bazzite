@@ -160,18 +160,18 @@ Summary: The Linux kernel
 %define debugbuildsenabled 1
 %define buildid .bazzite
 # define buildid .local
-%define specrpmversion 6.12.6
-%define specversion 6.12.6
+%define specrpmversion 6.12.7
+%define specversion 6.12.7
 %define patchversion 6.12
 %define pkgrelease 200
 %define kversion 6
-%define tarfile_release 6.12.6
+%define tarfile_release 6.12.7
 # This is needed to do merge window version magic
 %define patchlevel 12
 # This allows pkg_release to have configurable %%{?dist} tag
 %define specrelease 203%{?buildid}%{?dist}
 # This defines the kabi tarball version
-%define kabiversion 6.12.6
+%define kabiversion 6.12.7
 
 # If this variable is set to 1, a bpf selftests build failure will cause a
 # fatal kernel package build error
@@ -4154,6 +4154,10 @@ fi\
 #
 #
 %changelog
+* Fri Dec 27 2024 Augusto Caringi <acaringi@redhat.com> [6.12.7-0]
+- Fix up CONFIG_IMX_SCMI_MISC_DRV config for Fedora (Augusto Caringi)
+- Linux v6.12.7
+
 * Thu Dec 19 2024 Augusto Caringi <acaringi@redhat.com> [6.12.6-0]
 - Linux v6.12.6
 

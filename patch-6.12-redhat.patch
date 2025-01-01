@@ -58,7 +58,7 @@
  57 files changed, 3004 insertions(+), 262 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index c10952585c14..e29092e1228c 100644
+index 685a57f6c8d2..f7eb7e513461 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -22,6 +22,18 @@ $(if $(filter __%, $(MAKECMDGOALS)), \
@@ -860,7 +860,7 @@ index b0d00032479d..afb9544fb007 100644
  /*
   * DIAG 308 support
 diff --git a/arch/s390/kernel/ipl.c b/arch/s390/kernel/ipl.c
-index f17bb7bf9392..66e530380ee3 100644
+index 5fa203f4bc6b..80761c2b63fe 100644
 --- a/arch/s390/kernel/ipl.c
 +++ b/arch/s390/kernel/ipl.c
 @@ -2479,3 +2479,8 @@ int ipl_report_free(struct ipl_report *report)
