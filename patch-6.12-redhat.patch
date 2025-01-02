@@ -58,7 +58,7 @@
  57 files changed, 3004 insertions(+), 262 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 685a57f6c8d2..f7eb7e513461 100644
+index 8a10105c2539..3f89ecfaf92b 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -22,6 +22,18 @@ $(if $(filter __%, $(MAKECMDGOALS)), \
@@ -1053,7 +1053,7 @@ index fdfa7b266218..f5f8ba457c93 100644
  	tmp = ata_wait_register(ap, port_mmio + PORT_CMD,
  				PORT_CMD_LIST_ON, PORT_CMD_LIST_ON, 1, 500);
 diff --git a/drivers/bluetooth/btusb.c b/drivers/bluetooth/btusb.c
-index 11755cb1eb16..202d43563e0b 100644
+index 0c85c981a833..5cd7310efaeb 100644
 --- a/drivers/bluetooth/btusb.c
 +++ b/drivers/bluetooth/btusb.c
 @@ -295,6 +295,8 @@ static const struct usb_device_id quirks_table[] = {
