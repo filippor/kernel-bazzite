@@ -1126,7 +1126,7 @@ Patchset: mwifiex
  1 file changed, 15 insertions(+)
 
 diff --git a/drivers/bluetooth/btusb.c b/drivers/bluetooth/btusb.c
-index 202d43563e0b..7fee67e629b7 100644
+index 5cd7310efaeb..b5061867978a 100644
 --- a/drivers/bluetooth/btusb.c
 +++ b/drivers/bluetooth/btusb.c
 @@ -65,6 +65,7 @@ static struct usb_driver btusb_driver;
@@ -1145,7 +1145,7 @@ index 202d43563e0b..7fee67e629b7 100644
  
  	/* Intel Bluetooth devices */
  	{ USB_DEVICE(0x8087, 0x0025), .driver_info = BTUSB_INTEL_COMBINED },
-@@ -3839,6 +3841,19 @@ static int btusb_probe(struct usb_interface *intf,
+@@ -3852,6 +3854,19 @@ static int btusb_probe(struct usb_interface *intf,
  	if (id->driver_info & BTUSB_MARVELL)
  		hdev->set_bdaddr = btusb_set_bdaddr_marvell;
  
@@ -34034,10 +34034,10 @@ index a2d9d34f9fb0..ee576dd8f35b 100644
 +
  #endif
 diff --git a/drivers/bluetooth/btusb.c b/drivers/bluetooth/btusb.c
-index 7fee67e629b7..829e6ad690e5 100644
+index b5061867978a..4f9d9fdfa7be 100644
 --- a/drivers/bluetooth/btusb.c
 +++ b/drivers/bluetooth/btusb.c
-@@ -3925,6 +3925,8 @@ static int btusb_probe(struct usb_interface *intf,
+@@ -3939,6 +3939,8 @@ static int btusb_probe(struct usb_interface *intf,
  		hdev->shutdown = btrtl_shutdown_realtek;
  		hdev->cmd_timeout = btusb_rtl_cmd_timeout;
  		hdev->hw_error = btusb_rtl_hw_error;
@@ -41463,7 +41463,7 @@ Subject: linux6.12.y-bore5.7.15
  create mode 100644 kernel/sched/bore.c
 
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index c14446c6164d..83e35dfbbc50 100644
+index 02eaf84c8626..ee565c072dd4 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
 @@ -538,6 +538,14 @@ struct sched_statistics {
@@ -41599,7 +41599,7 @@ index 38ef6d06888e..253c566b5946 100644
  config SCHED_HRTICK
  	def_bool HIGH_RES_TIMERS
 diff --git a/kernel/fork.c b/kernel/fork.c
-index ce8be55e5e04..fa1dab6e7dec 100644
+index e192bdbc9ade..0b616c37cf82 100644
 --- a/kernel/fork.c
 +++ b/kernel/fork.c
 @@ -113,6 +113,8 @@
@@ -41611,7 +41611,7 @@ index ce8be55e5e04..fa1dab6e7dec 100644
  #include <trace/events/sched.h>
  
  #define CREATE_TRACE_POINTS
-@@ -2364,6 +2366,9 @@ __latent_entropy struct task_struct *copy_process(
+@@ -2363,6 +2365,9 @@ __latent_entropy struct task_struct *copy_process(
  	retval = sched_fork(clone_flags, p);
  	if (retval)
  		goto bad_fork_cleanup_policy;
@@ -50265,8 +50265,8 @@ d09009bc80d9d0d812b988888c40cd86e52eaf1e respectively.
 ---
  drivers/bluetooth/btmtk.c | 311 --------------------------------------
  drivers/bluetooth/btmtk.h |  37 -----
- drivers/bluetooth/btusb.c |  69 ---------
- 3 files changed, 417 deletions(-)
+ drivers/bluetooth/btusb.c |  84 +---------
+ 3 files changed, 1 insertion(+), 431 deletions(-)
 
 diff --git a/drivers/bluetooth/btmtk.c b/drivers/bluetooth/btmtk.c
 index 85e99641eaae..ac139f8d9b3d 100644
@@ -50681,10 +50681,10 @@ index 5df7c3296624..c61337123a19 100644
  {
  	return -EOPNOTSUPP;
 diff --git a/drivers/bluetooth/btusb.c b/drivers/bluetooth/btusb.c
-index 829e6ad690e5..534dc9f7643d 100644
+index 4f9d9fdfa7be..d6a4815c4ada 100644
 --- a/drivers/bluetooth/btusb.c
 +++ b/drivers/bluetooth/btusb.c
-@@ -2630,41 +2630,6 @@ static int btusb_recv_event_realtek(struct hci_dev *hdev, struct sk_buff *skb)
+@@ -2631,51 +2631,6 @@ static int btusb_recv_event_realtek(struct hci_dev *hdev, struct sk_buff *skb)
  	return hci_recv_frame(hdev, skb);
  }
  
@@ -50705,11 +50705,11 @@ index 829e6ad690e5..534dc9f7643d 100644
 -	init_usb_anchor(&btmtk_data->isopkt_anchor);
 -}
 -
--static void btusb_mtk_release_iso_intf(struct btusb_data *data)
+-static void btusb_mtk_release_iso_intf(struct hci_dev *hdev)
 -{
--	struct btmtk_data *btmtk_data = hci_get_priv(data->hdev);
+-	struct btmtk_data *btmtk_data = hci_get_priv(hdev);
 -
--	if (btmtk_data->isopkt_intf) {
+-	if (test_bit(BTMTK_ISOPKT_OVER_INTR, &btmtk_data->flags)) {
 -		usb_kill_anchored_urbs(&btmtk_data->isopkt_anchor);
 -		clear_bit(BTMTK_ISOPKT_RUNNING, &btmtk_data->flags);
 -
@@ -50723,20 +50723,30 @@ index 829e6ad690e5..534dc9f7643d 100644
 -	clear_bit(BTMTK_ISOPKT_OVER_INTR, &btmtk_data->flags);
 -}
 -
+-static int btusb_mtk_disconnect(struct hci_dev *hdev)
+-{
+-	/* This function describes the specific additional steps taken by MediaTek
+-	 * when Bluetooth usb driver's resume function is called.
+-	 */
+-	btusb_mtk_release_iso_intf(hdev);
+-
+-	return 0;
+-}
+-
  static int btusb_mtk_reset(struct hci_dev *hdev, void *rst_data)
  {
  	struct btusb_data *data = hci_get_drvdata(hdev);
-@@ -2681,9 +2646,6 @@ static int btusb_mtk_reset(struct hci_dev *hdev, void *rst_data)
+@@ -2692,9 +2647,6 @@ static int btusb_mtk_reset(struct hci_dev *hdev, void *rst_data)
  	if (err < 0)
  		return err;
  
--	if (test_bit(BTMTK_ISOPKT_RUNNING, &btmtk_data->flags))
--		btusb_mtk_release_iso_intf(data);
+-	/* Release MediaTek ISO data interface */
+-	btusb_mtk_release_iso_intf(hdev);
 -
  	btusb_stop_traffic(data);
  	usb_kill_anchored_urbs(&data->tx_anchor);
  
-@@ -2695,23 +2657,6 @@ static int btusb_mtk_reset(struct hci_dev *hdev, void *rst_data)
+@@ -2706,23 +2658,6 @@ static int btusb_mtk_reset(struct hci_dev *hdev, void *rst_data)
  	return err;
  }
  
@@ -50760,30 +50770,34 @@ index 829e6ad690e5..534dc9f7643d 100644
  static int btusb_mtk_setup(struct hci_dev *hdev)
  {
  	struct btusb_data *data = hci_get_drvdata(hdev);
-@@ -2726,22 +2671,11 @@ static int btusb_mtk_setup(struct hci_dev *hdev)
+@@ -2737,25 +2672,12 @@ static int btusb_mtk_setup(struct hci_dev *hdev)
  	btmtk_data->ctrl_anchor = &data->ctrl_anchor;
  	btmtk_data->reset_sync = btusb_mtk_reset;
  
 -	/* Claim ISO data interface and endpoint */
--	btmtk_data->isopkt_intf = usb_ifnum_to_if(data->udev, MTK_ISO_IFNUM);
--	if (btmtk_data->isopkt_intf)
+-	if (!test_bit(BTMTK_ISOPKT_OVER_INTR, &btmtk_data->flags)) {
+-		btmtk_data->isopkt_intf = usb_ifnum_to_if(data->udev, MTK_ISO_IFNUM);
 -		btusb_mtk_claim_iso_intf(data);
+-	}
 -
  	return btmtk_usb_setup(hdev);
  }
  
  static int btusb_mtk_shutdown(struct hci_dev *hdev)
  {
--	struct btusb_data *data = hci_get_drvdata(hdev);
--	struct btmtk_data *btmtk_data = hci_get_priv(hdev);
+-	int ret;
 -
--	if (test_bit(BTMTK_ISOPKT_RUNNING, &btmtk_data->flags))
--		btusb_mtk_release_iso_intf(data);
+-	ret = btmtk_usb_shutdown(hdev);
 -
- 	return btmtk_usb_shutdown(hdev);
+-	/* Release MediaTek iso interface after shutdown */
+-	btusb_mtk_release_iso_intf(hdev);
+-
+-	return ret;
++	return btmtk_usb_shutdown(hdev);
  }
  
-@@ -3861,12 +3795,9 @@ static int btusb_probe(struct usb_interface *intf,
+ #ifdef CONFIG_PM
+@@ -3874,13 +3796,9 @@ static int btusb_probe(struct usb_interface *intf,
  		hdev->manufacturer = 70;
  		hdev->cmd_timeout = btmtk_reset_sync;
  		hdev->set_bdaddr = btmtk_set_bdaddr;
@@ -50793,6 +50807,7 @@ index 829e6ad690e5..534dc9f7643d 100644
  		data->recv_acl = btmtk_usb_recv_acl;
 -		data->suspend = btmtk_usb_suspend;
 -		data->resume = btmtk_usb_resume;
+-		data->disconnect = btusb_mtk_disconnect;
  	}
  
  	if (id->driver_info & BTUSB_SWAVE) {
