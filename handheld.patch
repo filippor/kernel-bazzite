@@ -42987,6 +42987,36 @@ index 000000000000..d7bc238e16da
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sun, 5 Jan 2025 22:05:29 +0100
+Subject: [NOT FOR UPSTREAM] remove stupid "No IRQ Handler for vector" message
+
+---
+ arch/x86/kernel/irq.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/arch/x86/kernel/irq.c b/arch/x86/kernel/irq.c
+index 385e3a5fc304..d5e86c30e7b7 100644
+--- a/arch/x86/kernel/irq.c
++++ b/arch/x86/kernel/irq.c
+@@ -259,11 +259,7 @@ static __always_inline int call_irq_handler(int vector, struct pt_regs *regs)
+ 		handle_irq(desc, regs);
+ 	} else {
+ 		ret = -EINVAL;
+-		if (desc == VECTOR_UNUSED) {
+-			pr_emerg_ratelimited("%s: %d.%u No irq handler for vector\n",
+-					     __func__, smp_processor_id(),
+-					     vector);
+-		} else {
++		if (desc != VECTOR_UNUSED) {
+ 			__this_cpu_write(vector_irq[vector], VECTOR_UNUSED);
+ 		}
+ 	}
+-- 
+2.47.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Abhishek Pandit-Subedi <abhishekpandit@chromium.org>
 Date: Wed, 4 Dec 2019 18:30:54 -0800
 Subject: Input: uinput - Add UI_SET_PHYS_STR and UI_SET_UNIQ_STR
