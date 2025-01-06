@@ -9894,6 +9894,37 @@ index 5cb0da3e5d54..6aed7b3c8674 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Mon, 6 Jan 2025 03:05:06 +0100
+Subject: hwmon: (oxp-sensors) Fix One XPlayer manufacturer
+
+This specific model was before OneXPlayer started using ONE-NETBOOK as
+a board_name. This can also be seen in the display_quirks table. For
+some reason, it was missed here, so fix it.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/hwmon/oxp-sensors.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
+index 6aed7b3c8674..64046e30d480 100644
+--- a/drivers/hwmon/oxp-sensors.c
++++ b/drivers/hwmon/oxp-sensors.c
+@@ -169,7 +169,7 @@ static const struct dmi_system_id dmi_table[] = {
+ 	},
+ 	{
+ 		.matches = {
+-			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
++			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK TECHNOLOGY CO., LTD."),
+ 			DMI_EXACT_MATCH(DMI_BOARD_NAME, "ONE XPLAYER"),
+ 		},
+ 		.driver_data = (void *)oxp_mini_amd,
+-- 
+2.47.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
 Date: Sun, 22 Dec 2024 19:06:12 +0100
 Subject: ABI: testing: sysfs-class-power: add BypassS0 charge_type
 
@@ -9957,7 +9988,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 206 insertions(+)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index 6aed7b3c8674..8dd3be94a0f8 100644
+index 64046e30d480..688b0cc5c6d6 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
 @@ -26,6 +26,7 @@
@@ -10221,7 +10252,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index 8dd3be94a0f8..1bf57e13a432 100644
+index 688b0cc5c6d6..9aa327e8169a 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
 @@ -877,18 +877,18 @@ static const struct hwmon_channel_info * const oxp_platform_sensors[] = {
@@ -10277,7 +10308,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 84 insertions(+)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index 1bf57e13a432..191e2546d7da 100644
+index 9aa327e8169a..ea75a2c231ff 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
 @@ -101,6 +101,12 @@ static enum oxp_board board;
@@ -10411,7 +10442,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 27 insertions(+), 23 deletions(-)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index 191e2546d7da..d607ec46c4c8 100644
+index ea75a2c231ff..54ee980462a0 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
 @@ -755,6 +755,32 @@ static int oxp_pwm_disable(void)
@@ -10501,7 +10532,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 87 insertions(+), 75 deletions(-)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index d607ec46c4c8..c25e860d3ae7 100644
+index 54ee980462a0..627345da6d52 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
 @@ -795,6 +795,91 @@ static umode_t oxp_ec_hwmon_is_visible(const void *drvdata,
@@ -10706,7 +10737,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 29 insertions(+), 24 deletions(-)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index c25e860d3ae7..98df0e7cb545 100644
+index 627345da6d52..3f974973b714 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
 @@ -795,6 +795,34 @@ static umode_t oxp_ec_hwmon_is_visible(const void *drvdata,
@@ -10802,7 +10833,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 33 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index 98df0e7cb545..3af1a124b1ed 100644
+index 3f974973b714..227429f6424c 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
 @@ -927,7 +927,27 @@ static int oxp_platform_read(struct device *dev, enum hwmon_sensor_types type,
@@ -35149,16 +35180,60 @@ index 6e07e1a7b08f..eb42bdd2c348 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Fri, 15 Nov 2024 20:52:34 +0100
+Subject: [TEMPORARY] Add s2idle delays for MSI Claw
+
+---
+ drivers/acpi/x86/s2idle.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
+index eb42bdd2c348..4bace84d2044 100644
+--- a/drivers/acpi/x86/s2idle.c
++++ b/drivers/acpi/x86/s2idle.c
+@@ -114,6 +114,13 @@ static const struct s2idle_delay_quirks rog_ally_quirks = {
+ 	.delay_sleep_entry = 150,
+ };
+ 
++static const struct s2idle_delay_quirks msi_claw_quirks = {
++	.delay_display_off = 500,
++	.delay_sleep_entry = 500,
++	.delay_sleep_exit = 200,
++	.delay_display_on = 200,
++};
++
+ static const struct dmi_system_id s2idle_delay_quirks[] = {
+ 	{
+ 		.matches = {
+@@ -127,6 +134,12 @@ static const struct dmi_system_id s2idle_delay_quirks[] = {
+ 		},
+ 		.driver_data = (void *)&rog_ally_quirks
+ 	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_NAME, "MS-1T41"), // MSI CLAW
++		},
++		.driver_data = (void *)&msi_claw_quirks
++	},
+ 	{}
+ };
+ 
+-- 
+2.47.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
 Date: Mon, 6 Jan 2025 02:00:56 +0100
 Subject: acpi/x86: s2idle: add delays for OneXPlayer/GPD overheating
 
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- drivers/acpi/x86/s2idle.c | 105 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 105 insertions(+)
+ drivers/acpi/x86/s2idle.c | 92 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 92 insertions(+)
 
 diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-index eb42bdd2c348..f62bf2f42832 100644
+index 4bace84d2044..f62bf2f42832 100644
 --- a/drivers/acpi/x86/s2idle.c
 +++ b/drivers/acpi/x86/s2idle.c
 @@ -23,6 +23,7 @@
@@ -35169,7 +35244,7 @@ index eb42bdd2c348..f62bf2f42832 100644
  #ifdef CONFIG_SUSPEND
  
  static bool sleep_no_lps0 __read_mostly;
-@@ -114,6 +115,41 @@ static const struct s2idle_delay_quirks rog_ally_quirks = {
+@@ -114,6 +115,34 @@ static const struct s2idle_delay_quirks rog_ally_quirks = {
  	.delay_sleep_entry = 150,
  };
  
@@ -35201,26 +35276,13 @@ index eb42bdd2c348..f62bf2f42832 100644
 +	.delay_sleep_exit = 500,
 +};
 +
-+static const struct s2idle_delay_quirks msi_claw_quirks = {
-+	.delay_display_off = 500,
-+	.delay_sleep_entry = 500,
-+	.delay_sleep_exit = 200,
-+	.delay_display_on = 200,
-+};
-+
- static const struct dmi_system_id s2idle_delay_quirks[] = {
- 	{
- 		.matches = {
-@@ -127,6 +163,75 @@ static const struct dmi_system_id s2idle_delay_quirks[] = {
+ static const struct s2idle_delay_quirks msi_claw_quirks = {
+ 	.delay_display_off = 500,
+ 	.delay_sleep_entry = 500,
+@@ -140,6 +169,69 @@ static const struct dmi_system_id s2idle_delay_quirks[] = {
  		},
- 		.driver_data = (void *)&rog_ally_quirks
+ 		.driver_data = (void *)&msi_claw_quirks
  	},
-+	{
-+		.matches = {
-+			DMI_MATCH(DMI_BOARD_NAME, "MS-1T41"), // MSI CLAW
-+		},
-+		.driver_data = (void *)&msi_claw_quirks
-+	},
 + 	{	/* OneXPlayer X1 AMD */
 +		.matches = {
 +		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "ONE-NETBOOK"),
