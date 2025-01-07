@@ -34128,6 +34128,168 @@ Subject: [BEGIN] Modern Suspend patchset
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sat, 16 Nov 2024 01:49:28 +0100
+Subject: Documentation: PM: Add documentation for S0ix Standby States
+
+---
+ .../admin-guide/pm/standby-states.rst         | 130 ++++++++++++++++++
+ Documentation/admin-guide/pm/system-wide.rst  |   1 +
+ 2 files changed, 131 insertions(+)
+ create mode 100644 Documentation/admin-guide/pm/standby-states.rst
+
+diff --git a/Documentation/admin-guide/pm/standby-states.rst b/Documentation/admin-guide/pm/standby-states.rst
+new file mode 100644
+index 000000000000..7a7e560915df
+--- /dev/null
++++ b/Documentation/admin-guide/pm/standby-states.rst
+@@ -0,0 +1,130 @@
++.. SPDX-License-Identifier: GPL-2.0
++.. include:: <isonum.txt>
++
++=====================
++S0ix Standby States
++=====================
++
++:Copyright: |copy| 2024 Antheas Kapenekakis
++
++:Author: Antheas Kapenekakis <lkml@antheas.dev>
++
++With the advent of modern mobile devices, users have become accustomed to instant
++wake-up times and always-on connectivity. To meet these expectations, modern
++standby was created, which is a standard that allows the platform to seamlessly
++transition between an S3-like low-power idle state and a set of low power active
++states, where connectivity is maintained, and the system is responsive to user
++input. Current x86 hardware supports 5 different standby states, which are:
++"Deepest run-time idle platform state" or "DRIPS" (S3-like), "Sleep", "Resume",
++"Screen Off", and "Active".
++
++The system begins in the "Active" state. Either due to user inactivity or
++user action (e.g., pressing the power button), it transitions to the "Screen Off"
++state. Afterwards, it is free to transition between the "Sleep", "DRIPS", and
++"Screen Off" states until user action is received. Once that happens, the system
++begins to transition to the "Active" state. From "DRIPS" or "Sleep", it
++transitions to "Resume", where the Power Limit (PLx) is restored to its normal
++level, to speed up finishing "Sleep". Then, it transitions to "Screen Off".
++If on "Screen Off" or after the transition, the display is prepared to turn on
++and the system transitions to "Active" alongside turning it on.
++
++To maintain battery life, in the Windows implementation, the system is allocated
++a maximum percentage of battery and time it can use while staying in idle states.
++By default, this is 5% of battery or up to 2 days, where the system designer/OEM
++is able to tweak these values. If the system exceeds either the battery
++percentage or time limit, it enters hibernation (S4), through a concept
++called "Adaptive Hibernate".
++
++
++S0ix Standby States
++==================================
++The following idle states are supported::
++
++    <DRIPS> ↔ <Sleep> ↔ <Screen Off> ↔ <Active>
++        →       →  <Resume>  ↑
++
++.. _s2idle_drips:
++
++DRIPS
++-----
++
++The "Deepest run-time idle platform state" or "DRIPS" is the lowest power idle
++state that the system can enter. It is similar to the S3 state, with the
++difference that the system may wake up faster than S3 and due to a larger number
++of interrupts (e.g., fingerprint sensor, touchpad, touchscreen). This state
++is entered when the system is told to suspend to idle, through conventional
++means (see :doc:`sleep states <sleep-states>`). The system can only transition
++to DRIPS while in the "Sleep" state. If it is not, the kernel will automatically
++transition to the "Sleep" state before beginning the suspend sequence and
++restore the previous state afterwards.
++
++.. _s2idle_sleep:
++
++Sleep
++-----
++
++The "Sleep" state is a low power idle state where the kernel is fully active.
++However, userspace has been partially frozen, particularly desktop applications,
++and only essential "value adding" activities are allowed to run. This is not
++enforced by the kernel, it is the responsibility of userspace (e.g., systemd).
++Hardware wise, the Sleep Entry and Exit firmware notifications are fired, which
++may lower the Power Limit (PLx), pulse the suspend light, turn off the keyboard
++lighting or disable a handheld device's gamepad (Lenovo Legion Go).
++
++.. _s2idle_resume:
++
++Resume
++------
++
++The "Resume" state is a faux "Sleep" state that is used to fire the Turn On
++Display firmware notification when the system is in the "Sleep" state but
++intends to turn on the display. It solves the problem of system designers
++limiting the Power Limit (PLx) while the system is in the "Sleep" state causing
++the system to wake up slower than desired. This firmware notification is used
++to restore the normal Power Limit of the system, while having it stay in the
++"Sleep" state.  As such, the system can only transition to the "Resume" state
++while in the "Sleep" state.
++
++.. _s2idle_screen_off:
++
++Screen Off
++----------
++
++The "Screen Off" state is the state the system enters when all its displays
++(virtual or real) turn off. It is used to signify the user is not actively
++using the system. The associated firmware notifications of "Display On" and
++"Display Off" can be used by manufacturers to turn off certain hardware
++components that are associated with the display being on, e.g., a handheld
++device's controller and RGB (Asus ROG Ally, OneXPlayer devices). Windows
++implements a 5-second grace period before firing this callback when the
++screen turns off due to inactivity.
++
++.. _s2idle_active:
++
++Active
++------
++
++Finally, the "Active" state is the default state of the system and the one it
++has when it is turned on. It is the state where the system is fully operational,
++the displays of the device are on, and the user is actively interacting with
++the system.
++
++Basic ``sysfs`` Interface for S0ix Standby transitions
++=============================================================
++
++The file :file:`/sys/power/standby` can be used to transition the system between
++the different standby states. The file accepts the following values: ``active``,
++``screen_off``, ``sleep``, and ``resume``. File writes will block until the
++transition completes. It will return ``-EINVAL`` when asking for an unsupported
++state or, e.g., requesting ``resume`` when not in the ``sleep`` state. If there
++is an error during the transition, the transition will pause on the last
++error-free state and return an error. The file can be read to retrieve the current
++state (and potential ones) with the following format:
++``[active] screen_off sleep resume``. The state "DRIPS" is omitted, as it is
++entered through the conventional suspend to idle path and userspace will never
++be able to see its value due to being suspended.
++
++Before entering the "Screen Off" state or suspending, it is recommended that
++userspace marks all CRTCs as inactive (DPMS). Otherwise, there will be a split
++second where the display of the device is on, but the presentation of the system
++is inactive (e.g., the power button pulses), which is undesirable.
+\ No newline at end of file
+diff --git a/Documentation/admin-guide/pm/system-wide.rst b/Documentation/admin-guide/pm/system-wide.rst
+index 1a1924d71006..411775fae4ac 100644
+--- a/Documentation/admin-guide/pm/system-wide.rst
++++ b/Documentation/admin-guide/pm/system-wide.rst
+@@ -8,4 +8,5 @@ System-Wide Power Management
+    :maxdepth: 2
+ 
+    sleep-states
++   standby-states
+    suspend-flows
+-- 
+2.47.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
 Date: Wed, 18 Sep 2024 23:53:53 +0200
 Subject: acpi/x86: s2idle: add support for Display Off and Display On
  callbacks
@@ -34554,11 +34716,11 @@ rename the variables to "Display On/Off".
 
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- drivers/acpi/x86/s2idle.c | 28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ drivers/acpi/x86/s2idle.c | 36 ++++++++++++++++++------------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
 
 diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-index dd0b40b9bbe8..ab8c38bf90b0 100644
+index dd0b40b9bbe8..7391f87f3aa0 100644
 --- a/drivers/acpi/x86/s2idle.c
 +++ b/drivers/acpi/x86/s2idle.c
 @@ -39,8 +39,8 @@ static const struct acpi_device_id lps0_device_ids[] = {
@@ -34583,30 +34745,36 @@ index dd0b40b9bbe8..ab8c38bf90b0 100644
  
  static acpi_handle lps0_device_handle;
  static guid_t lps0_dsm_guid;
-@@ -361,9 +361,9 @@ static const char *acpi_sleep_dsm_state_to_str(unsigned int state)
+@@ -361,10 +361,10 @@ static const char *acpi_sleep_dsm_state_to_str(unsigned int state)
  {
  	if (lps0_dsm_func_mask_microsoft || !acpi_s2idle_vendor_amd()) {
  		switch (state) {
 -		case ACPI_LPS0_SCREEN_OFF:
-+		case ACPI_LPS0_DISPLAY_OFF:
- 			return "screen off";
+-			return "screen off";
 -		case ACPI_LPS0_SCREEN_ON:
+-			return "screen on";
++		case ACPI_LPS0_DISPLAY_OFF:
++			return "display off";
 +		case ACPI_LPS0_DISPLAY_ON:
- 			return "screen on";
++			return "display on";
  		case ACPI_LPS0_ENTRY:
  			return "lps0 entry";
-@@ -376,9 +376,9 @@ static const char *acpi_sleep_dsm_state_to_str(unsigned int state)
+ 		case ACPI_LPS0_EXIT:
+@@ -376,10 +376,10 @@ static const char *acpi_sleep_dsm_state_to_str(unsigned int state)
  		}
  	} else {
  		switch (state) {
 -		case ACPI_LPS0_SCREEN_ON_AMD:
-+		case ACPI_LPS0_DISPLAY_ON_AMD:
- 			return "screen on";
+-			return "screen on";
 -		case ACPI_LPS0_SCREEN_OFF_AMD:
+-			return "screen off";
++		case ACPI_LPS0_DISPLAY_ON_AMD:
++			return "display on";
 +		case ACPI_LPS0_DISPLAY_OFF_AMD:
- 			return "screen off";
++			return "display off";
  		case ACPI_LPS0_ENTRY_AMD:
  			return "lps0 entry";
+ 		case ACPI_LPS0_EXIT_AMD:
 @@ -552,12 +552,12 @@ int acpi_s2idle_prepare_late(void)
  	/* Screen off */
  	if (lps0_dsm_func_mask > 0)
@@ -34658,14 +34826,14 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 51 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-index ab8c38bf90b0..6cea3d9af9bd 100644
+index 7391f87f3aa0..c0ab4d4f01be 100644
 --- a/drivers/acpi/x86/s2idle.c
 +++ b/drivers/acpi/x86/s2idle.c
 @@ -60,6 +60,7 @@ static int lps0_dsm_func_mask;
  static guid_t lps0_dsm_guid_microsoft;
  static int lps0_dsm_func_mask_microsoft;
  static int lps0_dsm_state;
-+static bool lsp0_dsm_in_display_off;
++static bool lps0_dsm_in_display_off;
  
  /* Device constraint entry structure */
  struct lpi_device_info {
@@ -34683,10 +34851,10 @@ index ab8c38bf90b0..6cea3d9af9bd 100644
  
 -	if (pm_debug_messages_on)
 -		lpi_check_constraints();
-+	if (WARN_ON(lsp0_dsm_in_display_off))
++	if (WARN_ON(lps0_dsm_in_display_off))
 +		return -EINVAL;
 +
-+	lsp0_dsm_in_display_off = true;
++	lps0_dsm_in_display_off = true;
 +	acpi_scan_lock_acquire();
  
 -	/* Screen off */
@@ -34708,10 +34876,10 @@ index ab8c38bf90b0..6cea3d9af9bd 100644
 +	if (!lps0_device_handle || sleep_no_lps0)
 +		return 0;
 +
-+	if (WARN_ON(!lsp0_dsm_in_display_off))
++	if (WARN_ON(!lps0_dsm_in_display_off))
 +		return -EINVAL;
 +
-+	lsp0_dsm_in_display_off = false;
++	lps0_dsm_in_display_off = false;
 +	acpi_scan_lock_acquire();
 +
 +	/* Display on */
@@ -34792,7 +34960,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 8 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-index 6cea3d9af9bd..3c072888cdaf 100644
+index c0ab4d4f01be..99e5f0938e53 100644
 --- a/drivers/acpi/x86/s2idle.c
 +++ b/drivers/acpi/x86/s2idle.c
 @@ -43,8 +43,8 @@ static const struct acpi_device_id lps0_device_ids[] = {
@@ -34858,14 +35026,14 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 47 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-index 3c072888cdaf..52c0e79be78a 100644
+index 99e5f0938e53..b2c98f561e42 100644
 --- a/drivers/acpi/x86/s2idle.c
 +++ b/drivers/acpi/x86/s2idle.c
 @@ -61,6 +61,7 @@ static guid_t lps0_dsm_guid_microsoft;
  static int lps0_dsm_func_mask_microsoft;
  static int lps0_dsm_state;
- static bool lsp0_dsm_in_display_off;
-+static bool lsp0_dsm_in_sleep;
+ static bool lps0_dsm_in_display_off;
++static bool lps0_dsm_in_sleep;
  
  /* Device constraint entry structure */
  struct lpi_device_info {
@@ -34878,10 +35046,10 @@ index 3c072888cdaf..52c0e79be78a 100644
 +	if (!lps0_device_handle || sleep_no_lps0 || lps0_dsm_func_mask_microsoft <= 0)
 +		return 0;
 +
-+	if (WARN_ON(lsp0_dsm_in_sleep))
++	if (WARN_ON(lps0_dsm_in_sleep))
 +		return -EINVAL;
 +
-+	lsp0_dsm_in_sleep = true;
++	lps0_dsm_in_sleep = true;
 +	acpi_scan_lock_acquire();
 +
 +	/* Modern Standby Sleep Entry */
@@ -34899,10 +35067,10 @@ index 3c072888cdaf..52c0e79be78a 100644
 +	if (!lps0_device_handle || sleep_no_lps0 || lps0_dsm_func_mask_microsoft <= 0)
 +		return 0;
 +
-+	if (WARN_ON(!lsp0_dsm_in_sleep))
++	if (WARN_ON(!lps0_dsm_in_sleep))
 +		return -EINVAL;
 +
-+	lsp0_dsm_in_sleep = false;
++	lps0_dsm_in_sleep = false;
 +	acpi_scan_lock_acquire();
 +
 +	/* Modern Standby Sleep Exit */
@@ -34982,7 +35150,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 27 insertions(+)
 
 diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-index 52c0e79be78a..6e07e1a7b08f 100644
+index b2c98f561e42..2d097d020e3b 100644
 --- a/drivers/acpi/x86/s2idle.c
 +++ b/drivers/acpi/x86/s2idle.c
 @@ -45,6 +45,7 @@ static const struct acpi_device_id lps0_device_ids[] = {
@@ -35013,7 +35181,7 @@ index 52c0e79be78a..6e07e1a7b08f 100644
 +		return 0;
 +
 +	/* This call is only valid while we are in a sleep state */
-+	if (WARN_ON(!lsp0_dsm_in_sleep))
++	if (WARN_ON(!lps0_dsm_in_sleep))
 +		return -EINVAL;
 +
 +	acpi_scan_lock_acquire();
@@ -35057,11 +35225,11 @@ controllers prior to suspending.
 
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- drivers/acpi/x86/s2idle.c | 56 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 56 insertions(+)
+ drivers/acpi/x86/s2idle.c | 62 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 62 insertions(+)
 
 diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-index 6e07e1a7b08f..eb42bdd2c348 100644
+index 2d097d020e3b..bf0ec4687a74 100644
 --- a/drivers/acpi/x86/s2idle.c
 +++ b/drivers/acpi/x86/s2idle.c
 @@ -18,6 +18,7 @@
@@ -35123,57 +35291,65 @@ index 6e07e1a7b08f..eb42bdd2c348 100644
  
  #define for_each_lpi_constraint(entry)						\
  	for (int i = 0;								\
-@@ -566,6 +606,9 @@ static int acpi_s2idle_display_off(void)
- 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_DISPLAY_OFF,
- 				lps0_dsm_func_mask_microsoft, lps0_dsm_guid_microsoft);
+@@ -568,6 +608,9 @@ static int acpi_s2idle_display_off(void)
+ 
+ 	acpi_scan_lock_release();
  
 +	if (delay_quirks && delay_quirks->delay_display_off)
 +		msleep(delay_quirks->delay_display_off);
 +
- 	acpi_scan_lock_release();
- 
  	return 0;
-@@ -587,6 +630,9 @@ static int acpi_s2idle_sleep_entry(void)
- 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SLEEP_ENTRY,
- 				lps0_dsm_func_mask_microsoft, lps0_dsm_guid_microsoft);
+ }
+ 
+@@ -589,6 +632,9 @@ static int acpi_s2idle_sleep_entry(void)
+ 
+ 	acpi_scan_lock_release();
  
 +	if (delay_quirks && delay_quirks->delay_sleep_entry)
 +		msleep(delay_quirks->delay_sleep_entry);
 +
- 	acpi_scan_lock_release();
- 
  	return 0;
-@@ -627,6 +673,9 @@ static int acpi_s2idle_sleep_exit(void)
- 	acpi_scan_lock_acquire();
+ }
  
- 	/* Modern Standby Sleep Exit */
+@@ -624,6 +670,10 @@ static int acpi_s2idle_sleep_exit(void)
+ 		return -EINVAL;
+ 
+ 	lps0_dsm_in_sleep = false;
++
 +	if (delay_quirks && delay_quirks->delay_sleep_exit)
 +		msleep(delay_quirks->delay_sleep_exit);
 +
- 	if (lps0_dsm_func_mask_microsoft > 0)
- 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SLEEP_EXIT,
- 				lps0_dsm_func_mask_microsoft, lps0_dsm_guid_microsoft);
-@@ -648,6 +697,9 @@ static int acpi_s2idle_display_on(void)
  	acpi_scan_lock_acquire();
  
- 	/* Display on */
+ 	/* Modern Standby Sleep Exit */
+@@ -645,6 +695,10 @@ static int acpi_s2idle_display_on(void)
+ 		return -EINVAL;
+ 
+ 	lps0_dsm_in_display_off = false;
++
 +	if (delay_quirks && delay_quirks->delay_display_on)
 +		msleep(delay_quirks->delay_display_on);
 +
- 	if (lps0_dsm_func_mask_microsoft > 0)
- 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_DISPLAY_ON,
- 				lps0_dsm_func_mask_microsoft, lps0_dsm_guid_microsoft);
-@@ -760,6 +812,10 @@ int acpi_register_lps0_dev(struct acpi_s2idle_dev_ops *arg)
+ 	acpi_scan_lock_acquire();
  
- 	sleep_flags = lock_system_sleep();
- 	list_add(&arg->list_node, &lps0_s2idle_devops_head);
-+	const struct dmi_system_id *s2idle_sysid = dmi_first_match(
-+		s2idle_delay_quirks
-+	);
+ 	/* Display on */
+@@ -747,8 +801,16 @@ static const struct platform_s2idle_ops acpi_s2idle_ops_lps0 = {
+ 
+ void __init acpi_s2idle_setup(void)
+ {
++	unsigned int sleep_flags;
++
+ 	acpi_scan_add_handler(&lps0_handler);
+ 	s2idle_set_ops(&acpi_s2idle_ops_lps0);
++
++	sleep_flags = lock_system_sleep();
++	const struct dmi_system_id *s2idle_sysid =
++		dmi_first_match(s2idle_delay_quirks);
 +	delay_quirks = s2idle_sysid ? s2idle_sysid->driver_data : NULL;
- 	unlock_system_sleep(sleep_flags);
++	unlock_system_sleep(sleep_flags);
+ }
  
- 	return 0;
+ int acpi_register_lps0_dev(struct acpi_s2idle_dev_ops *arg)
 -- 
 2.47.1
 
@@ -35188,7 +35364,7 @@ Subject: [TEMPORARY] Add s2idle delays for MSI Claw
  1 file changed, 13 insertions(+)
 
 diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-index eb42bdd2c348..4bace84d2044 100644
+index bf0ec4687a74..cb5b0ca0a3c8 100644
 --- a/drivers/acpi/x86/s2idle.c
 +++ b/drivers/acpi/x86/s2idle.c
 @@ -114,6 +114,13 @@ static const struct s2idle_delay_quirks rog_ally_quirks = {
@@ -35214,137 +35390,6 @@ index eb42bdd2c348..4bace84d2044 100644
 +			DMI_MATCH(DMI_BOARD_NAME, "MS-1T41"), // MSI CLAW
 +		},
 +		.driver_data = (void *)&msi_claw_quirks
-+	},
- 	{}
- };
- 
--- 
-2.47.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Mon, 6 Jan 2025 02:00:56 +0100
-Subject: acpi/x86: s2idle: add delays for OneXPlayer/GPD overheating
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- drivers/acpi/x86/s2idle.c | 92 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 92 insertions(+)
-
-diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-index 4bace84d2044..f62bf2f42832 100644
---- a/drivers/acpi/x86/s2idle.c
-+++ b/drivers/acpi/x86/s2idle.c
-@@ -23,6 +23,7 @@
- 
- #include "../sleep.h"
- 
-+#define CONFIG_SUSPEND
- #ifdef CONFIG_SUSPEND
- 
- static bool sleep_no_lps0 __read_mostly;
-@@ -114,6 +115,34 @@ static const struct s2idle_delay_quirks rog_ally_quirks = {
- 	.delay_sleep_entry = 150,
- };
- 
-+/*
-+ * Certain OneXPlayer and GPD devices past the AMD 8000 series use an
-+ * overheating trick to get Windows to hibernate. This works by setting
-+ * the primary thermal zone of the device (acpitz) to 105C, which is its
-+ * _HOT temperature, under which windows should hibernate. If the device
-+ * is suspended, the EC will wake it up, which registers under ACPI as
-+ * pressing the power button.
-+ *
-+ * A variant of BIOSes in these devices is "smarter" where the EC triggers
-+ * the wakeup for hibernation by pressing the power button but then ACPI
-+ * guards the overheat warning with being in Modern Standby. If we exit
-+ * Modern Standby too quickly, when the EC queries the overheat function
-+ * the guard will be gone, so we lose the overheat warning and thereby
-+ * the cause of the wakeup. If this happens in the user's bag, this leads
-+ * to "hot bag" syndrome.
-+ *
-+ * Therefore, add a delay to sleep_exit, ensuring that the hibernation
-+ * warning in those BIOSes is registered. Userspace can then use this
-+ * warning to emergency hibernate or shutdown the device. Once this
-+ * warning happens, the EC of the device is tainted and will cause
-+ * repeated wake-ups and maintain the overheat temperature. As we can no
-+ * longer distinguish between the user of the device trying to wake it up
-+ * and the EC, the only solution is to power down the device (S4S5).
-+ */
-+static const struct s2idle_delay_quirks overheat_quirks = {
-+	.delay_sleep_exit = 500,
-+};
-+
- static const struct s2idle_delay_quirks msi_claw_quirks = {
- 	.delay_display_off = 500,
- 	.delay_sleep_entry = 500,
-@@ -140,6 +169,69 @@ static const struct dmi_system_id s2idle_delay_quirks[] = {
- 		},
- 		.driver_data = (void *)&msi_claw_quirks
- 	},
-+ 	{	/* OneXPlayer X1 AMD */
-+		.matches = {
-+		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "ONE-NETBOOK"),
-+		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "ONEXPLAYER X1 A"),
-+		},
-+		.driver_data = (void *)&overheat_quirks,
-+	},
-+ 	{	/* OneXPlayer X1 Intel */
-+		.matches = {
-+		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "ONE-NETBOOK"),
-+		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "ONEXPLAYER X1 i"),
-+		},
-+		.driver_data = (void *)&overheat_quirks,
-+	},
-+	{	/* OneXPlayer X1 mini (AMD) */
-+		.matches = {
-+		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "ONE-NETBOOK"),
-+		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "ONEXPLAYER X1 mini"),
-+		},
-+		.driver_data = (void *)&overheat_quirks,
-+	},
-+	{	/* OneXPlayer OneXFly F1 Pro (OLED) */
-+		.matches = {
-+		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "ONE-NETBOOK"),
-+		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "ONEXPLAYER F1Pro"),
-+		},
-+		.driver_data = (void *)&overheat_quirks,
-+	},
-+	{	/* OneXPlayer OneXFly F1 Pro (OLED) LE Red variant */
-+		.matches = {
-+		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "ONE-NETBOOK"),
-+		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "ONEXPLAYER F1 EVA-02"),
-+		},
-+		.driver_data = (void *)&overheat_quirks,
-+	},
-+	{	/* GPD Win 4 */
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "GPD"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "G1618-04"),
-+		},
-+		.driver_data = (void *)&overheat_quirks,
-+	},
-+	{ 	/* GPD Win Mini */
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "GPD"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "G1617-01"),
-+		},
-+		.driver_data = (void *)&overheat_quirks,
-+	},
-+	{	/* GPD Win Max 7000-8000 */
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "GPD"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "G1619-04"),
-+		},
-+		.driver_data = (void *)&overheat_quirks,
-+	},
-+	{	/* GPD Win Max Strix Point */
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "GPD"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "G1619-05"),
-+		},
-+		.driver_data = (void *)&overheat_quirks,
 +	},
  	{}
  };
@@ -35487,14 +35532,14 @@ suspend process and userspace will never see it.
 
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- kernel/power/main.c | 71 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 71 insertions(+)
+ kernel/power/main.c | 72 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 72 insertions(+)
 
 diff --git a/kernel/power/main.c b/kernel/power/main.c
-index 6254814d4817..fcaffdee53ff 100644
+index 6254814d4817..e17b6e1f1bdc 100644
 --- a/kernel/power/main.c
 +++ b/kernel/power/main.c
-@@ -748,6 +748,76 @@ static ssize_t state_store(struct kobject *kobj, struct kobj_attribute *attr,
+@@ -748,6 +748,77 @@ static ssize_t state_store(struct kobject *kobj, struct kobj_attribute *attr,
  
  power_attr(state);
  
@@ -35510,10 +35555,11 @@ index 6254814d4817..fcaffdee53ff 100644
 + * store() accepts one of those strings, translates it into the proper
 + * enumerated value, and initiates a transition to that standby state.
 + * 
-+ * When the system suspends, it will first enter the state "sleep", suspend,
-+ * and then restore the last state before entering "sleep". I.e., if userspace 
++ * When the system suspends, it will first enter the state "lps0", suspend,
++ * and then restore the last state before entering "lps0". I.e., if userspace 
 + * is not S0ix-aware, the transitions expected by Modern Standby devices will 
-+ * always be performed.
++ * always be performed. Userspace cannot see or enter "lps0", as that is
++ * the state where the kernel is suspended.
 + */
 +static ssize_t standby_show(struct kobject *kobj, struct kobj_attribute *attr,
 +			  char *buf)
@@ -35571,7 +35617,7 @@ index 6254814d4817..fcaffdee53ff 100644
  #ifdef CONFIG_PM_SLEEP
  /*
   * The 'wakeup_count' attribute, along with the functions defined in
-@@ -974,6 +1044,7 @@ static struct attribute * g[] = {
+@@ -974,6 +1045,7 @@ static struct attribute * g[] = {
  #ifdef CONFIG_SUSPEND
  	&mem_sleep_attr.attr,
  	&sync_on_suspend_attr.attr,
@@ -35585,162 +35631,47 @@ index 6254814d4817..fcaffdee53ff 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sat, 16 Nov 2024 01:49:28 +0100
-Subject: Documentation: PM: Add documentation for S0ix Standby States
+Date: Tue, 7 Jan 2025 22:15:15 +0100
+Subject: ACPI: s2idle: Trigger _WAK as part of exiting s2idle
 
+Currently, _WAK is not called when exiting s2idle. It is only called
+when exiting states S3 and S4. The ACPI spec has not been updated for
+S0ix, which makes things more ambiguous.
+
+Certain OneXPlayer and GPD devices contain a hibernation feature where
+the EC wakes up the device and pretends to overheat, causing Windows to
+hibernate. This is a three part process, where after the device enters
+S2idle through calling any _DSM callback (e.g., Sleep Entry, LPS0
+Entry), they begin a counter that measures how much battery is drained.
+Once it is at 5%, the EC of the device wakes it up if its in LPS0 by
+pressing the powerbutton, and once it is in Modern Standby again, it
+triggers the overheat event.
+
+The problem here is that the notification that the system woke up was
+placed in the outer part of _WAK, applying to exiting any SX state.
+However, without it being called from s2idle, the EC never calls the
+underlying event, leaving us with a powerbutton wake-up that is not
+user initiated. By calling _WAK in the same place it is called after
+S3, this problem is solved which in parallel shows that Windows does
+indeed call _WAK during the exit from LPS0.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- .../admin-guide/pm/standby-states.rst         | 130 ++++++++++++++++++
- Documentation/admin-guide/pm/system-wide.rst  |   1 +
- 2 files changed, 131 insertions(+)
- create mode 100644 Documentation/admin-guide/pm/standby-states.rst
+ drivers/acpi/sleep.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/Documentation/admin-guide/pm/standby-states.rst b/Documentation/admin-guide/pm/standby-states.rst
-new file mode 100644
-index 000000000000..7a7e560915df
---- /dev/null
-+++ b/Documentation/admin-guide/pm/standby-states.rst
-@@ -0,0 +1,130 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+.. include:: <isonum.txt>
-+
-+=====================
-+S0ix Standby States
-+=====================
-+
-+:Copyright: |copy| 2024 Antheas Kapenekakis
-+
-+:Author: Antheas Kapenekakis <lkml@antheas.dev>
-+
-+With the advent of modern mobile devices, users have become accustomed to instant
-+wake-up times and always-on connectivity. To meet these expectations, modern
-+standby was created, which is a standard that allows the platform to seamlessly
-+transition between an S3-like low-power idle state and a set of low power active
-+states, where connectivity is maintained, and the system is responsive to user
-+input. Current x86 hardware supports 5 different standby states, which are:
-+"Deepest run-time idle platform state" or "DRIPS" (S3-like), "Sleep", "Resume",
-+"Screen Off", and "Active".
-+
-+The system begins in the "Active" state. Either due to user inactivity or
-+user action (e.g., pressing the power button), it transitions to the "Screen Off"
-+state. Afterwards, it is free to transition between the "Sleep", "DRIPS", and
-+"Screen Off" states until user action is received. Once that happens, the system
-+begins to transition to the "Active" state. From "DRIPS" or "Sleep", it
-+transitions to "Resume", where the Power Limit (PLx) is restored to its normal
-+level, to speed up finishing "Sleep". Then, it transitions to "Screen Off".
-+If on "Screen Off" or after the transition, the display is prepared to turn on
-+and the system transitions to "Active" alongside turning it on.
-+
-+To maintain battery life, in the Windows implementation, the system is allocated
-+a maximum percentage of battery and time it can use while staying in idle states.
-+By default, this is 5% of battery or up to 2 days, where the system designer/OEM
-+is able to tweak these values. If the system exceeds either the battery
-+percentage or time limit, it enters hibernation (S4), through a concept
-+called "Adaptive Hibernate".
-+
-+
-+S0ix Standby States
-+==================================
-+The following idle states are supported::
-+
-+    <DRIPS> ↔ <Sleep> ↔ <Screen Off> ↔ <Active>
-+        →       →  <Resume>  ↑
-+
-+.. _s2idle_drips:
-+
-+DRIPS
-+-----
-+
-+The "Deepest run-time idle platform state" or "DRIPS" is the lowest power idle
-+state that the system can enter. It is similar to the S3 state, with the
-+difference that the system may wake up faster than S3 and due to a larger number
-+of interrupts (e.g., fingerprint sensor, touchpad, touchscreen). This state
-+is entered when the system is told to suspend to idle, through conventional
-+means (see :doc:`sleep states <sleep-states>`). The system can only transition
-+to DRIPS while in the "Sleep" state. If it is not, the kernel will automatically
-+transition to the "Sleep" state before beginning the suspend sequence and
-+restore the previous state afterwards.
-+
-+.. _s2idle_sleep:
-+
-+Sleep
-+-----
-+
-+The "Sleep" state is a low power idle state where the kernel is fully active.
-+However, userspace has been partially frozen, particularly desktop applications,
-+and only essential "value adding" activities are allowed to run. This is not
-+enforced by the kernel, it is the responsibility of userspace (e.g., systemd).
-+Hardware wise, the Sleep Entry and Exit firmware notifications are fired, which
-+may lower the Power Limit (PLx), pulse the suspend light, turn off the keyboard
-+lighting or disable a handheld device's gamepad (Lenovo Legion Go).
-+
-+.. _s2idle_resume:
-+
-+Resume
-+------
-+
-+The "Resume" state is a faux "Sleep" state that is used to fire the Turn On
-+Display firmware notification when the system is in the "Sleep" state but
-+intends to turn on the display. It solves the problem of system designers
-+limiting the Power Limit (PLx) while the system is in the "Sleep" state causing
-+the system to wake up slower than desired. This firmware notification is used
-+to restore the normal Power Limit of the system, while having it stay in the
-+"Sleep" state.  As such, the system can only transition to the "Resume" state
-+while in the "Sleep" state.
-+
-+.. _s2idle_screen_off:
-+
-+Screen Off
-+----------
-+
-+The "Screen Off" state is the state the system enters when all its displays
-+(virtual or real) turn off. It is used to signify the user is not actively
-+using the system. The associated firmware notifications of "Display On" and
-+"Display Off" can be used by manufacturers to turn off certain hardware
-+components that are associated with the display being on, e.g., a handheld
-+device's controller and RGB (Asus ROG Ally, OneXPlayer devices). Windows
-+implements a 5-second grace period before firing this callback when the
-+screen turns off due to inactivity.
-+
-+.. _s2idle_active:
-+
-+Active
-+------
-+
-+Finally, the "Active" state is the default state of the system and the one it
-+has when it is turned on. It is the state where the system is fully operational,
-+the displays of the device are on, and the user is actively interacting with
-+the system.
-+
-+Basic ``sysfs`` Interface for S0ix Standby transitions
-+=============================================================
-+
-+The file :file:`/sys/power/standby` can be used to transition the system between
-+the different standby states. The file accepts the following values: ``active``,
-+``screen_off``, ``sleep``, and ``resume``. File writes will block until the
-+transition completes. It will return ``-EINVAL`` when asking for an unsupported
-+state or, e.g., requesting ``resume`` when not in the ``sleep`` state. If there
-+is an error during the transition, the transition will pause on the last
-+error-free state and return an error. The file can be read to retrieve the current
-+state (and potential ones) with the following format:
-+``[active] screen_off sleep resume``. The state "DRIPS" is omitted, as it is
-+entered through the conventional suspend to idle path and userspace will never
-+be able to see its value due to being suspended.
-+
-+Before entering the "Screen Off" state or suspending, it is recommended that
-+userspace marks all CRTCs as inactive (DPMS). Otherwise, there will be a split
-+second where the display of the device is on, but the presentation of the system
-+is inactive (e.g., the power button pulses), which is undesirable.
-\ No newline at end of file
-diff --git a/Documentation/admin-guide/pm/system-wide.rst b/Documentation/admin-guide/pm/system-wide.rst
-index 1a1924d71006..411775fae4ac 100644
---- a/Documentation/admin-guide/pm/system-wide.rst
-+++ b/Documentation/admin-guide/pm/system-wide.rst
-@@ -8,4 +8,5 @@ System-Wide Power Management
-    :maxdepth: 2
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index c8ee8e42b0f6..cce29fb48f49 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -825,6 +825,7 @@ void acpi_s2idle_restore(void)
+ 	acpi_enable_all_runtime_gpes();
  
-    sleep-states
-+   standby-states
-    suspend-flows
+ 	acpi_disable_wakeup_devices(ACPI_STATE_S0);
++	acpi_leave_sleep_state(ACPI_STATE_S0);
+ 
+ 	if (acpi_sci_irq_valid()) {
+ 		acpi_ec_set_gpe_wake_mask(ACPI_GPE_DISABLE);
 -- 
 2.47.1
 
@@ -45115,60 +45046,6 @@ index 7cde5733b9ca..02b9d0b49092 100644
  	{
  		.ident = "ROG Ally X",
  		.matches = {
--- 
-2.47.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Mon, 6 Jan 2025 11:01:07 +0100
-Subject: tmp: add sleep entry
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- drivers/acpi/x86/s2idle.c | 13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-index f62bf2f42832..3435514e5bb0 100644
---- a/drivers/acpi/x86/s2idle.c
-+++ b/drivers/acpi/x86/s2idle.c
-@@ -140,6 +140,7 @@ static const struct s2idle_delay_quirks rog_ally_quirks = {
-  * and the EC, the only solution is to power down the device (S4S5).
-  */
- static const struct s2idle_delay_quirks overheat_quirks = {
-+	.delay_sleep_entry = 250,
- 	.delay_sleep_exit = 500,
- };
- 
-@@ -904,8 +905,16 @@ static const struct platform_s2idle_ops acpi_s2idle_ops_lps0 = {
- 
- void __init acpi_s2idle_setup(void)
- {
-+	unsigned int sleep_flags;
-+
- 	acpi_scan_add_handler(&lps0_handler);
- 	s2idle_set_ops(&acpi_s2idle_ops_lps0);
-+
-+	sleep_flags = lock_system_sleep();
-+	const struct dmi_system_id *s2idle_sysid =
-+		dmi_first_match(s2idle_delay_quirks);
-+	delay_quirks = s2idle_sysid ? s2idle_sysid->driver_data : NULL;
-+	unlock_system_sleep(sleep_flags);
- }
- 
- int acpi_register_lps0_dev(struct acpi_s2idle_dev_ops *arg)
-@@ -917,10 +926,6 @@ int acpi_register_lps0_dev(struct acpi_s2idle_dev_ops *arg)
- 
- 	sleep_flags = lock_system_sleep();
- 	list_add(&arg->list_node, &lps0_s2idle_devops_head);
--	const struct dmi_system_id *s2idle_sysid = dmi_first_match(
--		s2idle_delay_quirks
--	);
--	delay_quirks = s2idle_sysid ? s2idle_sysid->driver_data : NULL;
- 	unlock_system_sleep(sleep_flags);
- 
- 	return 0;
 -- 
 2.47.1
 
