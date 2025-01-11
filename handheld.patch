@@ -34118,6 +34118,91 @@ index b5061867978a..4f9d9fdfa7be 100644
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Joshua Ashton <joshua@froggi.es>
+Date: Tue, 13 Feb 2024 18:28:41 +0000
+Subject: drm/amd/display: Enable 3 overlay planes for Steam Deck
+
+Edited by Antheas: lets keep this cutie Steam Deck only.
+---
+ drivers/gpu/drm/amd/display/dc/dc.h           |  2 +-
+ .../dc/resource/dcn301/dcn301_resource.c      | 32 ++++++++++++++++---
+ 2 files changed, 29 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/display/dc/dc.h b/drivers/gpu/drm/amd/display/dc/dc.h
+index 7c163aa7e8bd..e15a5428336b 100644
+--- a/drivers/gpu/drm/amd/display/dc/dc.h
++++ b/drivers/gpu/drm/amd/display/dc/dc.h
+@@ -57,7 +57,7 @@ struct dmub_notification;
+ 
+ #define DC_VER "3.2.301"
+ 
+-#define MAX_SURFACES 3
++#define MAX_SURFACES 6
+ #define MAX_PLANES 6
+ #define MAX_STREAMS 6
+ #define MIN_VIEWPORT_SIZE 12
+diff --git a/drivers/gpu/drm/amd/display/dc/resource/dcn301/dcn301_resource.c b/drivers/gpu/drm/amd/display/dc/resource/dcn301/dcn301_resource.c
+index 7d04739c3ba1..ac3f1ed59cc3 100644
+--- a/drivers/gpu/drm/amd/display/dc/resource/dcn301/dcn301_resource.c
++++ b/drivers/gpu/drm/amd/display/dc/resource/dcn301/dcn301_resource.c
+@@ -23,7 +23,7 @@
+  *
+  */
+ 
+-
++#include <linux/dmi.h>
+ #include "dm_services.h"
+ #include "dc.h"
+ 
+@@ -1404,6 +1404,22 @@ static struct resource_funcs dcn301_res_pool_funcs = {
+ 	.patch_unknown_plane_state = dcn20_patch_unknown_plane_state
+ };
+ 
++static const struct dmi_system_id is_steamdeck[] = {
++	{	/* Valve Steam Deck (Galileo) */
++		.matches = {
++		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "Valve"),
++		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Galileo"),
++		},
++	},
++	{	/* Valve Steam Deck (Jupiter) */
++		.matches = {
++		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "Valve"),
++		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Jupiter"),
++		},
++	},
++	{}
++};
++
+ static bool dcn301_resource_construct(
+ 	uint8_t num_virtual_links,
+ 	struct dc *dc,
+@@ -1437,9 +1453,17 @@ static bool dcn301_resource_construct(
+ 	dc->caps.max_cursor_size = 256;
+ 	dc->caps.min_horizontal_blanking_period = 80;
+ 	dc->caps.dmdata_alloc_size = 2048;
+-	dc->caps.max_slave_planes = 2;
+-	dc->caps.max_slave_yuv_planes = 2;
+-	dc->caps.max_slave_rgb_planes = 2;
++	
++	if (dmi_first_match(is_steamdeck)) {
++		dc->caps.max_slave_planes = 3;
++		dc->caps.max_slave_yuv_planes = 3;
++		dc->caps.max_slave_rgb_planes = 3;
++	} else {
++		dc->caps.max_slave_planes = 2;
++		dc->caps.max_slave_yuv_planes = 2;
++		dc->caps.max_slave_rgb_planes = 2;
++	}
++
+ 	dc->caps.is_apu = true;
+ 	dc->caps.post_blend_color_processing = true;
+ 	dc->caps.force_dp_tps4_for_cp2520 = true;
+-- 
+2.47.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <git@antheas.dev>
 Date: Sat, 12 Oct 2024 19:14:10 +0200
 Subject: [BEGIN] Modern Suspend patchset
