@@ -12,7 +12,7 @@ Subject: [NA] add dev tools
  create mode 100755 sync.sh
 
 diff --git a/.gitignore b/.gitignore
-index edf4f52c829a..18c89c307909 100644
+index edf4f52c829ae..18c89c307909c 100644
 --- a/.gitignore
 +++ b/.gitignore
 @@ -189,3 +189,7 @@ sphinx_*/
@@ -26,7 +26,7 @@ index edf4f52c829a..18c89c307909 100644
 \ No newline at end of file
 diff --git a/sync-arch.sh b/sync-arch.sh
 new file mode 100755
-index 000000000000..dd2e678fdcbd
+index 0000000000000..dd2e678fdcbd8
 --- /dev/null
 +++ b/sync-arch.sh
 @@ -0,0 +1,20 @@
@@ -52,7 +52,7 @@ index 000000000000..dd2e678fdcbd
 +
 diff --git a/sync.sh b/sync.sh
 new file mode 100755
-index 000000000000..de610a8bc34b
+index 0000000000000..de610a8bc34b5
 --- /dev/null
 +++ b/sync.sh
 @@ -0,0 +1,30 @@
@@ -87,7 +87,7 @@ index 000000000000..de610a8bc34b
 +#     sudo reboot
 +# EOF
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -99,7 +99,7 @@ getting stuck during async page flips on Nvidia PRIME systems
 Link: https://gitlab.freedesktop.org/xorg/xserver/-/issues/24
 Link: https://gitlab.freedesktop.org/xorg/driver/xf86-video-intel/-/issues/208
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -113,7 +113,7 @@ Signed-off-by: Jan200101 <sentrycraft123@gmail.com>
  1 file changed, 20 insertions(+)
 
 diff --git a/drivers/gpu/drm/i915/display/intel_quirks.c b/drivers/gpu/drm/i915/display/intel_quirks.c
-index 29b56d53a340..d15a123cf051 100644
+index 29b56d53a340a..d15a123cf0517 100644
 --- a/drivers/gpu/drm/i915/display/intel_quirks.c
 +++ b/drivers/gpu/drm/i915/display/intel_quirks.c
 @@ -78,6 +78,12 @@ static void quirk_fw_sync_len(struct intel_dp *intel_dp)
@@ -151,7 +151,7 @@ index 29b56d53a340..d15a123cf051 100644
  
  static struct intel_quirk intel_quirks[] = {
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -168,7 +168,7 @@ Signed-off-by: Jan200101 <sentrycraft123@gmail.com>
  4 files changed, 9 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/i915/display/intel_display_driver.c b/drivers/gpu/drm/i915/display/intel_display_driver.c
-index 069426d9260b..1f707c670bc1 100644
+index 069426d9260b1..1f707c670bc1d 100644
 --- a/drivers/gpu/drm/i915/display/intel_display_driver.c
 +++ b/drivers/gpu/drm/i915/display/intel_display_driver.c
 @@ -127,7 +127,7 @@ static void intel_mode_config_init(struct drm_i915_private *i915)
@@ -181,7 +181,7 @@ index 069426d9260b..1f707c670bc1 100644
  	/*
  	 * Maximum framebuffer dimensions, chosen to match
 diff --git a/drivers/gpu/drm/i915/i915_params.c b/drivers/gpu/drm/i915/i915_params.c
-index 37746dd619fd..bfe92c94ca7c 100644
+index 37746dd619fd8..bfe92c94ca7c5 100644
 --- a/drivers/gpu/drm/i915/i915_params.c
 +++ b/drivers/gpu/drm/i915/i915_params.c
 @@ -129,6 +129,10 @@ i915_param_named_unsafe(lmem_size, uint, 0400,
@@ -196,7 +196,7 @@ index 37746dd619fd..bfe92c94ca7c 100644
  #if IS_ENABLED(CONFIG_DRM_I915_REPLAY_GPU_HANGS_API)
  i915_param_named(enable_debug_only_api, bool, 0400,
 diff --git a/drivers/gpu/drm/i915/i915_params.h b/drivers/gpu/drm/i915/i915_params.h
-index 0fbcb5b6d7bf..8e9aa9131569 100644
+index 0fbcb5b6d7bfb..8e9aa91315697 100644
 --- a/drivers/gpu/drm/i915/i915_params.h
 +++ b/drivers/gpu/drm/i915/i915_params.h
 @@ -64,6 +64,7 @@ struct drm_printer;
@@ -208,7 +208,7 @@ index 0fbcb5b6d7bf..8e9aa9131569 100644
  
  #define MEMBER(T, member, ...) T member;
 diff --git a/drivers/gpu/drm/xe/xe_device_types.h b/drivers/gpu/drm/xe/xe_device_types.h
-index 687f3a9039bb..840ea9cf7dbc 100644
+index 687f3a9039bb1..840ea9cf7dbc4 100644
 --- a/drivers/gpu/drm/xe/xe_device_types.h
 +++ b/drivers/gpu/drm/xe/xe_device_types.h
 @@ -542,6 +542,9 @@ struct xe_device {
@@ -222,7 +222,7 @@ index 687f3a9039bb..840ea9cf7dbc 100644
  	void *pxp;
  #endif
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -232,7 +232,7 @@ Subject: [BEGIN] Gamescope Framerate fixups by Valve
 
 also fixes https://gitlab.freedesktop.org/drm/amd/-/issues/2733
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -245,7 +245,7 @@ Subject: revert 1101185bc50f5e45b8b89300914d9aa35a0c8cbe
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index ad3a3aa72b51..987c873ce040 100644
+index ea403fece8392..0c36da4165bfb 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -6723,6 +6723,8 @@ create_stream_for_sink(struct drm_connector *connector,
@@ -267,7 +267,7 @@ index ad3a3aa72b51..987c873ce040 100644
  						 to_dm_connector_state(connector->state),
  						 NULL);
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -318,7 +318,7 @@ Link: https://lore.kernel.org/r/20220830172851.269402-4-contact@emersion.fr
  6 files changed, 16 insertions(+)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 987c873ce040..35a45f416528 100644
+index 0c36da4165bfb..069d770e3d3c6 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -4478,6 +4478,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
@@ -330,7 +330,7 @@ index 987c873ce040..35a45f416528 100644
  	state = kzalloc(sizeof(*state), GFP_KERNEL);
  	if (!state)
 diff --git a/drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_dc.c b/drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_dc.c
-index 9ce429f889ca..aa8700eefadb 100644
+index 9ce429f889cac..aa8700eefadbe 100644
 --- a/drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_dc.c
 +++ b/drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_dc.c
 @@ -744,6 +744,7 @@ static int atmel_hlcdc_dc_modeset_init(struct drm_device *dev)
@@ -342,7 +342,7 @@ index 9ce429f889ca..aa8700eefadb 100644
  	return 0;
  }
 diff --git a/drivers/gpu/drm/i915/display/intel_display_driver.c b/drivers/gpu/drm/i915/display/intel_display_driver.c
-index 1f707c670bc1..7d7c3a93dd09 100644
+index 1f707c670bc1d..7d7c3a93dd09f 100644
 --- a/drivers/gpu/drm/i915/display/intel_display_driver.c
 +++ b/drivers/gpu/drm/i915/display/intel_display_driver.c
 @@ -128,6 +128,7 @@ static void intel_mode_config_init(struct drm_i915_private *i915)
@@ -354,7 +354,7 @@ index 1f707c670bc1..7d7c3a93dd09 100644
  	/*
  	 * Maximum framebuffer dimensions, chosen to match
 diff --git a/drivers/gpu/drm/nouveau/nouveau_display.c b/drivers/gpu/drm/nouveau/nouveau_display.c
-index e2fd561cd23f..d7aba6be9047 100644
+index e2fd561cd23f4..d7aba6be9047c 100644
 --- a/drivers/gpu/drm/nouveau/nouveau_display.c
 +++ b/drivers/gpu/drm/nouveau/nouveau_display.c
 @@ -720,6 +720,7 @@ nouveau_display_create(struct drm_device *dev)
@@ -366,7 +366,7 @@ index e2fd561cd23f..d7aba6be9047 100644
  	drm_kms_helper_poll_init(dev);
  	drm_kms_helper_poll_disable(dev);
 diff --git a/drivers/gpu/drm/vc4/vc4_kms.c b/drivers/gpu/drm/vc4/vc4_kms.c
-index bddfcad10950..3ae548efe6fc 100644
+index bddfcad109501..3ae548efe6fc8 100644
 --- a/drivers/gpu/drm/vc4/vc4_kms.c
 +++ b/drivers/gpu/drm/vc4/vc4_kms.c
 @@ -1068,6 +1068,7 @@ int vc4_kms_load(struct drm_device *dev)
@@ -378,7 +378,7 @@ index bddfcad10950..3ae548efe6fc 100644
  
  	ret = vc4_ctm_obj_init(vc4);
 diff --git a/include/drm/drm_mode_config.h b/include/drm/drm_mode_config.h
-index 271765e2e9f2..75a0d849f42a 100644
+index 271765e2e9f2d..75a0d849f42ac 100644
 --- a/include/drm/drm_mode_config.h
 +++ b/include/drm/drm_mode_config.h
 @@ -912,6 +912,17 @@ struct drm_mode_config {
@@ -400,7 +400,7 @@ index 271765e2e9f2..75a0d849f42a 100644
  	 * @fb_modifiers_not_supported:
  	 *
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -432,7 +432,7 @@ Link: https://lore.kernel.org/r/20220830172851.269402-7-contact@emersion.fr
  1 file changed, 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 35a45f416528..987c873ce040 100644
+index 069d770e3d3c6..0c36da4165bfb 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -4478,7 +4478,6 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
@@ -444,7 +444,7 @@ index 35a45f416528..987c873ce040 100644
  	state = kzalloc(sizeof(*state), GFP_KERNEL);
  	if (!state)
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -476,7 +476,7 @@ Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 987c873ce040..7258e46212b0 100644
+index 0c36da4165bfb..21e447b33229f 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -6723,7 +6723,7 @@ create_stream_for_sink(struct drm_connector *connector,
@@ -489,7 +489,7 @@ index 987c873ce040..7258e46212b0 100644
  
  	/*
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -518,7 +518,7 @@ Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
  1 file changed, 12 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.c
-index 9be87b532517..93a8bdb2504d 100644
+index 9be87b5325173..93a8bdb2504d4 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.c
 @@ -650,18 +650,6 @@ static int amdgpu_dm_crtc_helper_atomic_check(struct drm_crtc *crtc,
@@ -541,7 +541,7 @@ index 9be87b532517..93a8bdb2504d 100644
  	if (!dm_crtc_state->stream)
  		return 0;
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -550,7 +550,7 @@ Date: Sat, 12 Oct 2024 20:36:57 +0200
 Subject: [BEGIN] linux-surface patches
 
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -572,7 +572,7 @@ Patchset: secureboot
  1 file changed, 4 insertions(+)
 
 diff --git a/arch/x86/boot/header.S b/arch/x86/boot/header.S
-index b5c79f43359b..a1bbedd989e4 100644
+index b5c79f43359bc..a1bbedd989e42 100644
 --- a/arch/x86/boot/header.S
 +++ b/arch/x86/boot/header.S
 @@ -111,7 +111,11 @@ extra_header_fields:
@@ -588,7 +588,7 @@ index b5c79f43359b..a1bbedd989e4 100644
  	.long	0				# SizeOfStackReserve
  	.long	0				# SizeOfStackCommit
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -609,7 +609,7 @@ Patchset: secureboot
  2 files changed, 14 insertions(+), 1 deletion(-)
 
 diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-index d401577b5a6a..5a812e0b740a 100644
+index d401577b5a6ac..5a812e0b740a7 100644
 --- a/Documentation/admin-guide/kernel-parameters.txt
 +++ b/Documentation/admin-guide/kernel-parameters.txt
 @@ -3066,6 +3066,11 @@
@@ -625,7 +625,7 @@ index d401577b5a6a..5a812e0b740a 100644
  			Set the time limit in jiffies for a lock
  			acquisition.  Acquisitions exceeding this limit
 diff --git a/kernel/power/hibernate.c b/kernel/power/hibernate.c
-index e35829d36039..6d54eb03b63d 100644
+index e35829d360390..6d54eb03b63d4 100644
 --- a/kernel/power/hibernate.c
 +++ b/kernel/power/hibernate.c
 @@ -37,6 +37,7 @@
@@ -664,7 +664,7 @@ index e35829d36039..6d54eb03b63d 100644
  __setup("nohibernate", nohibernate_setup);
 +__setup("lockdown_hibernate", lockdown_hibernate_setup);
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -708,7 +708,7 @@ Patchset: surface3-oemb
  3 files changed, 24 insertions(+)
 
 diff --git a/drivers/platform/surface/surface3-wmi.c b/drivers/platform/surface/surface3-wmi.c
-index c15ed7a12784..1ec8edb5aafa 100644
+index c15ed7a12784a..1ec8edb5aafaf 100644
 --- a/drivers/platform/surface/surface3-wmi.c
 +++ b/drivers/platform/surface/surface3-wmi.c
 @@ -37,6 +37,13 @@ static const struct dmi_system_id surface3_dmi_table[] = {
@@ -726,7 +726,7 @@ index c15ed7a12784..1ec8edb5aafa 100644
  	{ }
  };
 diff --git a/sound/soc/codecs/rt5645.c b/sound/soc/codecs/rt5645.c
-index 51187b1e0ed2..bfb83ce8d8f8 100644
+index 51187b1e0ed2f..bfb83ce8d8f83 100644
 --- a/sound/soc/codecs/rt5645.c
 +++ b/sound/soc/codecs/rt5645.c
 @@ -3790,6 +3790,15 @@ static const struct dmi_system_id dmi_platform_data[] = {
@@ -746,7 +746,7 @@ index 51187b1e0ed2..bfb83ce8d8f8 100644
  		/*
  		 * Match for the GPDwin which unfortunately uses somewhat
 diff --git a/sound/soc/intel/common/soc-acpi-intel-cht-match.c b/sound/soc/intel/common/soc-acpi-intel-cht-match.c
-index e4c3492a0c28..0b930c91bccb 100644
+index e4c3492a0c282..0b930c91bccb3 100644
 --- a/sound/soc/intel/common/soc-acpi-intel-cht-match.c
 +++ b/sound/soc/intel/common/soc-acpi-intel-cht-match.c
 @@ -27,6 +27,14 @@ static const struct dmi_system_id cht_table[] = {
@@ -765,7 +765,7 @@ index e4c3492a0c28..0b930c91bccb 100644
  };
  
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -801,7 +801,7 @@ Patchset: mwifiex
  3 files changed, 31 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/net/wireless/marvell/mwifiex/pcie.c b/drivers/net/wireless/marvell/mwifiex/pcie.c
-index 5f997becdbaa..9a9929424513 100644
+index 5f997becdbaa2..9a9929424513a 100644
 --- a/drivers/net/wireless/marvell/mwifiex/pcie.c
 +++ b/drivers/net/wireless/marvell/mwifiex/pcie.c
 @@ -1702,9 +1702,21 @@ mwifiex_pcie_send_boot_cmd(struct mwifiex_adapter *adapter, struct sk_buff *skb)
@@ -827,7 +827,7 @@ index 5f997becdbaa..9a9929424513 100644
  	mwifiex_write_reg(adapter, reg->rx_rdptr, card->rxbd_rdptr | tx_wrap);
  }
 diff --git a/drivers/net/wireless/marvell/mwifiex/pcie_quirks.c b/drivers/net/wireless/marvell/mwifiex/pcie_quirks.c
-index dd6d21f1dbfd..f46b06f8d643 100644
+index dd6d21f1dbfd7..f46b06f8d6435 100644
 --- a/drivers/net/wireless/marvell/mwifiex/pcie_quirks.c
 +++ b/drivers/net/wireless/marvell/mwifiex/pcie_quirks.c
 @@ -13,7 +13,8 @@ static const struct dmi_system_id mwifiex_quirk_table[] = {
@@ -920,7 +920,7 @@ index dd6d21f1dbfd..f46b06f8d643 100644
  
  static void mwifiex_pcie_set_power_d3cold(struct pci_dev *pdev)
 diff --git a/drivers/net/wireless/marvell/mwifiex/pcie_quirks.h b/drivers/net/wireless/marvell/mwifiex/pcie_quirks.h
-index d6ff964aec5b..5d30ae39d65e 100644
+index d6ff964aec5bf..5d30ae39d65ec 100644
 --- a/drivers/net/wireless/marvell/mwifiex/pcie_quirks.h
 +++ b/drivers/net/wireless/marvell/mwifiex/pcie_quirks.h
 @@ -4,6 +4,7 @@
@@ -932,7 +932,7 @@ index d6ff964aec5b..5d30ae39d65e 100644
  void mwifiex_initialize_quirks(struct pcie_service_card *card);
  int mwifiex_pcie_reset_d3cold_quirk(struct pci_dev *pdev);
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -957,7 +957,7 @@ Patchset: mwifiex
  3 files changed, 27 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/net/wireless/marvell/mwifiex/pcie.c b/drivers/net/wireless/marvell/mwifiex/pcie.c
-index 9a9929424513..2273e3029776 100644
+index 9a9929424513a..2273e30297766 100644
 --- a/drivers/net/wireless/marvell/mwifiex/pcie.c
 +++ b/drivers/net/wireless/marvell/mwifiex/pcie.c
 @@ -377,6 +377,7 @@ static int mwifiex_pcie_probe(struct pci_dev *pdev,
@@ -982,7 +982,7 @@ index 9a9929424513..2273e3029776 100644
  }
  
 diff --git a/drivers/net/wireless/marvell/mwifiex/pcie_quirks.c b/drivers/net/wireless/marvell/mwifiex/pcie_quirks.c
-index f46b06f8d643..99b024ecbade 100644
+index f46b06f8d6435..99b024ecbadea 100644
 --- a/drivers/net/wireless/marvell/mwifiex/pcie_quirks.c
 +++ b/drivers/net/wireless/marvell/mwifiex/pcie_quirks.c
 @@ -14,7 +14,8 @@ static const struct dmi_system_id mwifiex_quirk_table[] = {
@@ -1076,7 +1076,7 @@ index f46b06f8d643..99b024ecbade 100644
  
  static void mwifiex_pcie_set_power_d3cold(struct pci_dev *pdev)
 diff --git a/drivers/net/wireless/marvell/mwifiex/pcie_quirks.h b/drivers/net/wireless/marvell/mwifiex/pcie_quirks.h
-index 5d30ae39d65e..c14eb56eb911 100644
+index 5d30ae39d65ec..c14eb56eb9118 100644
 --- a/drivers/net/wireless/marvell/mwifiex/pcie_quirks.h
 +++ b/drivers/net/wireless/marvell/mwifiex/pcie_quirks.h
 @@ -5,6 +5,7 @@
@@ -1088,7 +1088,7 @@ index 5d30ae39d65e..c14eb56eb911 100644
  void mwifiex_initialize_quirks(struct pcie_service_card *card);
  int mwifiex_pcie_reset_d3cold_quirk(struct pci_dev *pdev);
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -1126,7 +1126,7 @@ Patchset: mwifiex
  1 file changed, 15 insertions(+)
 
 diff --git a/drivers/bluetooth/btusb.c b/drivers/bluetooth/btusb.c
-index 5cd7310efaeb..b5061867978a 100644
+index 5cd7310efaeb6..b5061867978a8 100644
 --- a/drivers/bluetooth/btusb.c
 +++ b/drivers/bluetooth/btusb.c
 @@ -65,6 +65,7 @@ static struct usb_driver btusb_driver;
@@ -1166,7 +1166,7 @@ index 5cd7310efaeb..b5061867978a 100644
  	    (id->driver_info & BTUSB_MEDIATEK)) {
  		hdev->setup = btusb_mtk_setup;
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -1191,7 +1191,7 @@ Patchset: ath10k
  1 file changed, 57 insertions(+)
 
 diff --git a/drivers/net/wireless/ath/ath10k/core.c b/drivers/net/wireless/ath/ath10k/core.c
-index b3294287bce1..2936fdae823c 100644
+index b3294287bce1f..2936fdae823c4 100644
 --- a/drivers/net/wireless/ath/ath10k/core.c
 +++ b/drivers/net/wireless/ath/ath10k/core.c
 @@ -40,6 +40,9 @@ static bool fw_diag_log;
@@ -1287,7 +1287,7 @@ index b3294287bce1..2936fdae823c 100644
  		snprintf(filename, sizeof(filename), "%s/%s/%s",
  			 dir, ar->board_name, file);
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -1303,7 +1303,7 @@ Patchset: ipts
  2 files changed, 2 insertions(+)
 
 diff --git a/drivers/misc/mei/hw-me-regs.h b/drivers/misc/mei/hw-me-regs.h
-index c3a6657dcd4a..82eef2f4eb0a 100644
+index c3a6657dcd4a2..82eef2f4eb0a8 100644
 --- a/drivers/misc/mei/hw-me-regs.h
 +++ b/drivers/misc/mei/hw-me-regs.h
 @@ -92,6 +92,7 @@
@@ -1315,7 +1315,7 @@ index c3a6657dcd4a..82eef2f4eb0a 100644
  
  #define MEI_DEV_ID_JSP_N      0x4DE0  /* Jasper Lake Point N */
 diff --git a/drivers/misc/mei/pci-me.c b/drivers/misc/mei/pci-me.c
-index 6589635f8ba3..a1df48a434e2 100644
+index 6589635f8ba32..a1df48a434e2f 100644
 --- a/drivers/misc/mei/pci-me.c
 +++ b/drivers/misc/mei/pci-me.c
 @@ -97,6 +97,7 @@ static const struct pci_device_id mei_me_pci_tbl[] = {
@@ -1327,7 +1327,7 @@ index 6589635f8ba3..a1df48a434e2 100644
  
  	{MEI_PCI_DEVICE(MEI_DEV_ID_TGP_LP, MEI_ME_PCH15_CFG)},
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -1354,7 +1354,7 @@ Patchset: ipts
  1 file changed, 29 insertions(+)
 
 diff --git a/drivers/iommu/intel/iommu.c b/drivers/iommu/intel/iommu.c
-index cc23cfcdeb2d..c010aebe6cc1 100644
+index cc23cfcdeb2d5..c010aebe6cc11 100644
 --- a/drivers/iommu/intel/iommu.c
 +++ b/drivers/iommu/intel/iommu.c
 @@ -40,6 +40,11 @@
@@ -1435,7 +1435,7 @@ index cc23cfcdeb2d..c010aebe6cc1 100644
  {
  	if (risky_device(dev))
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -1505,7 +1505,7 @@ Patchset: ipts
  create mode 100644 drivers/hid/ipts/thread.h
 
 diff --git a/drivers/hid/Kconfig b/drivers/hid/Kconfig
-index f8a56d631242..38eb29e4cc31 100644
+index f8a56d6312425..38eb29e4cc319 100644
 --- a/drivers/hid/Kconfig
 +++ b/drivers/hid/Kconfig
 @@ -1373,4 +1373,6 @@ source "drivers/hid/amd-sfh-hid/Kconfig"
@@ -1516,7 +1516,7 @@ index f8a56d631242..38eb29e4cc31 100644
 +
  endif # HID_SUPPORT
 diff --git a/drivers/hid/Makefile b/drivers/hid/Makefile
-index 496dab54c73a..02588e5d01eb 100644
+index 496dab54c73a8..02588e5d01eb5 100644
 --- a/drivers/hid/Makefile
 +++ b/drivers/hid/Makefile
 @@ -170,3 +170,5 @@ obj-$(INTEL_ISH_FIRMWARE_DOWNLOADER)	+= intel-ish-hid/
@@ -1527,7 +1527,7 @@ index 496dab54c73a..02588e5d01eb 100644
 +obj-$(CONFIG_HID_IPTS)          += ipts/
 diff --git a/drivers/hid/ipts/Kconfig b/drivers/hid/ipts/Kconfig
 new file mode 100644
-index 000000000000..297401bd388d
+index 0000000000000..297401bd388dd
 --- /dev/null
 +++ b/drivers/hid/ipts/Kconfig
 @@ -0,0 +1,14 @@
@@ -1547,7 +1547,7 @@ index 000000000000..297401bd388d
 +	  module will be called ipts.
 diff --git a/drivers/hid/ipts/Makefile b/drivers/hid/ipts/Makefile
 new file mode 100644
-index 000000000000..883896f68e6a
+index 0000000000000..883896f68e6ad
 --- /dev/null
 +++ b/drivers/hid/ipts/Makefile
 @@ -0,0 +1,16 @@
@@ -1569,7 +1569,7 @@ index 000000000000..883896f68e6a
 +ipts-objs += thread.o
 diff --git a/drivers/hid/ipts/cmd.c b/drivers/hid/ipts/cmd.c
 new file mode 100644
-index 000000000000..63a4934bbc5f
+index 0000000000000..63a4934bbc5fa
 --- /dev/null
 +++ b/drivers/hid/ipts/cmd.c
 @@ -0,0 +1,61 @@
@@ -1636,7 +1636,7 @@ index 000000000000..63a4934bbc5f
 +}
 diff --git a/drivers/hid/ipts/cmd.h b/drivers/hid/ipts/cmd.h
 new file mode 100644
-index 000000000000..2b4079075b64
+index 0000000000000..2b4079075b642
 --- /dev/null
 +++ b/drivers/hid/ipts/cmd.h
 @@ -0,0 +1,60 @@
@@ -1702,7 +1702,7 @@ index 000000000000..2b4079075b64
 +#endif /* IPTS_CMD_H */
 diff --git a/drivers/hid/ipts/context.h b/drivers/hid/ipts/context.h
 new file mode 100644
-index 000000000000..ba33259f1f7c
+index 0000000000000..ba33259f1f7c5
 --- /dev/null
 +++ b/drivers/hid/ipts/context.h
 @@ -0,0 +1,52 @@
@@ -1760,7 +1760,7 @@ index 000000000000..ba33259f1f7c
 +#endif /* IPTS_CONTEXT_H */
 diff --git a/drivers/hid/ipts/control.c b/drivers/hid/ipts/control.c
 new file mode 100644
-index 000000000000..5360842d260b
+index 0000000000000..5360842d260ba
 --- /dev/null
 +++ b/drivers/hid/ipts/control.c
 @@ -0,0 +1,486 @@
@@ -2252,7 +2252,7 @@ index 000000000000..5360842d260b
 +}
 diff --git a/drivers/hid/ipts/control.h b/drivers/hid/ipts/control.h
 new file mode 100644
-index 000000000000..26629c5144ed
+index 0000000000000..26629c5144edb
 --- /dev/null
 +++ b/drivers/hid/ipts/control.h
 @@ -0,0 +1,126 @@
@@ -2384,7 +2384,7 @@ index 000000000000..26629c5144ed
 +#endif /* IPTS_CONTROL_H */
 diff --git a/drivers/hid/ipts/desc.h b/drivers/hid/ipts/desc.h
 new file mode 100644
-index 000000000000..307438c7c80c
+index 0000000000000..307438c7c80cd
 --- /dev/null
 +++ b/drivers/hid/ipts/desc.h
 @@ -0,0 +1,80 @@
@@ -2470,7 +2470,7 @@ index 000000000000..307438c7c80c
 +#endif /* IPTS_DESC_H */
 diff --git a/drivers/hid/ipts/eds1.c b/drivers/hid/ipts/eds1.c
 new file mode 100644
-index 000000000000..7b9f54388a9f
+index 0000000000000..7b9f54388a9f6
 --- /dev/null
 +++ b/drivers/hid/ipts/eds1.c
 @@ -0,0 +1,104 @@
@@ -2580,7 +2580,7 @@ index 000000000000..7b9f54388a9f
 +}
 diff --git a/drivers/hid/ipts/eds1.h b/drivers/hid/ipts/eds1.h
 new file mode 100644
-index 000000000000..eeeb6575e3e8
+index 0000000000000..eeeb6575e3e89
 --- /dev/null
 +++ b/drivers/hid/ipts/eds1.h
 @@ -0,0 +1,35 @@
@@ -2621,7 +2621,7 @@ index 000000000000..eeeb6575e3e8
 +			  enum hid_report_type report_type, enum hid_class_request request_type);
 diff --git a/drivers/hid/ipts/eds2.c b/drivers/hid/ipts/eds2.c
 new file mode 100644
-index 000000000000..639940794615
+index 0000000000000..639940794615d
 --- /dev/null
 +++ b/drivers/hid/ipts/eds2.c
 @@ -0,0 +1,145 @@
@@ -2772,7 +2772,7 @@ index 000000000000..639940794615
 +}
 diff --git a/drivers/hid/ipts/eds2.h b/drivers/hid/ipts/eds2.h
 new file mode 100644
-index 000000000000..064e3716907a
+index 0000000000000..064e3716907ab
 --- /dev/null
 +++ b/drivers/hid/ipts/eds2.h
 @@ -0,0 +1,35 @@
@@ -2813,7 +2813,7 @@ index 000000000000..064e3716907a
 +			  enum hid_report_type report_type, enum hid_class_request request_type);
 diff --git a/drivers/hid/ipts/hid.c b/drivers/hid/ipts/hid.c
 new file mode 100644
-index 000000000000..e34a1a4f9fa7
+index 0000000000000..e34a1a4f9fa77
 --- /dev/null
 +++ b/drivers/hid/ipts/hid.c
 @@ -0,0 +1,225 @@
@@ -3044,7 +3044,7 @@ index 000000000000..e34a1a4f9fa7
 +}
 diff --git a/drivers/hid/ipts/hid.h b/drivers/hid/ipts/hid.h
 new file mode 100644
-index 000000000000..1ebe77447903
+index 0000000000000..1ebe77447903a
 --- /dev/null
 +++ b/drivers/hid/ipts/hid.h
 @@ -0,0 +1,24 @@
@@ -3074,7 +3074,7 @@ index 000000000000..1ebe77447903
 +#endif /* IPTS_HID_H */
 diff --git a/drivers/hid/ipts/main.c b/drivers/hid/ipts/main.c
 new file mode 100644
-index 000000000000..fb5b5c13ee3e
+index 0000000000000..fb5b5c13ee3ea
 --- /dev/null
 +++ b/drivers/hid/ipts/main.c
 @@ -0,0 +1,126 @@
@@ -3206,7 +3206,7 @@ index 000000000000..fb5b5c13ee3e
 +MODULE_LICENSE("GPL");
 diff --git a/drivers/hid/ipts/mei.c b/drivers/hid/ipts/mei.c
 new file mode 100644
-index 000000000000..1e0395ceae4a
+index 0000000000000..1e0395ceae4a4
 --- /dev/null
 +++ b/drivers/hid/ipts/mei.c
 @@ -0,0 +1,188 @@
@@ -3400,7 +3400,7 @@ index 000000000000..1e0395ceae4a
 +}
 diff --git a/drivers/hid/ipts/mei.h b/drivers/hid/ipts/mei.h
 new file mode 100644
-index 000000000000..973bade6b0fd
+index 0000000000000..973bade6b0fdd
 --- /dev/null
 +++ b/drivers/hid/ipts/mei.h
 @@ -0,0 +1,66 @@
@@ -3472,7 +3472,7 @@ index 000000000000..973bade6b0fd
 +#endif /* IPTS_MEI_H */
 diff --git a/drivers/hid/ipts/receiver.c b/drivers/hid/ipts/receiver.c
 new file mode 100644
-index 000000000000..977724c728c3
+index 0000000000000..977724c728c3e
 --- /dev/null
 +++ b/drivers/hid/ipts/receiver.c
 @@ -0,0 +1,251 @@
@@ -3729,7 +3729,7 @@ index 000000000000..977724c728c3
 +}
 diff --git a/drivers/hid/ipts/receiver.h b/drivers/hid/ipts/receiver.h
 new file mode 100644
-index 000000000000..3de7da62d40c
+index 0000000000000..3de7da62d40c1
 --- /dev/null
 +++ b/drivers/hid/ipts/receiver.h
 @@ -0,0 +1,16 @@
@@ -3751,7 +3751,7 @@ index 000000000000..3de7da62d40c
 +#endif /* IPTS_RECEIVER_H */
 diff --git a/drivers/hid/ipts/resources.c b/drivers/hid/ipts/resources.c
 new file mode 100644
-index 000000000000..cc14653b2a9f
+index 0000000000000..cc14653b2a9f5
 --- /dev/null
 +++ b/drivers/hid/ipts/resources.c
 @@ -0,0 +1,131 @@
@@ -3888,7 +3888,7 @@ index 000000000000..cc14653b2a9f
 +}
 diff --git a/drivers/hid/ipts/resources.h b/drivers/hid/ipts/resources.h
 new file mode 100644
-index 000000000000..2068e13285f0
+index 0000000000000..2068e13285f0e
 --- /dev/null
 +++ b/drivers/hid/ipts/resources.h
 @@ -0,0 +1,41 @@
@@ -3935,7 +3935,7 @@ index 000000000000..2068e13285f0
 +#endif /* IPTS_RESOURCES_H */
 diff --git a/drivers/hid/ipts/spec-data.h b/drivers/hid/ipts/spec-data.h
 new file mode 100644
-index 000000000000..e8dd98895a7e
+index 0000000000000..e8dd98895a7ee
 --- /dev/null
 +++ b/drivers/hid/ipts/spec-data.h
 @@ -0,0 +1,100 @@
@@ -4041,7 +4041,7 @@ index 000000000000..e8dd98895a7e
 +#endif /* IPTS_SPEC_DATA_H */
 diff --git a/drivers/hid/ipts/spec-device.h b/drivers/hid/ipts/spec-device.h
 new file mode 100644
-index 000000000000..41845f9d9025
+index 0000000000000..41845f9d90257
 --- /dev/null
 +++ b/drivers/hid/ipts/spec-device.h
 @@ -0,0 +1,290 @@
@@ -4337,7 +4337,7 @@ index 000000000000..41845f9d9025
 +#endif /* IPTS_SPEC_DEVICE_H */
 diff --git a/drivers/hid/ipts/spec-hid.h b/drivers/hid/ipts/spec-hid.h
 new file mode 100644
-index 000000000000..5a58d4a0a610
+index 0000000000000..5a58d4a0a610f
 --- /dev/null
 +++ b/drivers/hid/ipts/spec-hid.h
 @@ -0,0 +1,34 @@
@@ -4377,7 +4377,7 @@ index 000000000000..5a58d4a0a610
 +#endif /* IPTS_SPEC_HID_H */
 diff --git a/drivers/hid/ipts/thread.c b/drivers/hid/ipts/thread.c
 new file mode 100644
-index 000000000000..355e92bea26f
+index 0000000000000..355e92bea26f8
 --- /dev/null
 +++ b/drivers/hid/ipts/thread.c
 @@ -0,0 +1,84 @@
@@ -4467,7 +4467,7 @@ index 000000000000..355e92bea26f
 +}
 diff --git a/drivers/hid/ipts/thread.h b/drivers/hid/ipts/thread.h
 new file mode 100644
-index 000000000000..1f966b8b32c4
+index 0000000000000..1f966b8b32c45
 --- /dev/null
 +++ b/drivers/hid/ipts/thread.h
 @@ -0,0 +1,59 @@
@@ -4531,7 +4531,7 @@ index 000000000000..1f966b8b32c4
 +
 +#endif /* IPTS_THREAD_H */
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -4546,7 +4546,7 @@ Patchset: ithc
  1 file changed, 16 insertions(+)
 
 diff --git a/drivers/iommu/intel/irq_remapping.c b/drivers/iommu/intel/irq_remapping.c
-index 7a6d188e3bea..0179baee4596 100644
+index 7a6d188e3bea0..0179baee4596c 100644
 --- a/drivers/iommu/intel/irq_remapping.c
 +++ b/drivers/iommu/intel/irq_remapping.c
 @@ -389,6 +389,22 @@ static int set_msi_sid(struct irte *irte, struct pci_dev *dev)
@@ -4573,7 +4573,7 @@ index 7a6d188e3bea..0179baee4596 100644
  	 * DMA alias provides us with a PCI device and alias.  The only case
  	 * where the it will return an alias on a different bus than the
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -4623,7 +4623,7 @@ Patchset: ithc
  create mode 100644 drivers/hid/ithc/ithc.h
 
 diff --git a/drivers/hid/Kconfig b/drivers/hid/Kconfig
-index 38eb29e4cc31..76ad7d9143c7 100644
+index 38eb29e4cc319..76ad7d9143c78 100644
 --- a/drivers/hid/Kconfig
 +++ b/drivers/hid/Kconfig
 @@ -1375,4 +1375,6 @@ source "drivers/hid/surface-hid/Kconfig"
@@ -4634,7 +4634,7 @@ index 38eb29e4cc31..76ad7d9143c7 100644
 +
  endif # HID_SUPPORT
 diff --git a/drivers/hid/Makefile b/drivers/hid/Makefile
-index 02588e5d01eb..1ea3d2e0d4e9 100644
+index 02588e5d01eb5..1ea3d2e0d4e91 100644
 --- a/drivers/hid/Makefile
 +++ b/drivers/hid/Makefile
 @@ -172,3 +172,4 @@ obj-$(CONFIG_AMD_SFH_HID)       += amd-sfh-hid/
@@ -4644,7 +4644,7 @@ index 02588e5d01eb..1ea3d2e0d4e9 100644
 +obj-$(CONFIG_HID_ITHC)          += ithc/
 diff --git a/drivers/hid/ithc/Kbuild b/drivers/hid/ithc/Kbuild
 new file mode 100644
-index 000000000000..4937ba131297
+index 0000000000000..4937ba1312973
 --- /dev/null
 +++ b/drivers/hid/ithc/Kbuild
 @@ -0,0 +1,6 @@
@@ -4656,7 +4656,7 @@ index 000000000000..4937ba131297
 +
 diff --git a/drivers/hid/ithc/Kconfig b/drivers/hid/ithc/Kconfig
 new file mode 100644
-index 000000000000..ede713023609
+index 0000000000000..ede7130236096
 --- /dev/null
 +++ b/drivers/hid/ithc/Kconfig
 @@ -0,0 +1,12 @@
@@ -4674,7 +4674,7 @@ index 000000000000..ede713023609
 +	  module will be called ithc.
 diff --git a/drivers/hid/ithc/ithc-debug.c b/drivers/hid/ithc/ithc-debug.c
 new file mode 100644
-index 000000000000..2d8c6afe9966
+index 0000000000000..2d8c6afe99663
 --- /dev/null
 +++ b/drivers/hid/ithc/ithc-debug.c
 @@ -0,0 +1,149 @@
@@ -4829,7 +4829,7 @@ index 000000000000..2d8c6afe9966
 +
 diff --git a/drivers/hid/ithc/ithc-debug.h b/drivers/hid/ithc/ithc-debug.h
 new file mode 100644
-index 000000000000..38c53d916bdb
+index 0000000000000..38c53d916bdb5
 --- /dev/null
 +++ b/drivers/hid/ithc/ithc-debug.h
 @@ -0,0 +1,7 @@
@@ -4842,7 +4842,7 @@ index 000000000000..38c53d916bdb
 +
 diff --git a/drivers/hid/ithc/ithc-dma.c b/drivers/hid/ithc/ithc-dma.c
 new file mode 100644
-index 000000000000..bf4eab33062b
+index 0000000000000..bf4eab33062b0
 --- /dev/null
 +++ b/drivers/hid/ithc/ithc-dma.c
 @@ -0,0 +1,312 @@
@@ -5160,7 +5160,7 @@ index 000000000000..bf4eab33062b
 +
 diff --git a/drivers/hid/ithc/ithc-dma.h b/drivers/hid/ithc/ithc-dma.h
 new file mode 100644
-index 000000000000..1749a5819b3e
+index 0000000000000..1749a5819b3e7
 --- /dev/null
 +++ b/drivers/hid/ithc/ithc-dma.h
 @@ -0,0 +1,47 @@
@@ -5213,7 +5213,7 @@ index 000000000000..1749a5819b3e
 +
 diff --git a/drivers/hid/ithc/ithc-hid.c b/drivers/hid/ithc/ithc-hid.c
 new file mode 100644
-index 000000000000..065646ab499e
+index 0000000000000..065646ab499ef
 --- /dev/null
 +++ b/drivers/hid/ithc/ithc-hid.c
 @@ -0,0 +1,207 @@
@@ -5426,7 +5426,7 @@ index 000000000000..065646ab499e
 +
 diff --git a/drivers/hid/ithc/ithc-hid.h b/drivers/hid/ithc/ithc-hid.h
 new file mode 100644
-index 000000000000..599eb912c8c8
+index 0000000000000..599eb912c8c84
 --- /dev/null
 +++ b/drivers/hid/ithc/ithc-hid.h
 @@ -0,0 +1,32 @@
@@ -5464,7 +5464,7 @@ index 000000000000..599eb912c8c8
 +
 diff --git a/drivers/hid/ithc/ithc-legacy.c b/drivers/hid/ithc/ithc-legacy.c
 new file mode 100644
-index 000000000000..8883987fb352
+index 0000000000000..8883987fb3521
 --- /dev/null
 +++ b/drivers/hid/ithc/ithc-legacy.c
 @@ -0,0 +1,254 @@
@@ -5724,7 +5724,7 @@ index 000000000000..8883987fb352
 +
 diff --git a/drivers/hid/ithc/ithc-legacy.h b/drivers/hid/ithc/ithc-legacy.h
 new file mode 100644
-index 000000000000..28d692462072
+index 0000000000000..28d6924620722
 --- /dev/null
 +++ b/drivers/hid/ithc/ithc-legacy.h
 @@ -0,0 +1,8 @@
@@ -5738,7 +5738,7 @@ index 000000000000..28d692462072
 +
 diff --git a/drivers/hid/ithc/ithc-main.c b/drivers/hid/ithc/ithc-main.c
 new file mode 100644
-index 000000000000..ac56c253674b
+index 0000000000000..ac56c253674b3
 --- /dev/null
 +++ b/drivers/hid/ithc/ithc-main.c
 @@ -0,0 +1,431 @@
@@ -6175,7 +6175,7 @@ index 000000000000..ac56c253674b
 +
 diff --git a/drivers/hid/ithc/ithc-quickspi.c b/drivers/hid/ithc/ithc-quickspi.c
 new file mode 100644
-index 000000000000..e2d1690b8cf8
+index 0000000000000..e2d1690b8cf8c
 --- /dev/null
 +++ b/drivers/hid/ithc/ithc-quickspi.c
 @@ -0,0 +1,607 @@
@@ -6788,7 +6788,7 @@ index 000000000000..e2d1690b8cf8
 +
 diff --git a/drivers/hid/ithc/ithc-quickspi.h b/drivers/hid/ithc/ithc-quickspi.h
 new file mode 100644
-index 000000000000..74d882f6b2f0
+index 0000000000000..74d882f6b2f0a
 --- /dev/null
 +++ b/drivers/hid/ithc/ithc-quickspi.h
 @@ -0,0 +1,39 @@
@@ -6833,7 +6833,7 @@ index 000000000000..74d882f6b2f0
 +
 diff --git a/drivers/hid/ithc/ithc-regs.c b/drivers/hid/ithc/ithc-regs.c
 new file mode 100644
-index 000000000000..c0f13506af20
+index 0000000000000..c0f13506af205
 --- /dev/null
 +++ b/drivers/hid/ithc/ithc-regs.c
 @@ -0,0 +1,154 @@
@@ -6993,7 +6993,7 @@ index 000000000000..c0f13506af20
 +
 diff --git a/drivers/hid/ithc/ithc-regs.h b/drivers/hid/ithc/ithc-regs.h
 new file mode 100644
-index 000000000000..4f541fe533fa
+index 0000000000000..4f541fe533fac
 --- /dev/null
 +++ b/drivers/hid/ithc/ithc-regs.h
 @@ -0,0 +1,211 @@
@@ -7210,7 +7210,7 @@ index 000000000000..4f541fe533fa
 +
 diff --git a/drivers/hid/ithc/ithc.h b/drivers/hid/ithc/ithc.h
 new file mode 100644
-index 000000000000..aec320d4e945
+index 0000000000000..aec320d4e945c
 --- /dev/null
 +++ b/drivers/hid/ithc/ithc.h
 @@ -0,0 +1,89 @@
@@ -7304,7 +7304,7 @@ index 000000000000..aec320d4e945
 +int ithc_reset(struct ithc *ithc);
 +
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -7364,7 +7364,7 @@ Patchset: surface-sam-over-hid
  1 file changed, 34 insertions(+)
 
 diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
-index 14ae0cfc325e..6197c5252d2a 100644
+index 14ae0cfc325ef..6197c5252d2a1 100644
 --- a/drivers/i2c/i2c-core-acpi.c
 +++ b/drivers/i2c/i2c-core-acpi.c
 @@ -639,6 +639,27 @@ static int acpi_gsb_i2c_write_bytes(struct i2c_client *client,
@@ -7416,7 +7416,7 @@ index 14ae0cfc325e..6197c5252d2a 100644
  		dev_warn(&adapter->dev, "protocol 0x%02x not supported for client 0x%02x\n",
  			 accessor_type, client->addr);
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -7442,7 +7442,7 @@ Patchset: surface-sam-over-hid
  create mode 100644 drivers/platform/surface/surfacebook1_dgpu_switch.c
 
 diff --git a/drivers/platform/surface/Kconfig b/drivers/platform/surface/Kconfig
-index b629e82af97c..68656e8f309e 100644
+index b629e82af97c0..68656e8f309ed 100644
 --- a/drivers/platform/surface/Kconfig
 +++ b/drivers/platform/surface/Kconfig
 @@ -149,6 +149,13 @@ config SURFACE_AGGREGATOR_TABLET_SWITCH
@@ -7460,7 +7460,7 @@ index b629e82af97c..68656e8f309e 100644
  	tristate "Surface DTX (Detachment System) Driver"
  	depends on SURFACE_AGGREGATOR
 diff --git a/drivers/platform/surface/Makefile b/drivers/platform/surface/Makefile
-index 53344330939b..7efcd0cdb532 100644
+index 53344330939bf..7efcd0cdb5329 100644
 --- a/drivers/platform/surface/Makefile
 +++ b/drivers/platform/surface/Makefile
 @@ -12,6 +12,7 @@ obj-$(CONFIG_SURFACE_AGGREGATOR_CDEV)	+= surface_aggregator_cdev.o
@@ -7473,7 +7473,7 @@ index 53344330939b..7efcd0cdb532 100644
  obj-$(CONFIG_SURFACE_HOTPLUG)		+= surface_hotplug.o
 diff --git a/drivers/platform/surface/surfacebook1_dgpu_switch.c b/drivers/platform/surface/surfacebook1_dgpu_switch.c
 new file mode 100644
-index 000000000000..68db237734a1
+index 0000000000000..68db237734a13
 --- /dev/null
 +++ b/drivers/platform/surface/surfacebook1_dgpu_switch.c
 @@ -0,0 +1,136 @@
@@ -7614,7 +7614,7 @@ index 000000000000..68db237734a1
 +MODULE_DESCRIPTION("Discrete GPU Power-Switch for Surface Book 1");
 +MODULE_LICENSE("GPL");
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -7639,7 +7639,7 @@ Patchset: surface-button
  1 file changed, 8 insertions(+), 25 deletions(-)
 
 diff --git a/drivers/input/misc/soc_button_array.c b/drivers/input/misc/soc_button_array.c
-index 5c5d407fe965..4e1bfe90e730 100644
+index 5c5d407fe9650..4e1bfe90e7303 100644
 --- a/drivers/input/misc/soc_button_array.c
 +++ b/drivers/input/misc/soc_button_array.c
 @@ -540,8 +540,8 @@ static const struct soc_device_data soc_device_MSHW0028 = {
@@ -7692,7 +7692,7 @@ index 5c5d407fe965..4e1bfe90e730 100644
  
  /*
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -7715,7 +7715,7 @@ Patchset: surface-button
  1 file changed, 6 insertions(+), 24 deletions(-)
 
 diff --git a/drivers/platform/surface/surfacepro3_button.c b/drivers/platform/surface/surfacepro3_button.c
-index 2755601f979c..4240c98ca226 100644
+index 2755601f979cd..4240c98ca2265 100644
 --- a/drivers/platform/surface/surfacepro3_button.c
 +++ b/drivers/platform/surface/surfacepro3_button.c
 @@ -149,7 +149,8 @@ static int surface_button_resume(struct device *dev)
@@ -7764,7 +7764,7 @@ index 2755601f979c..4240c98ca226 100644
  
  
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -7791,7 +7791,7 @@ Patchset: surface-typecover
  1 file changed, 3 insertions(+)
 
 diff --git a/drivers/usb/core/quirks.c b/drivers/usb/core/quirks.c
-index 13171454f959..a83beefd25f3 100644
+index 13171454f9591..a83beefd25f3f 100644
 --- a/drivers/usb/core/quirks.c
 +++ b/drivers/usb/core/quirks.c
 @@ -223,6 +223,9 @@ static const struct usb_device_id usb_quirk_list[] = {
@@ -7805,7 +7805,7 @@ index 13171454f959..a83beefd25f3 100644
  	{ USB_DEVICE(0x046a, 0x0023), .driver_info = USB_QUIRK_RESET_RESUME },
  
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -7844,7 +7844,7 @@ Patchset: surface-typecover
  1 file changed, 98 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/hid/hid-multitouch.c b/drivers/hid/hid-multitouch.c
-index e936019d21fe..08fee06fb5fc 100644
+index e936019d21fec..08fee06fb5fcf 100644
 --- a/drivers/hid/hid-multitouch.c
 +++ b/drivers/hid/hid-multitouch.c
 @@ -34,7 +34,10 @@
@@ -8041,7 +8041,7 @@ index e936019d21fe..08fee06fb5fc 100644
  	{ .driver_data = MT_CLS_GOOGLE,
  		HID_DEVICE(HID_BUS_ANY, HID_GROUP_ANY, USB_VENDOR_ID_GOOGLE,
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -8072,7 +8072,7 @@ Patchset: surface-typecover
  1 file changed, 122 insertions(+), 26 deletions(-)
 
 diff --git a/drivers/hid/hid-multitouch.c b/drivers/hid/hid-multitouch.c
-index 08fee06fb5fc..f6664049f46d 100644
+index 08fee06fb5fcf..f6664049f46d0 100644
 --- a/drivers/hid/hid-multitouch.c
 +++ b/drivers/hid/hid-multitouch.c
 @@ -77,6 +77,7 @@ MODULE_LICENSE("GPL");
@@ -8340,7 +8340,7 @@ index 08fee06fb5fc..f6664049f46d 100644
  	unregister_pm_notifier(&td->pm_notifier);
  	del_timer_sync(&td->release_timer);
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -8368,7 +8368,7 @@ Patchset: surface-shutdown
  3 files changed, 40 insertions(+)
 
 diff --git a/drivers/pci/pci-driver.c b/drivers/pci/pci-driver.c
-index 35270172c833..529779994ef6 100644
+index 35270172c8331..529779994ef67 100644
 --- a/drivers/pci/pci-driver.c
 +++ b/drivers/pci/pci-driver.c
 @@ -505,6 +505,9 @@ static void pci_device_shutdown(struct device *dev)
@@ -8382,7 +8382,7 @@ index 35270172c833..529779994ef6 100644
  
  	if (drv && drv->shutdown)
 diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
-index ea629c78fa7c..b3d17cfc54a4 100644
+index ea629c78fa7c8..b3d17cfc54a44 100644
 --- a/drivers/pci/quirks.c
 +++ b/drivers/pci/quirks.c
 @@ -6325,3 +6325,39 @@ static void pci_mask_replay_timer_timeout(struct pci_dev *pdev)
@@ -8426,7 +8426,7 @@ index ea629c78fa7c..b3d17cfc54a4 100644
 +DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x466d, quirk_no_shutdown);  // Thunderbolt 4 NHI
 +DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x46a8, quirk_no_shutdown);  // GPU
 diff --git a/include/linux/pci.h b/include/linux/pci.h
-index 4e77c4230c0a..a4b0e6ef6cfe 100644
+index 4e77c4230c0a1..a4b0e6ef6cfe7 100644
 --- a/include/linux/pci.h
 +++ b/include/linux/pci.h
 @@ -467,6 +467,7 @@ struct pci_dev {
@@ -8438,7 +8438,7 @@ index 4e77c4230c0a..a4b0e6ef6cfe 100644
  	atomic_t	enable_cnt;	/* pci_enable_device has been called */
  
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -8455,7 +8455,7 @@ Patchset: surface-gpe
  1 file changed, 17 insertions(+)
 
 diff --git a/drivers/platform/surface/surface_gpe.c b/drivers/platform/surface/surface_gpe.c
-index 62fd4004db31..103fc4468262 100644
+index 62fd4004db31a..103fc4468262a 100644
 --- a/drivers/platform/surface/surface_gpe.c
 +++ b/drivers/platform/surface/surface_gpe.c
 @@ -41,6 +41,11 @@ static const struct property_entry lid_device_props_l4F[] = {
@@ -8490,7 +8490,7 @@ index 62fd4004db31..103fc4468262 100644
  		.ident = "Surface Book 1",
  		.matches = {
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -8553,7 +8553,7 @@ Patchset: cameras
  1 file changed, 3 insertions(+)
 
 diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 52917b177122..6cde03b88351 100644
+index 52917b1771227..6cde03b883516 100644
 --- a/drivers/acpi/scan.c
 +++ b/drivers/acpi/scan.c
 @@ -2214,6 +2214,9 @@ static acpi_status acpi_bus_check_add_2(acpi_handle handle, u32 lvl_not_used,
@@ -8567,7 +8567,7 @@ index 52917b177122..6cde03b88351 100644
  	 * Do not enumerate devices with enumeration_by_parent flag set as
  	 * they will be enumerated by their respective parents.
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -8596,7 +8596,7 @@ Patchset: cameras
  1 file changed, 30 insertions(+)
 
 diff --git a/drivers/iommu/intel/iommu.c b/drivers/iommu/intel/iommu.c
-index c010aebe6cc1..42b342184d56 100644
+index c010aebe6cc11..42b342184d567 100644
 --- a/drivers/iommu/intel/iommu.c
 +++ b/drivers/iommu/intel/iommu.c
 @@ -45,6 +45,13 @@
@@ -8678,7 +8678,7 @@ index c010aebe6cc1..42b342184d56 100644
  DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x9D3E, quirk_iommu_ipts);
  DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x34E4, quirk_iommu_ipts);
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -8698,7 +8698,7 @@ Patchset: cameras
  1 file changed, 7 insertions(+)
 
 diff --git a/drivers/platform/x86/intel/int3472/tps68470.c b/drivers/platform/x86/intel/int3472/tps68470.c
-index 1e107fd49f82..e3e1696e7f0e 100644
+index 1e107fd49f828..e3e1696e7f0ee 100644
 --- a/drivers/platform/x86/intel/int3472/tps68470.c
 +++ b/drivers/platform/x86/intel/int3472/tps68470.c
 @@ -46,6 +46,13 @@ static int tps68470_chip_init(struct device *dev, struct regmap *regmap)
@@ -8716,7 +8716,7 @@ index 1e107fd49f82..e3e1696e7f0e 100644
  
  	return 0;
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -8741,7 +8741,7 @@ Patchset: cameras
  1 file changed, 15 insertions(+)
 
 diff --git a/drivers/platform/x86/intel/int3472/discrete.c b/drivers/platform/x86/intel/int3472/discrete.c
-index 3de463c3d13b..0a012eeed30a 100644
+index 3de463c3d13b8..0a012eeed30a2 100644
 --- a/drivers/platform/x86/intel/int3472/discrete.c
 +++ b/drivers/platform/x86/intel/int3472/discrete.c
 @@ -80,12 +80,27 @@ static int skl_int3472_map_gpio_to_sensor(struct int3472_discrete_device *int347
@@ -8773,7 +8773,7 @@ index 3de463c3d13b..0a012eeed30a 100644
  					    agpio, func, polarity);
  	if (ret)
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -8791,7 +8791,7 @@ Patchset: cameras
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/media/i2c/ov7251.c b/drivers/media/i2c/ov7251.c
-index 30f61e04ecaf..9c1292ca8552 100644
+index 30f61e04ecaf5..9c1292ca85522 100644
 --- a/drivers/media/i2c/ov7251.c
 +++ b/drivers/media/i2c/ov7251.c
 @@ -1051,7 +1051,7 @@ static int ov7251_s_ctrl(struct v4l2_ctrl *ctrl)
@@ -8813,7 +8813,7 @@ index 30f61e04ecaf..9c1292ca8552 100644
  				     V4L2_CID_TEST_PATTERN,
  				     ARRAY_SIZE(ov7251_test_pattern_menu) - 1,
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -8834,7 +8834,7 @@ Patchset: cameras
  2 files changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index ee884a8221fb..4f6bafd900ee 100644
+index ee884a8221fbd..4f6bafd900eee 100644
 --- a/drivers/media/v4l2-core/v4l2-async.c
 +++ b/drivers/media/v4l2-core/v4l2-async.c
 @@ -799,6 +799,10 @@ int __v4l2_async_register_subdev(struct v4l2_subdev *sd, struct module *module)
@@ -8849,7 +8849,7 @@ index ee884a8221fb..4f6bafd900ee 100644
  	 * No reference taken. The reference is held by the device (struct
  	 * v4l2_subdev.dev), and async sub-device does not exist independently
 diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index f19c8adf2c61..923ed1b5ab8b 100644
+index f19c8adf2c61d..923ed1b5ab8b4 100644
 --- a/drivers/media/v4l2-core/v4l2-fwnode.c
 +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
 @@ -1219,10 +1219,6 @@ int v4l2_async_register_subdev_sensor(struct v4l2_subdev *sd)
@@ -8864,7 +8864,7 @@ index f19c8adf2c61..923ed1b5ab8b 100644
  	if (ret < 0)
  		goto out_cleanup;
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -8883,7 +8883,7 @@ Patchset: cameras
  1 file changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/platform/x86/intel/int3472/tps68470.c b/drivers/platform/x86/intel/int3472/tps68470.c
-index e3e1696e7f0e..423dc555093f 100644
+index e3e1696e7f0ee..423dc555093f7 100644
 --- a/drivers/platform/x86/intel/int3472/tps68470.c
 +++ b/drivers/platform/x86/intel/int3472/tps68470.c
 @@ -17,7 +17,7 @@
@@ -8906,7 +8906,7 @@ index e3e1696e7f0e..423dc555093f 100644
  		for (i = 0; i < board_data->n_gpiod_lookups; i++)
  			gpiod_add_lookup_table(board_data->tps68470_gpio_lookup_tables[i]);
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -8927,7 +8927,7 @@ Patchset: cameras
  1 file changed, 5 insertions(+)
 
 diff --git a/include/linux/mfd/tps68470.h b/include/linux/mfd/tps68470.h
-index 7807fa329db0..2d2abb25b944 100644
+index 7807fa329db00..2d2abb25b944f 100644
 --- a/include/linux/mfd/tps68470.h
 +++ b/include/linux/mfd/tps68470.h
 @@ -34,6 +34,7 @@
@@ -8948,7 +8948,7 @@ index 7807fa329db0..2d2abb25b944 100644
 +
  #endif /* __LINUX_MFD_TPS68470_H */
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -8974,7 +8974,7 @@ Patchset: cameras
  create mode 100644 drivers/leds/leds-tps68470.c
 
 diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
-index b784bb74a837..f8d8fcfacac2 100644
+index b784bb74a8378..f8d8fcfacac22 100644
 --- a/drivers/leds/Kconfig
 +++ b/drivers/leds/Kconfig
 @@ -941,6 +941,18 @@ config LEDS_TPS6105X
@@ -8997,7 +8997,7 @@ index b784bb74a837..f8d8fcfacac2 100644
  	tristate "LED support for SGI Octane machines"
  	depends on LEDS_CLASS
 diff --git a/drivers/leds/Makefile b/drivers/leds/Makefile
-index 18afbb5a23ee..a1d16c0af82d 100644
+index 18afbb5a23ee5..a1d16c0af82de 100644
 --- a/drivers/leds/Makefile
 +++ b/drivers/leds/Makefile
 @@ -88,6 +88,7 @@ obj-$(CONFIG_LEDS_TCA6507)		+= leds-tca6507.o
@@ -9010,7 +9010,7 @@ index 18afbb5a23ee..a1d16c0af82d 100644
  obj-$(CONFIG_LEDS_WM8350)		+= leds-wm8350.o
 diff --git a/drivers/leds/leds-tps68470.c b/drivers/leds/leds-tps68470.c
 new file mode 100644
-index 000000000000..35aeb5db89c8
+index 0000000000000..35aeb5db89c8f
 --- /dev/null
 +++ b/drivers/leds/leds-tps68470.c
 @@ -0,0 +1,185 @@
@@ -9200,7 +9200,7 @@ index 000000000000..35aeb5db89c8
 +MODULE_DESCRIPTION("LED driver for TPS68470 PMIC");
 +MODULE_LICENSE("GPL v2");
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -9219,7 +9219,7 @@ Patchset: cameras
  1 file changed, 3 insertions(+)
 
 diff --git a/drivers/media/i2c/dw9719.c b/drivers/media/i2c/dw9719.c
-index c626ed845928..0094cfda57ea 100644
+index c626ed845928c..0094cfda57ea8 100644
 --- a/drivers/media/i2c/dw9719.c
 +++ b/drivers/media/i2c/dw9719.c
 @@ -82,6 +82,9 @@ static int dw9719_power_up(struct dw9719_device *dw9719)
@@ -9233,7 +9233,7 @@ index c626ed845928..0094cfda57ea 100644
  	cci_write(dw9719->regmap, DW9719_CONTROL, 1, &ret);
  
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -9258,7 +9258,7 @@ Patchset: amd-gpio
  1 file changed, 17 insertions(+)
 
 diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 4efecac49863..88377bb0d137 100644
+index 4efecac49863e..88377bb0d1371 100644
 --- a/arch/x86/kernel/acpi/boot.c
 +++ b/arch/x86/kernel/acpi/boot.c
 @@ -22,6 +22,7 @@
@@ -9300,7 +9300,7 @@ index 4efecac49863..88377bb0d137 100644
  	mp_config_acpi_legacy_irqs();
  
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -9317,7 +9317,7 @@ Patchset: amd-gpio
  1 file changed, 8 insertions(+), 1 deletion(-)
 
 diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 88377bb0d137..c58f26918b17 100644
+index 88377bb0d1371..c58f26918b176 100644
 --- a/arch/x86/kernel/acpi/boot.c
 +++ b/arch/x86/kernel/acpi/boot.c
 @@ -1135,12 +1135,19 @@ static void __init mp_config_acpi_legacy_irqs(void)
@@ -9342,7 +9342,7 @@ index 88377bb0d137..c58f26918b17 100644
  };
  
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -9368,7 +9368,7 @@ Patchset: rtc
  1 file changed, 24 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/acpi/acpi_tad.c b/drivers/acpi/acpi_tad.c
-index b831cb8e53dc..78bd0f926505 100644
+index b831cb8e53dc3..78bd0f9265059 100644
 --- a/drivers/acpi/acpi_tad.c
 +++ b/drivers/acpi/acpi_tad.c
 @@ -433,6 +433,14 @@ static ssize_t caps_show(struct device *dev, struct device_attribute *attr,
@@ -9453,7 +9453,7 @@ index b831cb8e53dc..78bd0f926505 100644
  		ret = sysfs_create_group(&dev->kobj, &acpi_tad_dc_attr_group);
  		if (ret)
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -9462,7 +9462,7 @@ Date: Sat, 12 Oct 2024 19:04:14 +0200
 Subject: [BEGIN] ROG Ally fixes
 
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -9475,7 +9475,7 @@ Subject: add ROG Ally devices to nct6775
  1 file changed, 2 insertions(+)
 
 diff --git a/drivers/hwmon/nct6775-platform.c b/drivers/hwmon/nct6775-platform.c
-index 1218a3b449a8..ae8e837eb568 100644
+index 1218a3b449a80..ae8e837eb568c 100644
 --- a/drivers/hwmon/nct6775-platform.c
 +++ b/drivers/hwmon/nct6775-platform.c
 @@ -1362,6 +1362,8 @@ static const char * const asus_msi_boards[] = {
@@ -9488,7 +9488,7 @@ index 1218a3b449a8..ae8e837eb568 100644
  	"ROG CROSSHAIR X670E GENE",
  	"ROG CROSSHAIR X670E HERO",
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -9511,7 +9511,7 @@ Signed-off-by: Baojun Xu <baojun.xu@ti.com>
  2 files changed, 56 insertions(+), 5 deletions(-)
 
 diff --git a/include/sound/tas2781.h b/include/sound/tas2781.h
-index 8cd6da0480b7..621ae485d3cb 100644
+index 8cd6da0480b79..621ae485d3cbd 100644
 --- a/include/sound/tas2781.h
 +++ b/include/sound/tas2781.h
 @@ -107,6 +107,8 @@
@@ -9532,7 +9532,7 @@ index 8cd6da0480b7..621ae485d3cb 100644
  	struct mutex codec_lock;
  	struct regmap *regmap;
 diff --git a/sound/pci/hda/tas2781_hda_i2c.c b/sound/pci/hda/tas2781_hda_i2c.c
-index 370d847517f9..a4f2ac1ddd90 100644
+index 370d847517f9a..a4f2ac1ddd901 100644
 --- a/sound/pci/hda/tas2781_hda_i2c.c
 +++ b/sound/pci/hda/tas2781_hda_i2c.c
 @@ -110,10 +110,19 @@ static int tas2781_get_i2c_res(struct acpi_resource *ares, void *data)
@@ -9637,7 +9637,7 @@ index 370d847517f9..a4f2ac1ddd90 100644
  	if (ret) {
  		dev_err(tas_priv->dev, "dspfw load %s error\n",
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -9653,7 +9653,7 @@ for the platform (should NOOP though).
  1 file changed, 6 deletions(-)
 
 diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index a4b47319ad8e..331129d2f034 100644
+index a4b47319ad8ea..331129d2f0345 100644
 --- a/drivers/hid/hid-asus.c
 +++ b/drivers/hid/hid-asus.c
 @@ -1252,12 +1252,6 @@ static const struct hid_device_id asus_devices[] = {
@@ -9670,7 +9670,7 @@ index a4b47319ad8e..331129d2f034 100644
  	    USB_DEVICE_ID_ASUSTEK_ROG_CLAYMORE_II_KEYBOARD),
  	  QUIRK_ROG_CLAYMORE_II_KEYBOARD },
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -9685,7 +9685,7 @@ Patch is originally by Jonathan LoBue <jlobue10@gmail.com>.
  1 file changed, 37 insertions(+), 1 deletion(-)
 
 diff --git a/sound/pci/hda/cs35l41_hda_property.c b/sound/pci/hda/cs35l41_hda_property.c
-index 61d2314834e7..0b6ccd930ec8 100644
+index 61d2314834e7b..0b6ccd930ec88 100644
 --- a/sound/pci/hda/cs35l41_hda_property.c
 +++ b/sound/pci/hda/cs35l41_hda_property.c
 @@ -6,8 +6,10 @@
@@ -9750,7 +9750,7 @@ index 61d2314834e7..0b6ccd930ec8 100644
  	{ "CSC3551", "104318D3", generic_dsd_config },
  	{ "CSC3551", "10431A63", missing_speaker_id_gpio2 },
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -9759,7 +9759,7 @@ Date: Sat, 12 Oct 2024 19:29:58 +0200
 Subject: [BEGIN] OneXPlayer Handheld patches
 
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -9784,7 +9784,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 15 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index 83730d931824..5cb0da3e5d54 100644
+index 83730d9318240..5cb0da3e5d546 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
 @@ -205,7 +205,21 @@ static const struct dmi_system_id dmi_table[] = {
@@ -9811,7 +9811,7 @@ index 83730d931824..5cb0da3e5d54 100644
  		.driver_data = (void *)oxp_x1,
  	},
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -9843,7 +9843,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 35 insertions(+)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index 5cb0da3e5d54..6aed7b3c8674 100644
+index 5cb0da3e5d546..6aed7b3c86743 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
 @@ -188,6 +188,41 @@ static const struct dmi_system_id dmi_table[] = {
@@ -9889,7 +9889,7 @@ index 5cb0da3e5d54..6aed7b3c8674 100644
  		.matches = {
  			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -9907,7 +9907,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index 6aed7b3c8674..64046e30d480 100644
+index 6aed7b3c86743..64046e30d4806 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
 @@ -169,7 +169,7 @@ static const struct dmi_system_id dmi_table[] = {
@@ -9920,7 +9920,7 @@ index 6aed7b3c8674..64046e30d480 100644
  		},
  		.driver_data = (void *)oxp_mini_amd,
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -9939,7 +9939,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/Documentation/ABI/testing/sysfs-class-power b/Documentation/ABI/testing/sysfs-class-power
-index 45180b62d426..1f5a56aa5c70 100644
+index 45180b62d4268..1f5a56aa5c700 100644
 --- a/Documentation/ABI/testing/sysfs-class-power
 +++ b/Documentation/ABI/testing/sysfs-class-power
 @@ -404,12 +404,16 @@ Description:
@@ -9961,7 +9961,7 @@ index 45180b62d426..1f5a56aa5c70 100644
  What:		/sys/class/power_supply/<supply_name>/charge_term_current
  Date:		July 2014
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -9988,7 +9988,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 206 insertions(+)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index 64046e30d480..688b0cc5c6d6 100644
+index 64046e30d4806..688b0cc5c6d6c 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
 @@ -26,6 +26,7 @@
@@ -10233,7 +10233,7 @@ index 64046e30d480..688b0cc5c6d6 100644
  
  MODULE_DEVICE_TABLE(dmi, dmi_table);
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -10252,7 +10252,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index 688b0cc5c6d6..9aa327e8169a 100644
+index 688b0cc5c6d6c..9aa327e8169ad 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
 @@ -877,18 +877,18 @@ static const struct hwmon_channel_info * const oxp_platform_sensors[] = {
@@ -10279,7 +10279,7 @@ index 688b0cc5c6d6..9aa327e8169a 100644
  };
  
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -10308,7 +10308,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 84 insertions(+)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index 9aa327e8169a..ea75a2c231ff 100644
+index 9aa327e8169ad..ea75a2c231ff8 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
 @@ -101,6 +101,12 @@ static enum oxp_board board;
@@ -10419,7 +10419,7 @@ index 9aa327e8169a..ea75a2c231ff 100644
  };
  
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -10442,7 +10442,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 27 insertions(+), 23 deletions(-)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index ea75a2c231ff..54ee980462a0 100644
+index ea75a2c231ff8..54ee980462a0a 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
 @@ -755,6 +755,32 @@ static int oxp_pwm_disable(void)
@@ -10510,7 +10510,7 @@ index ea75a2c231ff..54ee980462a0 100644
  			break;
  		}
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -10532,7 +10532,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 87 insertions(+), 75 deletions(-)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index 54ee980462a0..627345da6d52 100644
+index 54ee980462a0a..627345da6d52e 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
 @@ -795,6 +795,91 @@ static umode_t oxp_ec_hwmon_is_visible(const void *drvdata,
@@ -10719,7 +10719,7 @@ index 54ee980462a0..627345da6d52 100644
  			break;
  		}
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -10737,7 +10737,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 29 insertions(+), 24 deletions(-)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index 627345da6d52..3f974973b714 100644
+index 627345da6d52e..3f974973b7142 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
 @@ -795,6 +795,34 @@ static umode_t oxp_ec_hwmon_is_visible(const void *drvdata,
@@ -10808,7 +10808,7 @@ index 627345da6d52..3f974973b714 100644
  			break;
  		}
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -10833,7 +10833,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 33 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index 3f974973b714..227429f6424c 100644
+index 3f974973b7142..227429f6424c5 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
 @@ -927,7 +927,27 @@ static int oxp_platform_read(struct device *dev, enum hwmon_sensor_types type,
@@ -10902,7 +10902,7 @@ index 3f974973b714..227429f6424c 100644
  
  	return PTR_ERR_OR_ZERO(hwdev);
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -10911,7 +10911,7 @@ Date: Tue, 22 Oct 2024 18:00:46 +0200
 Subject: [BEGIN] General Handheld Audio/Display Patches
 
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -10924,7 +10924,7 @@ Subject: drm: panel-orientation-quirks: Add Aya Neo 2S orientation quirk
  1 file changed, 6 insertions(+)
 
 diff --git a/drivers/gpu/drm/drm_panel_orientation_quirks.c b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-index 4a73821b81f6..f0f8a04e138d 100644
+index 4a73821b81f6f..f0f8a04e138d7 100644
 --- a/drivers/gpu/drm/drm_panel_orientation_quirks.c
 +++ b/drivers/gpu/drm/drm_panel_orientation_quirks.c
 @@ -190,6 +190,12 @@ static const struct dmi_system_id orientation_data[] = {
@@ -10941,7 +10941,7 @@ index 4a73821b81f6..f0f8a04e138d 100644
  		.matches = {
  		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "AYADEVICE"),
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -10954,7 +10954,7 @@ Subject: drm: panel-orientation-quirks: Add AYANEO FLIP DS quirk
  1 file changed, 6 insertions(+)
 
 diff --git a/drivers/gpu/drm/drm_panel_orientation_quirks.c b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-index f0f8a04e138d..2fb4cd3d0c65 100644
+index f0f8a04e138d7..2fb4cd3d0c658 100644
 --- a/drivers/gpu/drm/drm_panel_orientation_quirks.c
 +++ b/drivers/gpu/drm/drm_panel_orientation_quirks.c
 @@ -196,6 +196,12 @@ static const struct dmi_system_id orientation_data[] = {
@@ -10971,7 +10971,7 @@ index f0f8a04e138d..2fb4cd3d0c65 100644
  		.matches = {
  		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "AYADEVICE"),
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -10989,7 +10989,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 12 insertions(+)
 
 diff --git a/drivers/gpu/drm/drm_panel_orientation_quirks.c b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-index 2fb4cd3d0c65..3b795eff82f9 100644
+index 2fb4cd3d0c658..3b795eff82f9f 100644
 --- a/drivers/gpu/drm/drm_panel_orientation_quirks.c
 +++ b/drivers/gpu/drm/drm_panel_orientation_quirks.c
 @@ -455,6 +455,18 @@ static const struct dmi_system_id orientation_data[] = {
@@ -11012,7 +11012,7 @@ index 2fb4cd3d0c65..3b795eff82f9 100644
  		.matches = {
  		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "OrangePi"),
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -11030,7 +11030,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 6 insertions(+)
 
 diff --git a/drivers/gpu/drm/drm_panel_orientation_quirks.c b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-index 3b795eff82f9..f32ef44772d3 100644
+index 3b795eff82f9f..f32ef44772d3e 100644
 --- a/drivers/gpu/drm/drm_panel_orientation_quirks.c
 +++ b/drivers/gpu/drm/drm_panel_orientation_quirks.c
 @@ -467,6 +467,12 @@ static const struct dmi_system_id orientation_data[] = {
@@ -11047,7 +11047,7 @@ index 3b795eff82f9..f32ef44772d3 100644
  		.matches = {
  		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "OrangePi"),
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -11066,7 +11066,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 12 insertions(+)
 
 diff --git a/drivers/gpu/drm/drm_panel_orientation_quirks.c b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-index f32ef44772d3..b6b4ff27c8ac 100644
+index f32ef44772d3e..b6b4ff27c8ac6 100644
 --- a/drivers/gpu/drm/drm_panel_orientation_quirks.c
 +++ b/drivers/gpu/drm/drm_panel_orientation_quirks.c
 @@ -473,6 +473,18 @@ static const struct dmi_system_id orientation_data[] = {
@@ -11089,7 +11089,7 @@ index f32ef44772d3..b6b4ff27c8ac 100644
  		.matches = {
  		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "OrangePi"),
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -11108,7 +11108,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  2 files changed, 3 insertions(+)
 
 diff --git a/drivers/hid/hid-ids.h b/drivers/hid/hid-ids.h
-index 0f23be98c56e..d8058bbfa521 100644
+index 0f23be98c56e2..d8058bbfa5219 100644
 --- a/drivers/hid/hid-ids.h
 +++ b/drivers/hid/hid-ids.h
 @@ -997,6 +997,7 @@
@@ -11120,7 +11120,7 @@ index 0f23be98c56e..d8058bbfa521 100644
  #define USB_VENDOR_ID_NTI               0x0757
  #define USB_DEVICE_ID_USB_SUN           0x0a00
 diff --git a/drivers/hid/hid-input.c b/drivers/hid/hid-input.c
-index fda9dce3da99..e52fb045096a 100644
+index fda9dce3da998..e52fb045096a8 100644
 --- a/drivers/hid/hid-input.c
 +++ b/drivers/hid/hid-input.c
 @@ -390,6 +390,8 @@ static const struct hid_device_id hid_battery_quirks[] = {
@@ -11133,7 +11133,7 @@ index fda9dce3da99..e52fb045096a 100644
  };
  
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -11150,7 +11150,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 6 insertions(+)
 
 diff --git a/drivers/gpu/drm/drm_panel_orientation_quirks.c b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-index b6b4ff27c8ac..a44209be1dc2 100644
+index b6b4ff27c8ac6..a44209be1dc2b 100644
 --- a/drivers/gpu/drm/drm_panel_orientation_quirks.c
 +++ b/drivers/gpu/drm/drm_panel_orientation_quirks.c
 @@ -485,6 +485,12 @@ static const struct dmi_system_id orientation_data[] = {
@@ -11167,7 +11167,7 @@ index b6b4ff27c8ac..a44209be1dc2 100644
  		.matches = {
  		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "OrangePi"),
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -11232,7 +11232,7 @@ Co-developed-by: bouhaa <boukehaarsma23@gmail.com>
  create mode 100644 sound/soc/codecs/aw87xxx/aw87xxx_pid_9b_reg.h
 
 diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
-index 7092842480ef..5cd2eb8f891a 100644
+index 7092842480ef1..5cd2eb8f891af 100644
 --- a/sound/soc/codecs/Kconfig
 +++ b/sound/soc/codecs/Kconfig
 @@ -2596,4 +2596,6 @@ config SND_SOC_LPASS_TX_MACRO
@@ -11243,7 +11243,7 @@ index 7092842480ef..5cd2eb8f891a 100644
 +
  endmenu
 diff --git a/sound/soc/codecs/Makefile b/sound/soc/codecs/Makefile
-index 54cbc3feae32..1a3e4fc09013 100644
+index 54cbc3feae327..1a3e4fc09013c 100644
 --- a/sound/soc/codecs/Makefile
 +++ b/sound/soc/codecs/Makefile
 @@ -808,6 +808,7 @@ obj-$(CONFIG_SND_SOC_WSA884X)	+= snd-soc-wsa884x.o
@@ -11256,7 +11256,7 @@ index 54cbc3feae32..1a3e4fc09013 100644
  obj-$(CONFIG_SND_SOC_SIMPLE_AMPLIFIER)	+= snd-soc-simple-amplifier.o
 diff --git a/sound/soc/codecs/aw87xxx/Kconfig b/sound/soc/codecs/aw87xxx/Kconfig
 new file mode 100644
-index 000000000000..bd0f208e2cfe
+index 0000000000000..bd0f208e2cfed
 --- /dev/null
 +++ b/sound/soc/codecs/aw87xxx/Kconfig
 @@ -0,0 +1,5 @@
@@ -11267,7 +11267,7 @@ index 000000000000..bd0f208e2cfe
 +	  This option enables support for AW87XXX Smart K PA.
 diff --git a/sound/soc/codecs/aw87xxx/Makefile b/sound/soc/codecs/aw87xxx/Makefile
 new file mode 100644
-index 000000000000..d32f319a5b01
+index 0000000000000..d32f319a5b014
 --- /dev/null
 +++ b/sound/soc/codecs/aw87xxx/Makefile
 @@ -0,0 +1,4 @@
@@ -11277,7 +11277,7 @@ index 000000000000..d32f319a5b01
 +
 diff --git a/sound/soc/codecs/aw87xxx/aw87xxx.c b/sound/soc/codecs/aw87xxx/aw87xxx.c
 new file mode 100644
-index 000000000000..710f9b6109de
+index 0000000000000..710f9b6109de8
 --- /dev/null
 +++ b/sound/soc/codecs/aw87xxx/aw87xxx.c
 @@ -0,0 +1,1545 @@
@@ -12828,7 +12828,7 @@ index 000000000000..710f9b6109de
 +MODULE_LICENSE("GPL v2");
 diff --git a/sound/soc/codecs/aw87xxx/aw87xxx.h b/sound/soc/codecs/aw87xxx/aw87xxx.h
 new file mode 100644
-index 000000000000..4a613e4a8f12
+index 0000000000000..4a613e4a8f123
 --- /dev/null
 +++ b/sound/soc/codecs/aw87xxx/aw87xxx.h
 @@ -0,0 +1,126 @@
@@ -12960,7 +12960,7 @@ index 000000000000..4a613e4a8f12
 +#endif
 diff --git a/sound/soc/codecs/aw87xxx/aw87xxx_acf_bin.c b/sound/soc/codecs/aw87xxx/aw87xxx_acf_bin.c
 new file mode 100644
-index 000000000000..00c7aedb7c11
+index 0000000000000..00c7aedb7c113
 --- /dev/null
 +++ b/sound/soc/codecs/aw87xxx/aw87xxx_acf_bin.c
 @@ -0,0 +1,1558 @@
@@ -14524,7 +14524,7 @@ index 000000000000..00c7aedb7c11
 +
 diff --git a/sound/soc/codecs/aw87xxx/aw87xxx_acf_bin.h b/sound/soc/codecs/aw87xxx/aw87xxx_acf_bin.h
 new file mode 100644
-index 000000000000..ebe0c77f5674
+index 0000000000000..ebe0c77f5674b
 --- /dev/null
 +++ b/sound/soc/codecs/aw87xxx/aw87xxx_acf_bin.h
 @@ -0,0 +1,191 @@
@@ -14721,7 +14721,7 @@ index 000000000000..ebe0c77f5674
 +#endif
 diff --git a/sound/soc/codecs/aw87xxx/aw87xxx_bin_parse.c b/sound/soc/codecs/aw87xxx/aw87xxx_bin_parse.c
 new file mode 100644
-index 000000000000..7eab9efde147
+index 0000000000000..7eab9efde1476
 --- /dev/null
 +++ b/sound/soc/codecs/aw87xxx/aw87xxx_bin_parse.c
 @@ -0,0 +1,515 @@
@@ -15242,7 +15242,7 @@ index 000000000000..7eab9efde147
 +}
 diff --git a/sound/soc/codecs/aw87xxx/aw87xxx_bin_parse.h b/sound/soc/codecs/aw87xxx/aw87xxx_bin_parse.h
 new file mode 100644
-index 000000000000..a99c2409e613
+index 0000000000000..a99c2409e6133
 --- /dev/null
 +++ b/sound/soc/codecs/aw87xxx/aw87xxx_bin_parse.h
 @@ -0,0 +1,73 @@
@@ -15321,7 +15321,7 @@ index 000000000000..a99c2409e613
 +#endif
 diff --git a/sound/soc/codecs/aw87xxx/aw87xxx_device.c b/sound/soc/codecs/aw87xxx/aw87xxx_device.c
 new file mode 100644
-index 000000000000..a4c9ad7d96dc
+index 0000000000000..a4c9ad7d96dca
 --- /dev/null
 +++ b/sound/soc/codecs/aw87xxx/aw87xxx_device.c
 @@ -0,0 +1,977 @@
@@ -16304,7 +16304,7 @@ index 000000000000..a4c9ad7d96dc
 +
 diff --git a/sound/soc/codecs/aw87xxx/aw87xxx_device.h b/sound/soc/codecs/aw87xxx/aw87xxx_device.h
 new file mode 100644
-index 000000000000..7c85f80a958e
+index 0000000000000..7c85f80a958e6
 --- /dev/null
 +++ b/sound/soc/codecs/aw87xxx/aw87xxx_device.h
 @@ -0,0 +1,149 @@
@@ -16459,7 +16459,7 @@ index 000000000000..7c85f80a958e
 +#endif
 diff --git a/sound/soc/codecs/aw87xxx/aw87xxx_dsp.c b/sound/soc/codecs/aw87xxx/aw87xxx_dsp.c
 new file mode 100644
-index 000000000000..93b02e30122d
+index 0000000000000..93b02e30122d8
 --- /dev/null
 +++ b/sound/soc/codecs/aw87xxx/aw87xxx_dsp.c
 @@ -0,0 +1,355 @@
@@ -16820,7 +16820,7 @@ index 000000000000..93b02e30122d
 +
 diff --git a/sound/soc/codecs/aw87xxx/aw87xxx_dsp.h b/sound/soc/codecs/aw87xxx/aw87xxx_dsp.h
 new file mode 100644
-index 000000000000..7acc4dc0dfd9
+index 0000000000000..7acc4dc0dfd9b
 --- /dev/null
 +++ b/sound/soc/codecs/aw87xxx/aw87xxx_dsp.h
 @@ -0,0 +1,65 @@
@@ -16891,7 +16891,7 @@ index 000000000000..7acc4dc0dfd9
 +#endif
 diff --git a/sound/soc/codecs/aw87xxx/aw87xxx_log.h b/sound/soc/codecs/aw87xxx/aw87xxx_log.h
 new file mode 100644
-index 000000000000..b3bde38a23c6
+index 0000000000000..b3bde38a23c67
 --- /dev/null
 +++ b/sound/soc/codecs/aw87xxx/aw87xxx_log.h
 @@ -0,0 +1,33 @@
@@ -16930,7 +16930,7 @@ index 000000000000..b3bde38a23c6
 +#endif
 diff --git a/sound/soc/codecs/aw87xxx/aw87xxx_monitor.c b/sound/soc/codecs/aw87xxx/aw87xxx_monitor.c
 new file mode 100644
-index 000000000000..f580506b2786
+index 0000000000000..f580506b27864
 --- /dev/null
 +++ b/sound/soc/codecs/aw87xxx/aw87xxx_monitor.c
 @@ -0,0 +1,1208 @@
@@ -18144,7 +18144,7 @@ index 000000000000..f580506b2786
 +
 diff --git a/sound/soc/codecs/aw87xxx/aw87xxx_monitor.h b/sound/soc/codecs/aw87xxx/aw87xxx_monitor.h
 new file mode 100644
-index 000000000000..daf9f2bfa09f
+index 0000000000000..daf9f2bfa09f5
 --- /dev/null
 +++ b/sound/soc/codecs/aw87xxx/aw87xxx_monitor.h
 @@ -0,0 +1,96 @@
@@ -18246,7 +18246,7 @@ index 000000000000..daf9f2bfa09f
 +#endif
 diff --git a/sound/soc/codecs/aw87xxx/aw87xxx_pid_18_reg.h b/sound/soc/codecs/aw87xxx/aw87xxx_pid_18_reg.h
 new file mode 100644
-index 000000000000..74d6548db91e
+index 0000000000000..74d6548db91e3
 --- /dev/null
 +++ b/sound/soc/codecs/aw87xxx/aw87xxx_pid_18_reg.h
 @@ -0,0 +1,2315 @@
@@ -20568,7 +20568,7 @@ index 000000000000..74d6548db91e
 \ No newline at end of file
 diff --git a/sound/soc/codecs/aw87xxx/aw87xxx_pid_39_reg.h b/sound/soc/codecs/aw87xxx/aw87xxx_pid_39_reg.h
 new file mode 100644
-index 000000000000..0dfd9751c39e
+index 0000000000000..0dfd9751c39e5
 --- /dev/null
 +++ b/sound/soc/codecs/aw87xxx/aw87xxx_pid_39_reg.h
 @@ -0,0 +1,67 @@
@@ -20641,7 +20641,7 @@ index 000000000000..0dfd9751c39e
 +#endif
 diff --git a/sound/soc/codecs/aw87xxx/aw87xxx_pid_59_3x9_reg.h b/sound/soc/codecs/aw87xxx/aw87xxx_pid_59_3x9_reg.h
 new file mode 100644
-index 000000000000..67f73477b892
+index 0000000000000..67f73477b892a
 --- /dev/null
 +++ b/sound/soc/codecs/aw87xxx/aw87xxx_pid_59_3x9_reg.h
 @@ -0,0 +1,93 @@
@@ -20740,7 +20740,7 @@ index 000000000000..67f73477b892
 +#endif
 diff --git a/sound/soc/codecs/aw87xxx/aw87xxx_pid_59_5x9_reg.h b/sound/soc/codecs/aw87xxx/aw87xxx_pid_59_5x9_reg.h
 new file mode 100644
-index 000000000000..6a0cae4c49ac
+index 0000000000000..6a0cae4c49acc
 --- /dev/null
 +++ b/sound/soc/codecs/aw87xxx/aw87xxx_pid_59_5x9_reg.h
 @@ -0,0 +1,94 @@
@@ -20840,7 +20840,7 @@ index 000000000000..6a0cae4c49ac
 +#endif
 diff --git a/sound/soc/codecs/aw87xxx/aw87xxx_pid_5a_reg.h b/sound/soc/codecs/aw87xxx/aw87xxx_pid_5a_reg.h
 new file mode 100644
-index 000000000000..020bf5496d01
+index 0000000000000..020bf5496d013
 --- /dev/null
 +++ b/sound/soc/codecs/aw87xxx/aw87xxx_pid_5a_reg.h
 @@ -0,0 +1,4124 @@
@@ -24971,7 +24971,7 @@ index 000000000000..020bf5496d01
 \ No newline at end of file
 diff --git a/sound/soc/codecs/aw87xxx/aw87xxx_pid_60_reg.h b/sound/soc/codecs/aw87xxx/aw87xxx_pid_60_reg.h
 new file mode 100644
-index 000000000000..ba47dd1ff546
+index 0000000000000..ba47dd1ff546f
 --- /dev/null
 +++ b/sound/soc/codecs/aw87xxx/aw87xxx_pid_60_reg.h
 @@ -0,0 +1,5246 @@
@@ -30224,7 +30224,7 @@ index 000000000000..ba47dd1ff546
 \ No newline at end of file
 diff --git a/sound/soc/codecs/aw87xxx/aw87xxx_pid_76_reg.h b/sound/soc/codecs/aw87xxx/aw87xxx_pid_76_reg.h
 new file mode 100644
-index 000000000000..13280cdb5b2e
+index 0000000000000..13280cdb5b2ef
 --- /dev/null
 +++ b/sound/soc/codecs/aw87xxx/aw87xxx_pid_76_reg.h
 @@ -0,0 +1,1205 @@
@@ -31436,7 +31436,7 @@ index 000000000000..13280cdb5b2e
 \ No newline at end of file
 diff --git a/sound/soc/codecs/aw87xxx/aw87xxx_pid_9b_reg.h b/sound/soc/codecs/aw87xxx/aw87xxx_pid_9b_reg.h
 new file mode 100644
-index 000000000000..27baeb96ce7c
+index 0000000000000..27baeb96ce7ca
 --- /dev/null
 +++ b/sound/soc/codecs/aw87xxx/aw87xxx_pid_9b_reg.h
 @@ -0,0 +1,81 @@
@@ -31522,7 +31522,7 @@ index 000000000000..27baeb96ce7c
 +
 +#endif
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -31535,7 +31535,7 @@ Subject: Codec: aw87xxx: add dmi match for handheld devices
  1 file changed, 49 insertions(+), 2 deletions(-)
 
 diff --git a/sound/soc/codecs/aw87xxx/aw87xxx.c b/sound/soc/codecs/aw87xxx/aw87xxx.c
-index 710f9b6109de..2fa221aa9c9f 100644
+index 710f9b6109de8..2fa221aa9c9fd 100644
 --- a/sound/soc/codecs/aw87xxx/aw87xxx.c
 +++ b/sound/soc/codecs/aw87xxx/aw87xxx.c
 @@ -33,6 +33,7 @@
@@ -31611,7 +31611,7 @@ index 710f9b6109de..2fa221aa9c9f 100644
  
  	INIT_DELAYED_WORK(&aw87xxx->fw_load_work, aw87xxx_fw_load_work_routine);
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -31625,7 +31625,7 @@ Co-developed-by: linh1987
  1 file changed, 10 insertions(+)
 
 diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
-index 3ed82f98e2de..0c322cfc8167 100644
+index 3ed82f98e2de9..0c322cfc81677 100644
 --- a/sound/pci/hda/patch_realtek.c
 +++ b/sound/pci/hda/patch_realtek.c
 @@ -7535,6 +7535,7 @@ enum {
@@ -31667,7 +31667,7 @@ index 3ed82f98e2de..0c322cfc8167 100644
  	{.id = ALC283_FIXUP_INT_MIC, .name = "alc283-int-mic"},
  	{.id = ALC290_FIXUP_MONO_SPEAKERS_HSJACK, .name = "mono-speakers"},
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -31682,7 +31682,7 @@ Co-developed-by: Bouke Sybren Haarsma <boukehaarsma23@gmail.com>
  1 file changed, 50 insertions(+), 1 deletion(-)
 
 diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
-index 0c322cfc8167..fec38789091c 100644
+index 0c322cfc81677..fec38789091c5 100644
 --- a/sound/pci/hda/patch_realtek.c
 +++ b/sound/pci/hda/patch_realtek.c
 @@ -6717,6 +6717,20 @@ static void alc294_gx502_toggle_output(struct hda_codec *codec,
@@ -31773,7 +31773,7 @@ index 0c322cfc8167..fec38789091c 100644
  	SND_PCI_QUIRK(0x8086, 0x2080, "Intel NUC 8 Rugged", ALC256_FIXUP_INTEL_NUC8_RUGGED),
  	SND_PCI_QUIRK(0x8086, 0x2081, "Intel NUC 10", ALC256_FIXUP_INTEL_NUC10),
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -31793,7 +31793,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 2 insertions(+)
 
 diff --git a/drivers/input/joystick/xpad.c b/drivers/input/joystick/xpad.c
-index 22ea58bf76cb..a86efce37dbf 100644
+index 22ea58bf76cb5..a86efce37dbfa 100644
 --- a/drivers/input/joystick/xpad.c
 +++ b/drivers/input/joystick/xpad.c
 @@ -341,6 +341,7 @@ static const struct xpad_device {
@@ -31813,7 +31813,7 @@ index 22ea58bf76cb..a86efce37dbf 100644
  	XPAD_XBOXONE_VENDOR(0x20d6),		/* PowerA controllers */
  	XPAD_XBOX360_VENDOR(0x2345),		/* Machenike Controllers */
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -31835,7 +31835,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 2 insertions(+)
 
 diff --git a/drivers/input/joystick/xpad.c b/drivers/input/joystick/xpad.c
-index a86efce37dbf..94ce40792f18 100644
+index a86efce37dbfa..94ce40792f183 100644
 --- a/drivers/input/joystick/xpad.c
 +++ b/drivers/input/joystick/xpad.c
 @@ -373,6 +373,7 @@ static const struct xpad_device {
@@ -31855,7 +31855,7 @@ index a86efce37dbf..94ce40792f18 100644
  	XPAD_XBOX360_VENDOR(0x2dc8),            /* 8BitDo Pro 2 Wired Controller */
  	XPAD_XBOXONE_VENDOR(0x2dc8),		/* 8BitDo Pro 2 Wired Controller for Xbox */
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -31871,7 +31871,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 9 insertions(+)
 
 diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index 78ecd56123a3..be3bd1bb29cd 100644
+index 78ecd56123a3b..be3bd1bb29cdc 100644
 --- a/drivers/gpio/gpiolib-acpi.c
 +++ b/drivers/gpio/gpiolib-acpi.c
 @@ -1691,6 +1691,15 @@ static const struct dmi_system_id gpiolib_acpi_quirks[] __initconst = {
@@ -31891,7 +31891,7 @@ index 78ecd56123a3..be3bd1bb29cd 100644
  };
  
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -31900,7 +31900,7 @@ Date: Sat, 12 Oct 2024 19:33:24 +0200
 Subject: [BEGIN] Steam Deck fixes
 
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -31923,7 +31923,7 @@ Signed-off-by: Jan200101 <sentrycraft123@gmail.com>
  create mode 100644 drivers/mfd/steamdeck.c
 
 diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index f9325bcce1b9..8e7c9b64b077 100644
+index f9325bcce1b94..8e7c9b64b0774 100644
 --- a/drivers/mfd/Kconfig
 +++ b/drivers/mfd/Kconfig
 @@ -2402,5 +2402,16 @@ config MFD_RSMU_SPI
@@ -31944,7 +31944,7 @@ index f9325bcce1b9..8e7c9b64b077 100644
  endmenu
  endif
 diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
-index 2a9f91e81af8..8950b482f267 100644
+index 2a9f91e81af83..8950b482f2674 100644
 --- a/drivers/mfd/Makefile
 +++ b/drivers/mfd/Makefile
 @@ -289,3 +289,5 @@ obj-$(CONFIG_MFD_ATC260X_I2C)	+= atc260x-i2c.o
@@ -31955,7 +31955,7 @@ index 2a9f91e81af8..8950b482f267 100644
 +obj-$(CONFIG_MFD_STEAMDECK)	+= steamdeck.o
 diff --git a/drivers/mfd/steamdeck.c b/drivers/mfd/steamdeck.c
 new file mode 100644
-index 000000000000..0e504b3c2796
+index 0000000000000..0e504b3c2796e
 --- /dev/null
 +++ b/drivers/mfd/steamdeck.c
 @@ -0,0 +1,127 @@
@@ -32087,7 +32087,7 @@ index 000000000000..0e504b3c2796
 +MODULE_DESCRIPTION("Steam Deck EC MFD core driver");
 +MODULE_LICENSE("GPL");
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -32108,7 +32108,7 @@ Signed-off-by: Jan200101 <sentrycraft123@gmail.com>
  create mode 100644 drivers/hwmon/steamdeck-hwmon.c
 
 diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index 08a3c863f80a..2e9b739d9ad6 100644
+index 08a3c863f80a2..2e9b739d9ad6b 100644
 --- a/drivers/hwmon/Kconfig
 +++ b/drivers/hwmon/Kconfig
 @@ -2053,6 +2053,17 @@ config SENSORS_SCH5636
@@ -32130,7 +32130,7 @@ index 08a3c863f80a..2e9b739d9ad6 100644
  	tristate "ST Microelectronics STTS751"
  	depends on I2C
 diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-index 9554d2fdcf7b..4de7d5cedbb8 100644
+index 9554d2fdcf7bb..4de7d5cedbb8b 100644
 --- a/drivers/hwmon/Makefile
 +++ b/drivers/hwmon/Makefile
 @@ -208,6 +208,7 @@ obj-$(CONFIG_SENSORS_SMSC47M1)	+= smsc47m1.o
@@ -32143,7 +32143,7 @@ index 9554d2fdcf7b..4de7d5cedbb8 100644
  obj-$(CONFIG_SENSORS_SURFACE_TEMP)+= surface_temp.o
 diff --git a/drivers/hwmon/steamdeck-hwmon.c b/drivers/hwmon/steamdeck-hwmon.c
 new file mode 100644
-index 000000000000..fab9e9460bd4
+index 0000000000000..fab9e9460bd40
 --- /dev/null
 +++ b/drivers/hwmon/steamdeck-hwmon.c
 @@ -0,0 +1,224 @@
@@ -32372,7 +32372,7 @@ index 000000000000..fab9e9460bd4
 +MODULE_DESCRIPTION("Steam Deck EC sensors driver");
 +MODULE_LICENSE("GPL");
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -32391,7 +32391,7 @@ Signed-off-by: Jan200101 <sentrycraft123@gmail.com>
  create mode 100644 drivers/leds/leds-steamdeck.c
 
 diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
-index f8d8fcfacac2..ab03e6320be0 100644
+index f8d8fcfacac22..ab03e6320be03 100644
 --- a/drivers/leds/Kconfig
 +++ b/drivers/leds/Kconfig
 @@ -971,6 +971,13 @@ config LEDS_ACER_A500
@@ -32409,7 +32409,7 @@ index f8d8fcfacac2..ab03e6320be0 100644
  
  comment "Flash and Torch LED drivers"
 diff --git a/drivers/leds/Makefile b/drivers/leds/Makefile
-index a1d16c0af82d..7d037c477ecb 100644
+index a1d16c0af82de..7d037c477ecb7 100644
 --- a/drivers/leds/Makefile
 +++ b/drivers/leds/Makefile
 @@ -82,6 +82,7 @@ obj-$(CONFIG_LEDS_PWM)			+= leds-pwm.o
@@ -32422,7 +32422,7 @@ index a1d16c0af82d..7d037c477ecb 100644
  obj-$(CONFIG_LEDS_TCA6507)		+= leds-tca6507.o
 diff --git a/drivers/leds/leds-steamdeck.c b/drivers/leds/leds-steamdeck.c
 new file mode 100644
-index 000000000000..686500b8de73
+index 0000000000000..686500b8de736
 --- /dev/null
 +++ b/drivers/leds/leds-steamdeck.c
 @@ -0,0 +1,74 @@
@@ -32501,7 +32501,7 @@ index 000000000000..686500b8de73
 +MODULE_DESCRIPTION("Steam Deck LEDs driver");
 +MODULE_LICENSE("GPL");
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -32520,7 +32520,7 @@ Signed-off-by: Jan200101 <sentrycraft123@gmail.com>
  create mode 100644 drivers/extcon/extcon-steamdeck.c
 
 diff --git a/drivers/extcon/Kconfig b/drivers/extcon/Kconfig
-index a6f6d467aacf..828fac76ebb0 100644
+index a6f6d467aacff..828fac76ebb0a 100644
 --- a/drivers/extcon/Kconfig
 +++ b/drivers/extcon/Kconfig
 @@ -214,4 +214,12 @@ config EXTCON_RTK_TYPE_C
@@ -32537,7 +32537,7 @@ index a6f6d467aacf..828fac76ebb0 100644
 +
  endif
 diff --git a/drivers/extcon/Makefile b/drivers/extcon/Makefile
-index 0d6d23faf748..6eb613e0bcba 100644
+index 0d6d23faf7486..6eb613e0bcbae 100644
 --- a/drivers/extcon/Makefile
 +++ b/drivers/extcon/Makefile
 @@ -27,3 +27,4 @@ obj-$(CONFIG_EXTCON_USB_GPIO)	+= extcon-usb-gpio.o
@@ -32547,7 +32547,7 @@ index 0d6d23faf748..6eb613e0bcba 100644
 +obj-$(CONFIG_EXTCON_STEAMDECK)  += extcon-steamdeck.o
 diff --git a/drivers/extcon/extcon-steamdeck.c b/drivers/extcon/extcon-steamdeck.c
 new file mode 100644
-index 000000000000..74f190adc8ea
+index 0000000000000..74f190adc8eaa
 --- /dev/null
 +++ b/drivers/extcon/extcon-steamdeck.c
 @@ -0,0 +1,180 @@
@@ -32732,7 +32732,7 @@ index 000000000000..74f190adc8ea
 +MODULE_DESCRIPTION("Steam Deck extcon driver");
 +MODULE_LICENSE("GPL");
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -32751,7 +32751,7 @@ Signed-off-by: Jan200101 <sentrycraft123@gmail.com>
  1 file changed, 71 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/hwmon/steamdeck-hwmon.c b/drivers/hwmon/steamdeck-hwmon.c
-index fab9e9460bd4..9d0a5471b181 100644
+index fab9e9460bd40..9d0a5471b1811 100644
 --- a/drivers/hwmon/steamdeck-hwmon.c
 +++ b/drivers/hwmon/steamdeck-hwmon.c
 @@ -180,6 +180,76 @@ static const struct hwmon_chip_info steamdeck_hwmon_chip_info = {
@@ -32841,7 +32841,7 @@ index fab9e9460bd4..9d0a5471b181 100644
  		dev_err(dev, "Failed to register HWMON device");
  		return PTR_ERR(hwmon);
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -32863,7 +32863,7 @@ Signed-off-by: Jan200101 <sentrycraft123@gmail.com>
  2 files changed, 69 insertions(+)
 
 diff --git a/drivers/leds/leds-steamdeck.c b/drivers/leds/leds-steamdeck.c
-index 686500b8de73..ada9fffc0a42 100644
+index 686500b8de736..ada9fffc0a420 100644
 --- a/drivers/leds/leds-steamdeck.c
 +++ b/drivers/leds/leds-steamdeck.c
 @@ -16,6 +16,54 @@ struct steamdeck_led {
@@ -32930,7 +32930,7 @@ index 686500b8de73..ada9fffc0a42 100644
  	ret = devm_led_classdev_register(dev, &sd->cdev);
  	if (ret) {
 diff --git a/drivers/mfd/steamdeck.c b/drivers/mfd/steamdeck.c
-index 0e504b3c2796..a60fa7db9141 100644
+index 0e504b3c2796e..a60fa7db91415 100644
 --- a/drivers/mfd/steamdeck.c
 +++ b/drivers/mfd/steamdeck.c
 @@ -41,9 +41,29 @@ struct steamdeck {
@@ -32964,7 +32964,7 @@ index 0e504b3c2796..a60fa7db9141 100644
  };
  
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -32973,7 +32973,7 @@ Date: Sat, 12 Oct 2024 19:38:52 +0200
 Subject: [BEGIN] Steam Deck OLED fixes
 
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -32991,7 +32991,7 @@ Subject: Steam Deck OLED WIFI fixes
  6 files changed, 124 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/net/wireless/ath/ath11k/hw.c b/drivers/net/wireless/ath/ath11k/hw.c
-index caa6dc12a790..516181319f9c 100644
+index caa6dc12a790b..516181319f9cb 100644
 --- a/drivers/net/wireless/ath/ath11k/hw.c
 +++ b/drivers/net/wireless/ath/ath11k/hw.c
 @@ -100,6 +100,7 @@ static void ath11k_init_wmi_config_qca6390(struct ath11k_base *ab,
@@ -33003,7 +33003,7 @@ index caa6dc12a790..516181319f9c 100644
  
  static void ath11k_hw_ipq8074_reo_setup(struct ath11k_base *ab)
 diff --git a/drivers/net/wireless/ath/ath11k/hw.h b/drivers/net/wireless/ath/ath11k/hw.h
-index 300322535766..8f82171a73c2 100644
+index 300322535766e..8f82171a73c2f 100644
 --- a/drivers/net/wireless/ath/ath11k/hw.h
 +++ b/drivers/net/wireless/ath/ath11k/hw.h
 @@ -206,6 +206,7 @@ struct ath11k_hw_params {
@@ -33015,7 +33015,7 @@ index 300322535766..8f82171a73c2 100644
  	const struct cfg80211_sar_capa *bios_sar_capa;
  	bool m3_fw_support;
 diff --git a/drivers/net/wireless/ath/ath11k/mac.c b/drivers/net/wireless/ath/ath11k/mac.c
-index f8068d2e848c..6c343a8914c8 100644
+index f8068d2e848c3..6c343a8914c85 100644
 --- a/drivers/net/wireless/ath/ath11k/mac.c
 +++ b/drivers/net/wireless/ath/ath11k/mac.c
 @@ -2551,7 +2551,7 @@ static void ath11k_peer_assoc_h_he(struct ath11k *ar,
@@ -33036,7 +33036,7 @@ index f8068d2e848c..6c343a8914c8 100644
  	if (changed & IEEE80211_RC_BW_CHANGED) {
  		/* Get the peer phymode */
 diff --git a/drivers/net/wireless/ath/ath11k/pci.c b/drivers/net/wireless/ath/ath11k/pci.c
-index be9d2c69cc41..e5a3389941c8 100644
+index be9d2c69cc413..e5a3389941c8b 100644
 --- a/drivers/net/wireless/ath/ath11k/pci.c
 +++ b/drivers/net/wireless/ath/ath11k/pci.c
 @@ -111,7 +111,12 @@ static u32 ath11k_pci_window_read32(struct ath11k_base *ab, u32 offset)
@@ -33054,7 +33054,7 @@ index be9d2c69cc41..e5a3389941c8 100644
  	if (window_start == ATH11K_PCI_WINDOW_START) {
  		spin_lock_bh(&ab_pci->window_lock);
 diff --git a/drivers/net/wireless/ath/ath11k/wmi.c b/drivers/net/wireless/ath/ath11k/wmi.c
-index 87abfa547529..ed327d3943eb 100644
+index 87abfa5475295..ed327d3943eb2 100644
 --- a/drivers/net/wireless/ath/ath11k/wmi.c
 +++ b/drivers/net/wireless/ath/ath11k/wmi.c
 @@ -4177,6 +4177,7 @@ ath11k_wmi_copy_resource_config(struct wmi_resource_config *wmi_cfg,
@@ -33096,7 +33096,7 @@ index 87abfa547529..ed327d3943eb 100644
 +	return ath11k_wmi_cmd_send(wmi, skb, WMI_COEX_CONFIG_CMDID);
 +}
 diff --git a/drivers/net/wireless/ath/ath11k/wmi.h b/drivers/net/wireless/ath/ath11k/wmi.h
-index 8982b909c821..5810959a72fb 100644
+index 8982b909c821e..5810959a72fbe 100644
 --- a/drivers/net/wireless/ath/ath11k/wmi.h
 +++ b/drivers/net/wireless/ath/ath11k/wmi.h
 @@ -2348,6 +2348,7 @@ struct wmi_init_cmd {
@@ -33215,7 +33215,7 @@ index 8982b909c821..5810959a72fb 100644
  			      struct wmi_pno_scan_req  *pno_scan);
  int ath11k_wmi_wow_del_pattern(struct ath11k *ar, u32 vdev_id, u32 pattern_id);
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -33234,7 +33234,7 @@ Theoretically, this is fixed by marking the SW_RESET register volatile. However,
  3 files changed, 128 insertions(+), 3 deletions(-)
 
 diff --git a/sound/soc/amd/acp/acp-mach-common.c b/sound/soc/amd/acp/acp-mach-common.c
-index e9ff4815c12c..b080c6223b7a 100644
+index e9ff4815c12c8..b080c6223b7a2 100644
 --- a/sound/soc/amd/acp/acp-mach-common.c
 +++ b/sound/soc/amd/acp/acp-mach-common.c
 @@ -26,6 +26,7 @@
@@ -33384,7 +33384,7 @@ index e9ff4815c12c..b080c6223b7a 100644
  	}
  
 diff --git a/sound/soc/amd/acp/acp-mach.h b/sound/soc/amd/acp/acp-mach.h
-index 93d9e3886b7e..620e7c18d82c 100644
+index 93d9e3886b7ec..620e7c18d82c0 100644
 --- a/sound/soc/amd/acp/acp-mach.h
 +++ b/sound/soc/amd/acp/acp-mach.h
 @@ -27,8 +27,8 @@
@@ -33406,7 +33406,7 @@ index 93d9e3886b7e..620e7c18d82c 100644
  	MAX98388,
  	ES83XX,
 diff --git a/sound/soc/codecs/max98388.c b/sound/soc/codecs/max98388.c
-index 99986090b4a6..e259be44ce8f 100644
+index 99986090b4a63..e259be44ce8f5 100644
 --- a/sound/soc/codecs/max98388.c
 +++ b/sound/soc/codecs/max98388.c
 @@ -390,27 +390,43 @@ static void max98388_reset(struct max98388_priv *max98388, struct device *dev)
@@ -33488,7 +33488,7 @@ index 99986090b4a6..e259be44ce8f 100644
  
  	return 0;
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -33502,7 +33502,7 @@ Subject: Disable modes with >1200 MHz Pixel clocks when connected via dock
  1 file changed, 11 insertions(+)
 
 diff --git a/drivers/gpu/drm/amd/display/dc/link/link_validation.c b/drivers/gpu/drm/amd/display/dc/link/link_validation.c
-index 60f15a9ba7a5..c3da48c213d4 100644
+index 60f15a9ba7a5e..c3da48c213d45 100644
 --- a/drivers/gpu/drm/amd/display/dc/link/link_validation.c
 +++ b/drivers/gpu/drm/amd/display/dc/link/link_validation.c
 @@ -35,6 +35,8 @@
@@ -33531,7 +33531,7 @@ index 60f15a9ba7a5..c3da48c213d4 100644
  
  	/* TODO: DYNAMIC_VALIDATION needs to be implemented */
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -33553,7 +33553,7 @@ Signed-off-by: Gabriel Krisman Bertazi <krisman@collabora.com>
  1 file changed, 22 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 7258e46212b0..4dac39694368 100644
+index 21e447b33229f..32f70782628fa 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -4519,7 +4519,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
@@ -33622,7 +33622,7 @@ index 7258e46212b0..4dac39694368 100644
  				 max - min);
  }
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -33640,7 +33640,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 45 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 4dac39694368..53d1ddeda6ba 100644
+index 32f70782628fa..9807d0e1b75df 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -4519,11 +4519,45 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
@@ -33712,7 +33712,7 @@ index 4dac39694368..53d1ddeda6ba 100644
  
  			printk(KERN_NOTICE"VLV OVERRIDE backlight range: %d %d\n",
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -33730,7 +33730,7 @@ further investigation.
  1 file changed, 3 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
-index b3d17cfc54a4..3b4fbc24ec91 100644
+index b3d17cfc54a44..3b4fbc24ec918 100644
 --- a/drivers/pci/quirks.c
 +++ b/drivers/pci/quirks.c
 @@ -710,7 +710,7 @@ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_ATI,	PCI_DEVICE_ID_ATI_RS100,   quirk_ati_
@@ -33763,7 +33763,7 @@ index b3d17cfc54a4..3b4fbc24ec91 100644
  /*
   * Synopsys USB 3.x host HAPS platform has a class code of
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -33808,7 +33808,7 @@ Signed-off-by: Joshua Ashton <joshua@froggi.es>
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 53d1ddeda6ba..fab9a787a40c 100644
+index 9807d0e1b75df..dc8002964dda0 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -467,7 +467,7 @@ static void dm_pflip_high_irq(void *interrupt_params)
@@ -33834,7 +33834,7 @@ index 53d1ddeda6ba..fab9a787a40c 100644
  			    adev->family < AMDGPU_FAMILY_AI) {
  				spin_lock_irqsave(&adev_to_drm(adev)->event_lock, flags);
  				mod_freesync_handle_v_update(
-@@ -9040,7 +9040,7 @@ static void amdgpu_dm_commit_planes(struct drm_atomic_state *state,
+@@ -9009,7 +9009,7 @@ static void amdgpu_dm_commit_planes(struct drm_atomic_state *state,
  	int planes_count = 0, vpos, hpos;
  	unsigned long flags;
  	u32 target_vblank, last_flip_vblank;
@@ -33844,7 +33844,7 @@ index 53d1ddeda6ba..fab9a787a40c 100644
  	bool pflip_present = false;
  	bool dirty_rects_changed = false;
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -33862,7 +33862,7 @@ Should also improve latency/stutter on internal display potentially too.
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index fab9a787a40c..85612e059452 100644
+index dc8002964dda0..bf294065da46a 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -467,7 +467,7 @@ static void dm_pflip_high_irq(void *interrupt_params)
@@ -33889,7 +33889,7 @@ index fab9a787a40c..85612e059452 100644
  				spin_lock_irqsave(&adev_to_drm(adev)->event_lock, flags);
  				mod_freesync_handle_v_update(
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -33910,7 +33910,7 @@ Signed-off-by: Robert Beckett <bob.beckett@collabora.com>
  3 files changed, 129 insertions(+)
 
 diff --git a/drivers/bluetooth/btrtl.c b/drivers/bluetooth/btrtl.c
-index 0bcb44cf7b31..1fdb30b2449c 100644
+index 0bcb44cf7b31d..1fdb30b2449c2 100644
 --- a/drivers/bluetooth/btrtl.c
 +++ b/drivers/bluetooth/btrtl.c
 @@ -9,6 +9,7 @@
@@ -34065,7 +34065,7 @@ index 0bcb44cf7b31..1fdb30b2449c 100644
  MODULE_DESCRIPTION("Bluetooth support for Realtek devices ver " VERSION);
  MODULE_VERSION(VERSION);
 diff --git a/drivers/bluetooth/btrtl.h b/drivers/bluetooth/btrtl.h
-index a2d9d34f9fb0..ee576dd8f35b 100644
+index a2d9d34f9fb08..ee576dd8f35bd 100644
 --- a/drivers/bluetooth/btrtl.h
 +++ b/drivers/bluetooth/btrtl.h
 @@ -105,6 +105,7 @@ struct rtl_vendor_cmd {
@@ -34101,7 +34101,7 @@ index a2d9d34f9fb0..ee576dd8f35b 100644
 +
  #endif
 diff --git a/drivers/bluetooth/btusb.c b/drivers/bluetooth/btusb.c
-index b5061867978a..4f9d9fdfa7be 100644
+index b5061867978a8..4f9d9fdfa7be1 100644
 --- a/drivers/bluetooth/btusb.c
 +++ b/drivers/bluetooth/btusb.c
 @@ -3939,6 +3939,8 @@ static int btusb_probe(struct usb_interface *intf,
@@ -34114,7 +34114,7 @@ index b5061867978a..4f9d9fdfa7be 100644
  		/* Realtek devices need to set remote wakeup on auto-suspend */
  		set_bit(BTUSB_WAKEUP_AUTOSUSPEND, &data->flags);
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -34129,20 +34129,20 @@ Edited by Antheas: lets keep this cutie Steam Deck only.
  2 files changed, 29 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/dc/dc.h b/drivers/gpu/drm/amd/display/dc/dc.h
-index 7c163aa7e8bd..e15a5428336b 100644
+index a4f6ff7155c2a..df6130844b225 100644
 --- a/drivers/gpu/drm/amd/display/dc/dc.h
 +++ b/drivers/gpu/drm/amd/display/dc/dc.h
 @@ -57,7 +57,7 @@ struct dmub_notification;
  
  #define DC_VER "3.2.301"
  
--#define MAX_SURFACES 3
+-#define MAX_SURFACES 4
 +#define MAX_SURFACES 6
  #define MAX_PLANES 6
  #define MAX_STREAMS 6
  #define MIN_VIEWPORT_SIZE 12
 diff --git a/drivers/gpu/drm/amd/display/dc/resource/dcn301/dcn301_resource.c b/drivers/gpu/drm/amd/display/dc/resource/dcn301/dcn301_resource.c
-index 7d04739c3ba1..ac3f1ed59cc3 100644
+index 7d04739c3ba14..ac3f1ed59cc3c 100644
 --- a/drivers/gpu/drm/amd/display/dc/resource/dcn301/dcn301_resource.c
 +++ b/drivers/gpu/drm/amd/display/dc/resource/dcn301/dcn301_resource.c
 @@ -23,7 +23,7 @@
@@ -34199,7 +34199,7 @@ index 7d04739c3ba1..ac3f1ed59cc3 100644
  	dc->caps.post_blend_color_processing = true;
  	dc->caps.force_dp_tps4_for_cp2520 = true;
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -34208,7 +34208,7 @@ Date: Sat, 12 Oct 2024 19:14:10 +0200
 Subject: [BEGIN] Modern Suspend patchset
 
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -34224,7 +34224,7 @@ Subject: Documentation: PM: Add documentation for S0ix Standby States
 
 diff --git a/Documentation/admin-guide/pm/standby-states.rst b/Documentation/admin-guide/pm/standby-states.rst
 new file mode 100644
-index 000000000000..7a7e560915df
+index 0000000000000..7a7e560915df8
 --- /dev/null
 +++ b/Documentation/admin-guide/pm/standby-states.rst
 @@ -0,0 +1,130 @@
@@ -34360,7 +34360,7 @@ index 000000000000..7a7e560915df
 +is inactive (e.g., the power button pulses), which is undesirable.
 \ No newline at end of file
 diff --git a/Documentation/admin-guide/pm/system-wide.rst b/Documentation/admin-guide/pm/system-wide.rst
-index 1a1924d71006..411775fae4ac 100644
+index 1a1924d710069..411775fae4acf 100644
 --- a/Documentation/admin-guide/pm/system-wide.rst
 +++ b/Documentation/admin-guide/pm/system-wide.rst
 @@ -8,4 +8,5 @@ System-Wide Power Management
@@ -34370,7 +34370,7 @@ index 1a1924d71006..411775fae4ac 100644
 +   standby-states
     suspend-flows
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -34399,7 +34399,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  2 files changed, 12 insertions(+)
 
 diff --git a/include/linux/suspend.h b/include/linux/suspend.h
-index da6ebca3ff77..57c083754e8b 100644
+index da6ebca3ff774..57c083754e8b6 100644
 --- a/include/linux/suspend.h
 +++ b/include/linux/suspend.h
 @@ -132,6 +132,7 @@ struct platform_suspend_ops {
@@ -34419,7 +34419,7 @@ index da6ebca3ff77..57c083754e8b 100644
  
  #ifdef CONFIG_SUSPEND
 diff --git a/kernel/power/suspend.c b/kernel/power/suspend.c
-index 09f8397bae15..cded6b9b439b 100644
+index 09f8397bae15f..cded6b9b439bd 100644
 --- a/kernel/power/suspend.c
 +++ b/kernel/power/suspend.c
 @@ -254,6 +254,16 @@ static bool sleep_state_supported(suspend_state_t state)
@@ -34440,7 +34440,7 @@ index 09f8397bae15..cded6b9b439b 100644
  {
  	return state != PM_SUSPEND_TO_IDLE && suspend_ops->prepare ?
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -34469,7 +34469,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  2 files changed, 12 insertions(+)
 
 diff --git a/include/linux/suspend.h b/include/linux/suspend.h
-index 57c083754e8b..733dffb09b28 100644
+index 57c083754e8b6..733dffb09b289 100644
 --- a/include/linux/suspend.h
 +++ b/include/linux/suspend.h
 @@ -133,6 +133,7 @@ struct platform_suspend_ops {
@@ -34489,7 +34489,7 @@ index 57c083754e8b..733dffb09b28 100644
  };
  
 diff --git a/kernel/power/suspend.c b/kernel/power/suspend.c
-index cded6b9b439b..3f4bbefa9b82 100644
+index cded6b9b439bd..3f4bbefa9b824 100644
 --- a/kernel/power/suspend.c
 +++ b/kernel/power/suspend.c
 @@ -259,6 +259,16 @@ static int platform_standby_display_off(void)
@@ -34510,7 +34510,7 @@ index cded6b9b439b..3f4bbefa9b82 100644
  {
  	return s2idle_ops && s2idle_ops->display_on ? s2idle_ops->display_on() : 0;
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -34531,7 +34531,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  2 files changed, 8 insertions(+)
 
 diff --git a/include/linux/suspend.h b/include/linux/suspend.h
-index 733dffb09b28..01ee64321cda 100644
+index 733dffb09b289..01ee64321cda5 100644
 --- a/include/linux/suspend.h
 +++ b/include/linux/suspend.h
 @@ -142,6 +142,7 @@ struct platform_s2idle_ops {
@@ -34543,7 +34543,7 @@ index 733dffb09b28..01ee64321cda 100644
  	int (*display_on)(void);
  };
 diff --git a/kernel/power/suspend.c b/kernel/power/suspend.c
-index 3f4bbefa9b82..a42e8514ee7a 100644
+index 3f4bbefa9b824..a42e8514ee7a0 100644
 --- a/kernel/power/suspend.c
 +++ b/kernel/power/suspend.c
 @@ -264,6 +264,13 @@ static int platform_standby_sleep_entry(void)
@@ -34561,7 +34561,7 @@ index 3f4bbefa9b82..a42e8514ee7a 100644
  {
  	return s2idle_ops && s2idle_ops->sleep_exit ? s2idle_ops->sleep_exit() : 0;
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -34581,7 +34581,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  3 files changed, 130 insertions(+)
 
 diff --git a/include/linux/suspend.h b/include/linux/suspend.h
-index 01ee64321cda..b8fe781d8026 100644
+index 01ee64321cda5..b8fe781d80262 100644
 --- a/include/linux/suspend.h
 +++ b/include/linux/suspend.h
 @@ -40,6 +40,15 @@ typedef int __bitwise suspend_state_t;
@@ -34610,7 +34610,7 @@ index 01ee64321cda..b8fe781d8026 100644
  #define suspend_valid_only_mem	NULL
  
 diff --git a/kernel/power/power.h b/kernel/power/power.h
-index de0e6b1077f2..4ee067cd0d4d 100644
+index de0e6b1077f23..4ee067cd0d4dd 100644
 --- a/kernel/power/power.h
 +++ b/kernel/power/power.h
 @@ -207,6 +207,7 @@ extern void swsusp_show_speed(ktime_t, ktime_t, unsigned int, char *);
@@ -34622,7 +34622,7 @@ index de0e6b1077f2..4ee067cd0d4d 100644
  extern int suspend_devices_and_enter(suspend_state_t state);
  #else /* !CONFIG_SUSPEND */
 diff --git a/kernel/power/suspend.c b/kernel/power/suspend.c
-index a42e8514ee7a..8d78aa2ccfcf 100644
+index a42e8514ee7a0..8d78aa2ccfcfc 100644
 --- a/kernel/power/suspend.c
 +++ b/kernel/power/suspend.c
 @@ -45,12 +45,21 @@ static const char * const mem_sleep_labels[] = {
@@ -34785,7 +34785,7 @@ index a42e8514ee7a..8d78aa2ccfcf 100644
  	return error;
  }
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -34805,7 +34805,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 18 insertions(+), 18 deletions(-)
 
 diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-index dd0b40b9bbe8..7391f87f3aa0 100644
+index dd0b40b9bbe8b..7391f87f3aa0c 100644
 --- a/drivers/acpi/x86/s2idle.c
 +++ b/drivers/acpi/x86/s2idle.c
 @@ -39,8 +39,8 @@ static const struct acpi_device_id lps0_device_ids[] = {
@@ -34893,7 +34893,7 @@ index dd0b40b9bbe8..7391f87f3aa0 100644
  }
  
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -34911,7 +34911,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 51 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-index 7391f87f3aa0..c0ab4d4f01be 100644
+index 7391f87f3aa0c..c0ab4d4f01be4 100644
 --- a/drivers/acpi/x86/s2idle.c
 +++ b/drivers/acpi/x86/s2idle.c
 @@ -60,6 +60,7 @@ static int lps0_dsm_func_mask;
@@ -35025,7 +35025,7 @@ index 7391f87f3aa0..c0ab4d4f01be 100644
  
  void __init acpi_s2idle_setup(void)
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -35045,7 +35045,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 8 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-index c0ab4d4f01be..99e5f0938e53 100644
+index c0ab4d4f01be4..99e5f0938e537 100644
 --- a/drivers/acpi/x86/s2idle.c
 +++ b/drivers/acpi/x86/s2idle.c
 @@ -43,8 +43,8 @@ static const struct acpi_device_id lps0_device_ids[] = {
@@ -35093,7 +35093,7 @@ index c0ab4d4f01be..99e5f0938e53 100644
  	}
  }
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -35111,7 +35111,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 47 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-index 99e5f0938e53..b2c98f561e42 100644
+index 99e5f0938e537..b2c98f561e429 100644
 --- a/drivers/acpi/x86/s2idle.c
 +++ b/drivers/acpi/x86/s2idle.c
 @@ -61,6 +61,7 @@ static guid_t lps0_dsm_guid_microsoft;
@@ -35215,7 +35215,7 @@ index 99e5f0938e53..b2c98f561e42 100644
  };
  
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -35235,7 +35235,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 27 insertions(+)
 
 diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-index b2c98f561e42..2d097d020e3b 100644
+index b2c98f561e429..2d097d020e3b6 100644
 --- a/drivers/acpi/x86/s2idle.c
 +++ b/drivers/acpi/x86/s2idle.c
 @@ -45,6 +45,7 @@ static const struct acpi_device_id lps0_device_ids[] = {
@@ -35294,7 +35294,7 @@ index b2c98f561e42..2d097d020e3b 100644
  	.display_on = acpi_s2idle_display_on,
  };
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -35314,7 +35314,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 62 insertions(+)
 
 diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-index 2d097d020e3b..bf0ec4687a74 100644
+index 2d097d020e3b6..bf0ec4687a744 100644
 --- a/drivers/acpi/x86/s2idle.c
 +++ b/drivers/acpi/x86/s2idle.c
 @@ -18,6 +18,7 @@
@@ -35436,7 +35436,7 @@ index 2d097d020e3b..bf0ec4687a74 100644
  
  int acpi_register_lps0_dev(struct acpi_s2idle_dev_ops *arg)
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -35449,7 +35449,7 @@ Subject: [TEMPORARY] Add s2idle delays for MSI Claw
  1 file changed, 13 insertions(+)
 
 diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-index bf0ec4687a74..cb5b0ca0a3c8 100644
+index bf0ec4687a744..cb5b0ca0a3c83 100644
 --- a/drivers/acpi/x86/s2idle.c
 +++ b/drivers/acpi/x86/s2idle.c
 @@ -114,6 +114,13 @@ static const struct s2idle_delay_quirks rog_ally_quirks = {
@@ -35480,7 +35480,7 @@ index bf0ec4687a74..cb5b0ca0a3c8 100644
  };
  
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -35504,7 +35504,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 54 deletions(-)
 
 diff --git a/drivers/platform/x86/asus-wmi.c b/drivers/platform/x86/asus-wmi.c
-index 1101e5b2488e..a94d8fc79287 100644
+index 1101e5b2488e5..a94d8fc792878 100644
 --- a/drivers/platform/x86/asus-wmi.c
 +++ b/drivers/platform/x86/asus-wmi.c
 @@ -142,29 +142,10 @@ module_param(fnlock_default, bool, 0444);
@@ -35601,7 +35601,7 @@ index 1101e5b2488e..a94d8fc79287 100644
  
  /* Registration ***************************************************************/
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -35621,7 +35621,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 72 insertions(+)
 
 diff --git a/kernel/power/main.c b/kernel/power/main.c
-index 6254814d4817..e17b6e1f1bdc 100644
+index 6254814d48171..e17b6e1f1bdcc 100644
 --- a/kernel/power/main.c
 +++ b/kernel/power/main.c
 @@ -748,6 +748,77 @@ static ssize_t state_store(struct kobject *kobj, struct kobj_attribute *attr,
@@ -35711,7 +35711,7 @@ index 6254814d4817..e17b6e1f1bdc 100644
  #ifdef CONFIG_PM_AUTOSLEEP
  	&autosleep_attr.attr,
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -35741,7 +35741,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 52 insertions(+)
 
 diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index c8ee8e42b0f6..7e89b72c2d76 100644
+index c8ee8e42b0f64..7e89b72c2d764 100644
 --- a/drivers/acpi/sleep.c
 +++ b/drivers/acpi/sleep.c
 @@ -810,8 +810,49 @@ bool acpi_s2idle_wake(void)
@@ -35813,7 +35813,7 @@ index c8ee8e42b0f6..7e89b72c2d76 100644
  	if (acpi_sci_irq_valid()) {
  		acpi_ec_set_gpe_wake_mask(ACPI_GPE_DISABLE);
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -35822,7 +35822,7 @@ Date: Sat, 2 Nov 2024 17:45:04 +0100
 Subject: [BEGIN] Batocera Qualcomm patches
 
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -35835,7 +35835,7 @@ Subject: ASoC: qcom: q6asm-dai: Change some default periods
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/sound/soc/qcom/qdsp6/q6asm-dai.c b/sound/soc/qcom/qdsp6/q6asm-dai.c
-index 045100c94352..3af3313b635e 100644
+index 045100c943527..3af3313b635e2 100644
 --- a/sound/soc/qcom/qdsp6/q6asm-dai.c
 +++ b/sound/soc/qcom/qdsp6/q6asm-dai.c
 @@ -25,8 +25,8 @@
@@ -35850,7 +35850,7 @@ index 045100c94352..3af3313b635e 100644
  #define CAPTURE_MAX_NUM_PERIODS     8
  #define CAPTURE_MAX_PERIOD_SIZE     4096
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -35863,7 +35863,7 @@ Subject: arm64: dts: qcom: sm8250: add uart16
  1 file changed, 22 insertions(+)
 
 diff --git a/arch/arm64/boot/dts/qcom/sm8250.dtsi b/arch/arm64/boot/dts/qcom/sm8250.dtsi
-index 630f4eff20bf..c4ab889237e1 100644
+index 630f4eff20bf8..c4ab889237e11 100644
 --- a/arch/arm64/boot/dts/qcom/sm8250.dtsi
 +++ b/arch/arm64/boot/dts/qcom/sm8250.dtsi
 @@ -1153,6 +1153,23 @@ spi16: spi@888000 {
@@ -35903,7 +35903,7 @@ index 630f4eff20bf..c4ab889237e1 100644
  				pins = "gpio52", "gpio53", "gpio54", "gpio55";
  				function = "qup17";
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -35919,7 +35919,7 @@ Subject: drm: panel: Add DDIC CH13726A panel
  create mode 100644 drivers/gpu/drm/panel/panel-ddic-ch13726a.c
 
 diff --git a/drivers/gpu/drm/panel/Kconfig b/drivers/gpu/drm/panel/Kconfig
-index d3a9a9fafe4e..996570dfcdeb 100644
+index d3a9a9fafe4ec..996570dfcdeb3 100644
 --- a/drivers/gpu/drm/panel/Kconfig
 +++ b/drivers/gpu/drm/panel/Kconfig
 @@ -96,6 +96,17 @@ config DRM_PANEL_BOE_TV101WUM_LL2
@@ -35941,7 +35941,7 @@ index d3a9a9fafe4e..996570dfcdeb 100644
  	tristate "EBBG FT8719 panel driver"
  	depends on OF
 diff --git a/drivers/gpu/drm/panel/Makefile b/drivers/gpu/drm/panel/Makefile
-index 987a08702410..a2aa4d78756e 100644
+index 987a087024103..a2aa4d78756ee 100644
 --- a/drivers/gpu/drm/panel/Makefile
 +++ b/drivers/gpu/drm/panel/Makefile
 @@ -8,6 +8,7 @@ obj-$(CONFIG_DRM_PANEL_BOE_HIMAX8279D) += panel-boe-himax8279d.o
@@ -35954,7 +35954,7 @@ index 987a08702410..a2aa4d78756e 100644
  obj-$(CONFIG_DRM_PANEL_SIMPLE) += panel-simple.o
 diff --git a/drivers/gpu/drm/panel/panel-ddic-ch13726a.c b/drivers/gpu/drm/panel/panel-ddic-ch13726a.c
 new file mode 100644
-index 000000000000..3d4c0d36077d
+index 0000000000000..3d4c0d36077df
 --- /dev/null
 +++ b/drivers/gpu/drm/panel/panel-ddic-ch13726a.c
 @@ -0,0 +1,325 @@
@@ -36284,7 +36284,7 @@ index 000000000000..3d4c0d36077d
 +MODULE_DESCRIPTION("DRM driver for CH13726A DSI panels");
 +MODULE_LICENSE("GPL");
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -36300,7 +36300,7 @@ Subject: Input: driver for AYN Odin2 Gamepad
  create mode 100644 drivers/input/joystick/odin2.c
 
 diff --git a/drivers/input/joystick/Kconfig b/drivers/input/joystick/Kconfig
-index 7755e5b454d2..031b7428068a 100644
+index 7755e5b454d2c..031b7428068a8 100644
 --- a/drivers/input/joystick/Kconfig
 +++ b/drivers/input/joystick/Kconfig
 @@ -344,6 +344,10 @@ config JOYSTICK_MAPLE
@@ -36315,7 +36315,7 @@ index 7755e5b454d2..031b7428068a 100644
  	tristate "PlayStation 1/2 joypads via SPI interface"
  	depends on SPI
 diff --git a/drivers/input/joystick/Makefile b/drivers/input/joystick/Makefile
-index 9976f596a920..ba7d72514c8b 100644
+index 9976f596a9208..ba7d72514c8b9 100644
 --- a/drivers/input/joystick/Makefile
 +++ b/drivers/input/joystick/Makefile
 @@ -25,6 +25,7 @@ obj-$(CONFIG_JOYSTICK_JOYDUMP)		+= joydump.o
@@ -36328,7 +36328,7 @@ index 9976f596a920..ba7d72514c8b 100644
  obj-$(CONFIG_JOYSTICK_QWIIC)		+= qwiic-joystick.o
 diff --git a/drivers/input/joystick/odin2.c b/drivers/input/joystick/odin2.c
 new file mode 100644
-index 000000000000..eeddcf5df569
+index 0000000000000..eeddcf5df5693
 --- /dev/null
 +++ b/drivers/input/joystick/odin2.c
 @@ -0,0 +1,259 @@
@@ -36592,7 +36592,7 @@ index 000000000000..eeddcf5df569
 +MODULE_AUTHOR("Molly Sophia <mollysophia379@gmail.com>");
 +MODULE_AUTHOR("BigfootACA <bigfoot@classfun.cn>");
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -36608,7 +36608,7 @@ Subject: power: supply: Driver for Qualcomm SMB5
  create mode 100644 drivers/power/supply/qcom_pm8150b_charger.c
 
 diff --git a/drivers/power/supply/Kconfig b/drivers/power/supply/Kconfig
-index bcfa63fb9f1e..ec3f3d5b20c8 100644
+index bcfa63fb9f1e2..ec3f3d5b20c8f 100644
 --- a/drivers/power/supply/Kconfig
 +++ b/drivers/power/supply/Kconfig
 @@ -1008,6 +1008,15 @@ config CHARGER_QCOM_SMB2
@@ -36628,7 +36628,7 @@ index bcfa63fb9f1e..ec3f3d5b20c8 100644
  	tristate "Mitsumi MM8013 fuel gauge driver"
  	depends on I2C
 diff --git a/drivers/power/supply/Makefile b/drivers/power/supply/Makefile
-index 8dcb41545317..9237f6270158 100644
+index 8dcb415453171..9237f62701582 100644
 --- a/drivers/power/supply/Makefile
 +++ b/drivers/power/supply/Makefile
 @@ -116,4 +116,5 @@ obj-$(CONFIG_BATTERY_SURFACE)	+= surface_battery.o
@@ -36639,7 +36639,7 @@ index 8dcb41545317..9237f6270158 100644
  obj-$(CONFIG_FUEL_GAUGE_MM8013)	+= mm8013.o
 diff --git a/drivers/power/supply/qcom_pm8150b_charger.c b/drivers/power/supply/qcom_pm8150b_charger.c
 new file mode 100644
-index 000000000000..4f93adacb5e5
+index 0000000000000..4f93adacb5e52
 --- /dev/null
 +++ b/drivers/power/supply/qcom_pm8150b_charger.c
 @@ -0,0 +1,940 @@
@@ -37584,7 +37584,7 @@ index 000000000000..4f93adacb5e5
 +MODULE_DESCRIPTION("Qualcomm SMB5 Charger Driver");
 +MODULE_LICENSE("GPL");
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -37602,7 +37602,7 @@ https://github.com/map220v/sm8150-mainline
  create mode 100644 drivers/power/supply/qcom_fg.c
 
 diff --git a/drivers/power/supply/Kconfig b/drivers/power/supply/Kconfig
-index ec3f3d5b20c8..b1e56c53f624 100644
+index ec3f3d5b20c8f..b1e56c53f6248 100644
 --- a/drivers/power/supply/Kconfig
 +++ b/drivers/power/supply/Kconfig
 @@ -1017,6 +1017,14 @@ config CHARGER_QCOM_SMB5
@@ -37621,7 +37621,7 @@ index ec3f3d5b20c8..b1e56c53f624 100644
  	tristate "Mitsumi MM8013 fuel gauge driver"
  	depends on I2C
 diff --git a/drivers/power/supply/Makefile b/drivers/power/supply/Makefile
-index 9237f6270158..52a75dae5781 100644
+index 9237f62701582..52a75dae57816 100644
 --- a/drivers/power/supply/Makefile
 +++ b/drivers/power/supply/Makefile
 @@ -117,4 +117,5 @@ obj-$(CONFIG_CHARGER_SURFACE)	+= surface_charger.o
@@ -37632,7 +37632,7 @@ index 9237f6270158..52a75dae5781 100644
  obj-$(CONFIG_FUEL_GAUGE_MM8013)	+= mm8013.o
 diff --git a/drivers/power/supply/qcom_fg.c b/drivers/power/supply/qcom_fg.c
 new file mode 100644
-index 000000000000..a3b164994fe4
+index 0000000000000..a3b164994fe4e
 --- /dev/null
 +++ b/drivers/power/supply/qcom_fg.c
 @@ -0,0 +1,1364 @@
@@ -39002,7 +39002,7 @@ index 000000000000..a3b164994fe4
 +MODULE_LICENSE("GPL v2");
 \ No newline at end of file
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -39015,7 +39015,7 @@ Subject: arm64: dts: qcom: pm8150b: Add a charger
  1 file changed, 32 insertions(+)
 
 diff --git a/arch/arm64/boot/dts/qcom/pm8150b.dtsi b/arch/arm64/boot/dts/qcom/pm8150b.dtsi
-index 3f7b0b6a1d10..d0cfe6361954 100644
+index 3f7b0b6a1d109..d0cfe63619547 100644
 --- a/arch/arm64/boot/dts/qcom/pm8150b.dtsi
 +++ b/arch/arm64/boot/dts/qcom/pm8150b.dtsi
 @@ -107,6 +107,26 @@ pm8150b_temp: temp-alarm@2400 {
@@ -39065,7 +39065,7 @@ index 3f7b0b6a1d10..d0cfe6361954 100644
  				reg = <ADC5_CHG_TEMP>;
  				qcom,pre-scaling = <1 1>;
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -39078,7 +39078,7 @@ Subject: arm64: dts: qcom: pm8150b: Add a FG
  1 file changed, 8 insertions(+)
 
 diff --git a/arch/arm64/boot/dts/qcom/pm8150b.dtsi b/arch/arm64/boot/dts/qcom/pm8150b.dtsi
-index d0cfe6361954..42ef21238f18 100644
+index d0cfe63619547..42ef21238f18b 100644
 --- a/arch/arm64/boot/dts/qcom/pm8150b.dtsi
 +++ b/arch/arm64/boot/dts/qcom/pm8150b.dtsi
 @@ -127,6 +127,14 @@ pm8150b_charger: charger@1000 {
@@ -39097,7 +39097,7 @@ index d0cfe6361954..42ef21238f18 100644
  			compatible = "qcom,spmi-adc5";
  			reg = <0x3100>;
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -39118,7 +39118,7 @@ Combination of two commits to fix git apply quirks
  create mode 100644 arch/arm64/boot/dts/qcom/sm8250-retroidpocket-rpmini.dts
 
 diff --git a/arch/arm64/boot/dts/qcom/Makefile b/arch/arm64/boot/dts/qcom/Makefile
-index ae002c7cf126..b015527b063f 100644
+index ae002c7cf1268..b015527b063f4 100644
 --- a/arch/arm64/boot/dts/qcom/Makefile
 +++ b/arch/arm64/boot/dts/qcom/Makefile
 @@ -242,6 +242,8 @@ dtb-$(CONFIG_ARCH_QCOM)	+= sm8150-sony-xperia-kumano-bahamut.dtb
@@ -39132,7 +39132,7 @@ index ae002c7cf126..b015527b063f 100644
  dtb-$(CONFIG_ARCH_QCOM)	+= sm8250-xiaomi-elish-boe.dtb
 diff --git a/arch/arm64/boot/dts/qcom/sm8250-retroidpocket-common.dtsi b/arch/arm64/boot/dts/qcom/sm8250-retroidpocket-common.dtsi
 new file mode 100644
-index 000000000000..7b20553ccdb5
+index 0000000000000..7b20553ccdb59
 --- /dev/null
 +++ b/arch/arm64/boot/dts/qcom/sm8250-retroidpocket-common.dtsi
 @@ -0,0 +1,1308 @@
@@ -40446,7 +40446,7 @@ index 000000000000..7b20553ccdb5
 +};
 diff --git a/arch/arm64/boot/dts/qcom/sm8250-retroidpocket-rp5.dts b/arch/arm64/boot/dts/qcom/sm8250-retroidpocket-rp5.dts
 new file mode 100644
-index 000000000000..f9101248f184
+index 0000000000000..f9101248f1844
 --- /dev/null
 +++ b/arch/arm64/boot/dts/qcom/sm8250-retroidpocket-rp5.dts
 @@ -0,0 +1,44 @@
@@ -40496,7 +40496,7 @@ index 000000000000..f9101248f184
 +};
 diff --git a/arch/arm64/boot/dts/qcom/sm8250-retroidpocket-rpmini.dts b/arch/arm64/boot/dts/qcom/sm8250-retroidpocket-rpmini.dts
 new file mode 100644
-index 000000000000..63d0dda470f0
+index 0000000000000..63d0dda470f0a
 --- /dev/null
 +++ b/arch/arm64/boot/dts/qcom/sm8250-retroidpocket-rpmini.dts
 @@ -0,0 +1,42 @@
@@ -40543,7 +40543,7 @@ index 000000000000..63d0dda470f0
 +	};
 +};
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -40556,7 +40556,7 @@ Subject: drm: panel: Add compatible CH13726A panel
  1 file changed, 23 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/gpu/drm/panel/panel-ddic-ch13726a.c b/drivers/gpu/drm/panel/panel-ddic-ch13726a.c
-index 3d4c0d36077d..0af26b65bca6 100644
+index 3d4c0d36077df..0af26b65bca60 100644
 --- a/drivers/gpu/drm/panel/panel-ddic-ch13726a.c
 +++ b/drivers/gpu/drm/panel/panel-ddic-ch13726a.c
 @@ -25,6 +25,7 @@ struct ch13726a_panel {
@@ -40627,7 +40627,7 @@ index 3d4c0d36077d..0af26b65bca6 100644
  MODULE_DEVICE_TABLE(of, ch13726a_of_match);
  
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -40643,7 +40643,7 @@ Subject: pwm: htr3212: Add HEROIC HTR3212 support
  create mode 100644 drivers/pwm/pwm-htr3212.c
 
 diff --git a/drivers/pwm/Kconfig b/drivers/pwm/Kconfig
-index 0915c1e7df16..840008d332c2 100644
+index 0915c1e7df16d..840008d332c21 100644
 --- a/drivers/pwm/Kconfig
 +++ b/drivers/pwm/Kconfig
 @@ -264,6 +264,16 @@ config PWM_HIBVT
@@ -40664,7 +40664,7 @@ index 0915c1e7df16..840008d332c2 100644
  	tristate "Imagination Technologies PWM driver"
  	depends on HAS_IOMEM
 diff --git a/drivers/pwm/Makefile b/drivers/pwm/Makefile
-index 9081e0c0e9e0..e6b5fd90e130 100644
+index 9081e0c0e9e09..e6b5fd90e1303 100644
 --- a/drivers/pwm/Makefile
 +++ b/drivers/pwm/Makefile
 @@ -22,6 +22,7 @@ obj-$(CONFIG_PWM_EP93XX)	+= pwm-ep93xx.o
@@ -40677,7 +40677,7 @@ index 9081e0c0e9e0..e6b5fd90e130 100644
  obj-$(CONFIG_PWM_IMX27)		+= pwm-imx27.o
 diff --git a/drivers/pwm/pwm-htr3212.c b/drivers/pwm/pwm-htr3212.c
 new file mode 100644
-index 000000000000..cef5a80477c0
+index 0000000000000..cef5a80477c06
 --- /dev/null
 +++ b/drivers/pwm/pwm-htr3212.c
 @@ -0,0 +1,308 @@
@@ -40990,7 +40990,7 @@ index 000000000000..cef5a80477c0
 +MODULE_DESCRIPTION("PWM driver for HEROIC HTR3212");
 +MODULE_LICENSE("GPL");
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -41004,7 +41004,7 @@ Also remove unused DSI panel pins
  1 file changed, 27 insertions(+), 32 deletions(-)
 
 diff --git a/arch/arm64/boot/dts/qcom/sm8250-retroidpocket-common.dtsi b/arch/arm64/boot/dts/qcom/sm8250-retroidpocket-common.dtsi
-index 7b20553ccdb5..e16b61d4c11a 100644
+index 7b20553ccdb59..e16b61d4c11ab 100644
 --- a/arch/arm64/boot/dts/qcom/sm8250-retroidpocket-common.dtsi
 +++ b/arch/arm64/boot/dts/qcom/sm8250-retroidpocket-common.dtsi
 @@ -569,6 +569,32 @@ zap-shader {
@@ -41095,7 +41095,7 @@ index 7b20553ccdb5..e16b61d4c11a 100644
  		pins = "gpio39";
  		function = "gpio";
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -41108,7 +41108,7 @@ Subject: Input: Odin2 Gamepad ability to set input id values from devicetree
  1 file changed, 32 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/input/joystick/odin2.c b/drivers/input/joystick/odin2.c
-index eeddcf5df569..5145e2423171 100644
+index eeddcf5df5693..5145e24231719 100644
 --- a/drivers/input/joystick/odin2.c
 +++ b/drivers/input/joystick/odin2.c
 @@ -4,6 +4,7 @@
@@ -41205,7 +41205,7 @@ index eeddcf5df569..5145e2423171 100644
 +MODULE_AUTHOR("Teguh Sobirin <teguh@sobir.in>");
 +MODULE_ALIAS("platform:" DRIVER_NAME);
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -41218,7 +41218,7 @@ Subject: arm64: dts: qcom: Set Gamepad ID for Retroid Pocket
  1 file changed, 7 insertions(+)
 
 diff --git a/arch/arm64/boot/dts/qcom/sm8250-retroidpocket-common.dtsi b/arch/arm64/boot/dts/qcom/sm8250-retroidpocket-common.dtsi
-index e16b61d4c11a..e0f49e8e75cd 100644
+index e16b61d4c11ab..e0f49e8e75cd7 100644
 --- a/arch/arm64/boot/dts/qcom/sm8250-retroidpocket-common.dtsi
 +++ b/arch/arm64/boot/dts/qcom/sm8250-retroidpocket-common.dtsi
 @@ -1233,6 +1233,13 @@ &uart16 {
@@ -41236,7 +41236,7 @@ index e16b61d4c11a..e0f49e8e75cd 100644
  		enable-gpios = <&tlmm 111 GPIO_ACTIVE_HIGH>;
  		pinctrl-0 = <&mcu_en_default>;
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -41262,7 +41262,7 @@ Signed-off-by: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
  1 file changed, 3 deletions(-)
 
 diff --git a/drivers/gpu/drm/msm/disp/dpu1/dpu_writeback.c b/drivers/gpu/drm/msm/disp/dpu1/dpu_writeback.c
-index 16f144cbc0c9..8ff496082902 100644
+index 16f144cbc0c98..8ff496082902b 100644
 --- a/drivers/gpu/drm/msm/disp/dpu1/dpu_writeback.c
 +++ b/drivers/gpu/drm/msm/disp/dpu1/dpu_writeback.c
 @@ -42,9 +42,6 @@ static int dpu_wb_conn_atomic_check(struct drm_connector *connector,
@@ -41276,7 +41276,7 @@ index 16f144cbc0c9..8ff496082902 100644
  
  	crtc = conn_state->crtc;
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -41290,7 +41290,7 @@ Subject: arm64: dts: qcom: Batocera specific changes
  2 files changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm64/boot/dts/qcom/sm8250-retroidpocket-rp5.dts b/arch/arm64/boot/dts/qcom/sm8250-retroidpocket-rp5.dts
-index f9101248f184..2f1b60b218df 100644
+index f9101248f1844..2f1b60b218dfd 100644
 --- a/arch/arm64/boot/dts/qcom/sm8250-retroidpocket-rp5.dts
 +++ b/arch/arm64/boot/dts/qcom/sm8250-retroidpocket-rp5.dts
 @@ -31,8 +31,8 @@ &i2c13 {
@@ -41304,7 +41304,7 @@ index f9101248f184..2f1b60b218df 100644
  };
  
 diff --git a/arch/arm64/boot/dts/qcom/sm8250-retroidpocket-rpmini.dts b/arch/arm64/boot/dts/qcom/sm8250-retroidpocket-rpmini.dts
-index 63d0dda470f0..f71065573acd 100644
+index 63d0dda470f0a..f71065573acd7 100644
 --- a/arch/arm64/boot/dts/qcom/sm8250-retroidpocket-rpmini.dts
 +++ b/arch/arm64/boot/dts/qcom/sm8250-retroidpocket-rpmini.dts
 @@ -31,6 +31,8 @@ &i2c13 {
@@ -41317,7 +41317,7 @@ index 63d0dda470f0..f71065573acd 100644
  };
  
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -41331,7 +41331,7 @@ Subject: HID: Add quirk to ignore the touchscreen battery on 8BitDo SN30 Pro
  1 file changed, 2 insertions(+)
 
 diff --git a/drivers/hid/hid-input.c b/drivers/hid/hid-input.c
-index e52fb045096a..371d8f892414 100644
+index e52fb045096a8..371d8f892414e 100644
 --- a/drivers/hid/hid-input.c
 +++ b/drivers/hid/hid-input.c
 @@ -343,6 +343,8 @@ static enum power_supply_property hidinput_battery_props[] = {
@@ -41344,7 +41344,7 @@ index e52fb045096a..371d8f892414 100644
  		USB_DEVICE_ID_APPLE_ALU_WIRELESS_2009_ISO),
  	  HID_BATTERY_QUIRK_PERCENT | HID_BATTERY_QUIRK_FEATURE },
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -41357,7 +41357,7 @@ TKG is from [1] and BORE is from [2].
 [1]: https://github.com/Frogging-Family/linux-tkg/blob/master/linux-tkg-patches/6.11/0012-misc-additions.patch
 [2]: https://github.com/firelzrd/bore-scheduler/tree/main/patches
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -41381,7 +41381,7 @@ Signed-off-by: Felix Hädicke <felixhaedicke@web.de>
  1 file changed, 2 insertions(+)
 
 diff --git a/drivers/hid/hid-quirks.c b/drivers/hid/hid-quirks.c
-index e0bbf0c6345d..5d229e2781c7 100644
+index e0bbf0c6345d6..5d229e2781c7d 100644
 --- a/drivers/hid/hid-quirks.c
 +++ b/drivers/hid/hid-quirks.c
 @@ -510,6 +510,8 @@ static const struct hid_device_id hid_have_special_driver[] = {
@@ -41394,7 +41394,7 @@ index e0bbf0c6345d..5d229e2781c7 100644
  #if IS_ENABLED(CONFIG_HID_MAYFLASH)
  	{ HID_USB_DEVICE(USB_VENDOR_ID_DRAGONRISE, USB_DEVICE_ID_DRAGONRISE_PS3) },
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -41411,7 +41411,7 @@ Also it interferes with the option to select the desired default governor we hav
  1 file changed, 2 deletions(-)
 
 diff --git a/drivers/cpufreq/Kconfig b/drivers/cpufreq/Kconfig
-index 2561b215432a..1f6f291af340 100644
+index 2561b215432a8..1f6f291af3409 100644
 --- a/drivers/cpufreq/Kconfig
 +++ b/drivers/cpufreq/Kconfig
 @@ -71,7 +71,6 @@ config CPU_FREQ_DEFAULT_GOV_USERSPACE
@@ -41431,7 +41431,7 @@ index 2561b215432a..1f6f291af340 100644
  	select CPU_FREQ_GOV_PERFORMANCE
  	help
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -41446,7 +41446,7 @@ avoid having to enable `CONFIG_EXPERT`.
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/arch/Kconfig b/arch/Kconfig
-index bd9f095d69fa..5fc4aa6b6b67 100644
+index bd9f095d69fa0..5fc4aa6b6b67a 100644
 --- a/arch/Kconfig
 +++ b/arch/Kconfig
 @@ -1089,7 +1089,7 @@ config ARCH_MMAP_RND_BITS
@@ -41468,7 +41468,7 @@ index bd9f095d69fa..5fc4aa6b6b67 100644
  	help
  	  This value can be used to select the number of bits to use to
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -41487,7 +41487,7 @@ Signed-off-by: Peter Jung <admin@ptr1337.dev>
  5 files changed, 14 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/Kconfig b/drivers/gpu/drm/amd/display/Kconfig
-index df17e79c45c7..e454488c1a31 100644
+index df17e79c45c76..e454488c1a312 100644
 --- a/drivers/gpu/drm/amd/display/Kconfig
 +++ b/drivers/gpu/drm/amd/display/Kconfig
 @@ -53,4 +53,10 @@ config DRM_AMD_SECURE_DISPLAY
@@ -41502,7 +41502,7 @@ index df17e79c45c7..e454488c1a31 100644
 +
  endmenu
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 85612e059452..6bda4880d63a 100644
+index bf294065da46a..3d8fe06fbd9e6 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -4501,7 +4501,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
@@ -41515,7 +41515,7 @@ index 85612e059452..6bda4880d63a 100644
  		dc_state_release(state->context);
  		kfree(state);
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_color.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_color.c
-index ebabfe3a512f..4d3ebcaacca1 100644
+index ebabfe3a512f4..4d3ebcaacca1b 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_color.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_color.c
 @@ -97,7 +97,7 @@ static inline struct fixed31_32 amdgpu_dm_fixpt_from_s3132(__u64 x)
@@ -41528,7 +41528,7 @@ index ebabfe3a512f..4d3ebcaacca1 100644
   *
   * AMD driver supports pre-defined mathematical functions for transferring
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.c
-index 93a8bdb2504d..00c7f9c657c2 100644
+index 93a8bdb2504d4..00c7f9c657c22 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.c
 @@ -473,7 +473,7 @@ static int amdgpu_dm_crtc_late_register(struct drm_crtc *crtc)
@@ -41559,7 +41559,7 @@ index 93a8bdb2504d..00c7f9c657c2 100644
  #endif
  	return 0;
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_plane.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_plane.c
-index 495e3cd70426..704a48209657 100644
+index 495e3cd70426d..704a48209657b 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_plane.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_plane.c
 @@ -1573,7 +1573,7 @@ static void amdgpu_dm_plane_drm_plane_destroy_state(struct drm_plane *plane,
@@ -41590,7 +41590,7 @@ index 495e3cd70426..704a48209657 100644
  #endif
  	/* Create (reset) the plane state */
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -41606,7 +41606,7 @@ This fixes 7700/7800 XT custom powercap.
  1 file changed, 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c b/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
-index 0c0b9aa44dfa..84f26f568135 100644
+index 0c0b9aa44dfa3..84f26f5681355 100644
 --- a/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
 +++ b/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
 @@ -2770,7 +2770,6 @@ int smu_get_power_limit(void *handle,
@@ -41618,7 +41618,7 @@ index 0c0b9aa44dfa..84f26f568135 100644
  			case IP_VERSION(11, 0, 7):
  			case IP_VERSION(11, 0, 11):
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -41671,7 +41671,7 @@ Cherry-picked-for: https://bugs.archlinux.org/task/73720
  1 file changed, 17 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/firmware/sysfb.c b/drivers/firmware/sysfb.c
-index a3df782fa687..940d8f514341 100644
+index a3df782fa687b..940d8f5143417 100644
 --- a/drivers/firmware/sysfb.c
 +++ b/drivers/firmware/sysfb.c
 @@ -35,6 +35,22 @@
@@ -41707,7 +41707,7 @@ index a3df782fa687..940d8f514341 100644
  		if (!IS_ERR(pd))
  			goto put_device;
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -41732,7 +41732,7 @@ Subject: linux6.12.y-bore5.7.15
  create mode 100644 kernel/sched/bore.c
 
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index 02eaf84c8626..ee565c072dd4 100644
+index 02eaf84c8626f..ee565c072dd48 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
 @@ -538,6 +538,14 @@ struct sched_statistics {
@@ -41768,7 +41768,7 @@ index 02eaf84c8626..ee565c072dd4 100644
  
 diff --git a/include/linux/sched/bore.h b/include/linux/sched/bore.h
 new file mode 100644
-index 000000000000..653b918d36c0
+index 0000000000000..653b918d36c08
 --- /dev/null
 +++ b/include/linux/sched/bore.h
 @@ -0,0 +1,40 @@
@@ -41813,7 +41813,7 @@ index 000000000000..653b918d36c0
 +#endif // CONFIG_SCHED_BORE
 +#endif // _LINUX_SCHED_BORE_H
 diff --git a/init/Kconfig b/init/Kconfig
-index 7256fa127530..6bd6c8cab18b 100644
+index 7256fa127530f..6bd6c8cab18bc 100644
 --- a/init/Kconfig
 +++ b/init/Kconfig
 @@ -1341,6 +1341,23 @@ config CHECKPOINT_RESTORE
@@ -41841,7 +41841,7 @@ index 7256fa127530..6bd6c8cab18b 100644
  	bool "Automatic process group scheduling"
  	select CGROUPS
 diff --git a/kernel/Kconfig.hz b/kernel/Kconfig.hz
-index 38ef6d06888e..253c566b5946 100644
+index 38ef6d06888ef..253c566b59466 100644
 --- a/kernel/Kconfig.hz
 +++ b/kernel/Kconfig.hz
 @@ -55,5 +55,22 @@ config HZ
@@ -41868,7 +41868,7 @@ index 38ef6d06888e..253c566b5946 100644
  config SCHED_HRTICK
  	def_bool HIGH_RES_TIMERS
 diff --git a/kernel/fork.c b/kernel/fork.c
-index e192bdbc9ade..0b616c37cf82 100644
+index e192bdbc9adeb..0b616c37cf820 100644
 --- a/kernel/fork.c
 +++ b/kernel/fork.c
 @@ -113,6 +113,8 @@
@@ -41891,7 +41891,7 @@ index e192bdbc9ade..0b616c37cf82 100644
  	retval = perf_event_init_task(p, clone_flags);
  	if (retval)
 diff --git a/kernel/sched/Makefile b/kernel/sched/Makefile
-index 976092b7bd45..293aad675444 100644
+index 976092b7bd452..293aad675444b 100644
 --- a/kernel/sched/Makefile
 +++ b/kernel/sched/Makefile
 @@ -32,3 +32,4 @@ obj-y += core.o
@@ -41901,7 +41901,7 @@ index 976092b7bd45..293aad675444 100644
 +obj-y += bore.o
 diff --git a/kernel/sched/bore.c b/kernel/sched/bore.c
 new file mode 100644
-index 000000000000..46d1e86f1e4e
+index 0000000000000..46d1e86f1e4e1
 --- /dev/null
 +++ b/kernel/sched/bore.c
 @@ -0,0 +1,424 @@
@@ -42330,7 +42330,7 @@ index 000000000000..46d1e86f1e4e
 +#endif // CONFIG_SYSCTL
 +#endif // CONFIG_SCHED_BORE
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index d07dc87787df..3829d932a028 100644
+index d07dc87787dff..3829d932a0289 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -97,6 +97,8 @@
@@ -42354,7 +42354,7 @@ index d07dc87787df..3829d932a028 100644
  
  #ifdef CONFIG_FAIR_GROUP_SCHED
 diff --git a/kernel/sched/debug.c b/kernel/sched/debug.c
-index 82b165bf48c4..d2d48cb6a668 100644
+index 82b165bf48c42..d2d48cb6a6688 100644
 --- a/kernel/sched/debug.c
 +++ b/kernel/sched/debug.c
 @@ -167,7 +167,53 @@ static const struct file_operations sched_feat_fops = {
@@ -42462,7 +42462,7 @@ index 82b165bf48c4..d2d48cb6a668 100644
  	P(se.avg.runnable_sum);
  	P(se.avg.util_sum);
 diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
-index 1ca96c99872f..da27682ab602 100644
+index 1ca96c99872f0..da27682ab6026 100644
 --- a/kernel/sched/fair.c
 +++ b/kernel/sched/fair.c
 @@ -55,6 +55,8 @@
@@ -42673,7 +42673,7 @@ index 1ca96c99872f..da27682ab602 100644
  }
  
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index f2ef520513c4..6322dc48600b 100644
+index f2ef520513c4a..6322dc48600b8 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
 @@ -2084,7 +2084,11 @@ static inline void update_sched_domain_debugfs(void) { }
@@ -42702,7 +42702,7 @@ index f2ef520513c4..6322dc48600b 100644
  #ifdef CONFIG_SCHED_DEBUG
  extern int sysctl_resched_latency_warn_ms;
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -42711,7 +42711,7 @@ Date: Sat, 12 Oct 2024 19:23:29 +0200
 Subject: [BEGIN] General and Temporary Patches
 
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -42727,7 +42727,7 @@ Subject: [NOT FOR UPSTREAM] add acpi_call module
  create mode 100644 drivers/platform/x86/acpi_call.c
 
 diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-index 3875abba5a79..95dec316c4df 100644
+index 3875abba5a790..95dec316c4df2 100644
 --- a/drivers/platform/x86/Kconfig
 +++ b/drivers/platform/x86/Kconfig
 @@ -180,6 +180,11 @@ config ACER_WIRELESS
@@ -42743,7 +42743,7 @@ index 3875abba5a79..95dec316c4df 100644
  	tristate "Acer WMI Laptop Extras"
  	depends on BACKLIGHT_CLASS_DEVICE
 diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
-index e1b142947067..870d0157dbc7 100644
+index e1b1429470674..870d0157dbc73 100644
 --- a/drivers/platform/x86/Makefile
 +++ b/drivers/platform/x86/Makefile
 @@ -4,10 +4,14 @@
@@ -42763,7 +42763,7 @@ index e1b142947067..870d0157dbc7 100644
  obj-$(CONFIG_MXM_WMI)			+= mxm-wmi.o
 diff --git a/drivers/platform/x86/acpi_call.c b/drivers/platform/x86/acpi_call.c
 new file mode 100644
-index 000000000000..d7bc238e16da
+index 0000000000000..d7bc238e16dae
 --- /dev/null
 +++ b/drivers/platform/x86/acpi_call.c
 @@ -0,0 +1,449 @@
@@ -43218,7 +43218,7 @@ index 000000000000..d7bc238e16da
 +module_exit(unload_acpi_call);
 \ No newline at end of file
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -43231,7 +43231,7 @@ Subject: [NOT FOR UPSTREAM] remove stupid "No IRQ Handler for vector" message
  1 file changed, 1 insertion(+), 5 deletions(-)
 
 diff --git a/arch/x86/kernel/irq.c b/arch/x86/kernel/irq.c
-index 385e3a5fc304..d5e86c30e7b7 100644
+index 385e3a5fc3045..d5e86c30e7b70 100644
 --- a/arch/x86/kernel/irq.c
 +++ b/arch/x86/kernel/irq.c
 @@ -259,11 +259,7 @@ static __always_inline int call_irq_handler(int vector, struct pt_regs *regs)
@@ -43248,7 +43248,7 @@ index 385e3a5fc304..d5e86c30e7b7 100644
  		}
  	}
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -43274,7 +43274,7 @@ Signed-off-by: Abhishek Pandit-Subedi <abhishekpandit@chromium.org>
  2 files changed, 38 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/input/misc/uinput.c b/drivers/input/misc/uinput.c
-index 2c51ea9d01d7..7dd31d2ff3b7 100644
+index 2c51ea9d01d77..7dd31d2ff3b73 100644
 --- a/drivers/input/misc/uinput.c
 +++ b/drivers/input/misc/uinput.c
 @@ -20,6 +20,7 @@
@@ -43382,7 +43382,7 @@ index 2c51ea9d01d7..7dd31d2ff3b7 100644
  
  	retval = -EINVAL;
 diff --git a/include/uapi/linux/uinput.h b/include/uapi/linux/uinput.h
-index c9e677e3af1d..84d4fa142830 100644
+index c9e677e3af1d2..84d4fa1428306 100644
 --- a/include/uapi/linux/uinput.h
 +++ b/include/uapi/linux/uinput.h
 @@ -142,9 +142,14 @@ struct uinput_abs_setup {
@@ -43401,7 +43401,7 @@ index c9e677e3af1d..84d4fa142830 100644
  #define UI_BEGIN_FF_UPLOAD	_IOWR(UINPUT_IOCTL_BASE, 200, struct uinput_ff_upload)
  #define UI_END_FF_UPLOAD	_IOW(UINPUT_IOCTL_BASE, 201, struct uinput_ff_upload)
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -43415,7 +43415,7 @@ Subject: PCI: Add ACI override to allow GPU passthrough in older motherboards
  2 files changed, 110 insertions(+)
 
 diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-index 5a812e0b740a..025629853b47 100644
+index 5a812e0b740a7..025629853b471 100644
 --- a/Documentation/admin-guide/kernel-parameters.txt
 +++ b/Documentation/admin-guide/kernel-parameters.txt
 @@ -4478,6 +4478,14 @@
@@ -43434,7 +43434,7 @@ index 5a812e0b740a..025629853b47 100644
  				Safety option to keep boot IRQs enabled. This
  				should never be necessary.
 diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
-index 3b4fbc24ec91..f34d3dd6a81c 100644
+index 3b4fbc24ec918..f34d3dd6a81c5 100644
 --- a/drivers/pci/quirks.c
 +++ b/drivers/pci/quirks.c
 @@ -5040,6 +5040,106 @@ static int  pci_quirk_wangxun_nic_acs(struct pci_dev *dev, u16 acs_flags)
@@ -43554,7 +43554,7 @@ index 3b4fbc24ec91..f34d3dd6a81c 100644
  };
  
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -43571,7 +43571,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 9 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
-index f34d3dd6a81c..145459301730 100644
+index f34d3dd6a81c5..1454593017305 100644
 --- a/drivers/pci/quirks.c
 +++ b/drivers/pci/quirks.c
 @@ -5040,6 +5040,7 @@ static int  pci_quirk_wangxun_nic_acs(struct pci_dev *dev, u16 acs_flags)
@@ -43607,7 +43607,7 @@ index f34d3dd6a81c..145459301730 100644
  	if (!pci_is_pcie(dev) ||
  		pci_find_ext_capability(dev, PCI_EXT_CAP_ID_ACS))
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -43622,7 +43622,7 @@ Link:
  2 files changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/pm/legacy-dpm/si_dpm.c b/drivers/gpu/drm/amd/pm/legacy-dpm/si_dpm.c
-index a1baa13ab2c2..d95e80d87e2e 100644
+index a1baa13ab2c26..d95e80d87e2e2 100644
 --- a/drivers/gpu/drm/amd/pm/legacy-dpm/si_dpm.c
 +++ b/drivers/gpu/drm/amd/pm/legacy-dpm/si_dpm.c
 @@ -3435,9 +3435,11 @@ static void si_apply_state_adjust_rules(struct amdgpu_device *adev,
@@ -43639,7 +43639,7 @@ index a1baa13ab2c2..d95e80d87e2e 100644
  		}
  		if ((adev->pdev->revision == 0xC3) ||
 diff --git a/drivers/gpu/drm/radeon/si_dpm.c b/drivers/gpu/drm/radeon/si_dpm.c
-index 9deb91970d4d..5db16c20bd17 100644
+index 9deb91970d4df..5db16c20bd173 100644
 --- a/drivers/gpu/drm/radeon/si_dpm.c
 +++ b/drivers/gpu/drm/radeon/si_dpm.c
 @@ -2915,9 +2915,11 @@ static void si_apply_state_adjust_rules(struct radeon_device *rdev,
@@ -43656,7 +43656,7 @@ index 9deb91970d4d..5db16c20bd17 100644
  		}
  		if ((rdev->pdev->revision == 0xC3) ||
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -43670,7 +43670,7 @@ This reverts commit 907830b0fc9e374d00f3c83de5e426157b482c01.
  1 file changed, 1 insertion(+), 7 deletions(-)
 
 diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index dd3c6dcb47ae..b10696b25a76 100644
+index dd3c6dcb47ae4..b10696b25a76d 100644
 --- a/drivers/pci/pci.c
 +++ b/drivers/pci/pci.c
 @@ -3762,14 +3762,8 @@ u32 pci_rebar_get_possible_sizes(struct pci_dev *pdev, int bar)
@@ -43690,7 +43690,7 @@ index dd3c6dcb47ae..b10696b25a76 100644
  EXPORT_SYMBOL(pci_rebar_get_possible_sizes);
  
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -43808,7 +43808,7 @@ Link: https://lore.kernel.org/all/20220921063638.2489-1-kprateek.nayak@amd.com/
  1 file changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 831fa4a12159..aec5c5ab9e64 100644
+index 831fa4a121598..aec5c5ab9e64e 100644
 --- a/drivers/acpi/processor_idle.c
 +++ b/drivers/acpi/processor_idle.c
 @@ -524,8 +524,11 @@ static __cpuidle void io_idle(unsigned long addr)
@@ -43826,7 +43826,7 @@ index 831fa4a12159..aec5c5ab9e64 100644
  	/*
  	 * Modern (>=Nehalem) Intel systems use ACPI via intel_idle,
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -43847,7 +43847,7 @@ This reverts commits:
  3 files changed, 30 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
-index 76b3f7b396c8..fc2963b830a3 100644
+index 76b3f7b396c86..fc2963b830a34 100644
 --- a/drivers/nvme/host/pci.c
 +++ b/drivers/nvme/host/pci.c
 @@ -5,6 +5,7 @@
@@ -43879,7 +43879,7 @@ index 76b3f7b396c8..fc2963b830a3 100644
  
  	nvme_cancel_tagset(&dev->ctrl);
 diff --git a/drivers/pci/pcie/aer.c b/drivers/pci/pcie/aer.c
-index 13b8586924ea..12ba10cbc174 100644
+index 13b8586924ead..12ba10cbc174f 100644
 --- a/drivers/pci/pcie/aer.c
 +++ b/drivers/pci/pcie/aer.c
 @@ -232,7 +232,7 @@ int pcie_aer_is_native(struct pci_dev *dev)
@@ -43912,7 +43912,7 @@ index 13b8586924ea..12ba10cbc174 100644
  int pci_aer_clear_nonfatal_status(struct pci_dev *dev)
  {
 diff --git a/include/linux/aer.h b/include/linux/aer.h
-index 4b97f38f3fcf..3b338b556ecb 100644
+index 4b97f38f3fcf2..3b338b556ecb6 100644
 --- a/include/linux/aer.h
 +++ b/include/linux/aer.h
 @@ -40,9 +40,20 @@ struct aer_capability_regs {
@@ -43937,7 +43937,7 @@ index 4b97f38f3fcf..3b338b556ecb 100644
  {
  	return -EINVAL;
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -43954,7 +43954,7 @@ Subject: Cachy: drm/amdgpu/pm: Allow override of min_power_limit with
  4 files changed, 26 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu.h b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
-index 9b1e0ede05a4..7617963901fa 100644
+index 9b1e0ede05a45..7617963901fa2 100644
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu.h
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
 @@ -164,6 +164,7 @@ struct amdgpu_watchdog_timer {
@@ -43966,7 +43966,7 @@ index 9b1e0ede05a4..7617963901fa 100644
  extern int amdgpu_gart_size;
  extern int amdgpu_gtt_size;
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-index 81d9877c8735..6f3161796fd2 100644
+index 81d9877c87357..6f3161796fd2a 100644
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
 @@ -136,6 +136,7 @@ enum AMDGPU_DEBUG_MASK {
@@ -43994,7 +43994,7 @@ index 81d9877c8735..6f3161796fd2 100644
   * DOC: vramlimit (int)
   * Restrict the total amount of VRAM in MiB for testing.  The default is 0 (Use full VRAM).
 diff --git a/drivers/gpu/drm/amd/pm/amdgpu_pm.c b/drivers/gpu/drm/amd/pm/amdgpu_pm.c
-index 0fa6fbee1978..907bf4ed9663 100644
+index 0fa6fbee19789..907bf4ed96638 100644
 --- a/drivers/gpu/drm/amd/pm/amdgpu_pm.c
 +++ b/drivers/gpu/drm/amd/pm/amdgpu_pm.c
 @@ -3276,6 +3276,9 @@ static ssize_t amdgpu_hwmon_show_power_cap_min(struct device *dev,
@@ -44008,7 +44008,7 @@ index 0fa6fbee1978..907bf4ed9663 100644
  }
  
 diff --git a/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c b/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
-index 84f26f568135..0d8843a27193 100644
+index 84f26f5681355..0d8843a271933 100644
 --- a/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
 +++ b/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
 @@ -2791,7 +2791,10 @@ int smu_get_power_limit(void *handle,
@@ -44040,7 +44040,7 @@ index 84f26f568135..0d8843a27193 100644
  			"New power limit (%d) is out of range [%d,%d]\n",
  			limit, smu->min_power_limit, smu->max_power_limit);
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -44057,7 +44057,7 @@ Subject: Allow to set custom USB pollrate for specific devices like so:
  4 files changed, 179 insertions(+), 1 deletion(-)
 
 diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-index 025629853b47..d9a335037a52 100644
+index 025629853b471..d9a335037a52d 100644
 --- a/Documentation/admin-guide/kernel-parameters.txt
 +++ b/Documentation/admin-guide/kernel-parameters.txt
 @@ -7225,6 +7225,14 @@
@@ -44076,7 +44076,7 @@ index 025629853b47..d9a335037a52 100644
  			[USBHID] The interval which mice are to be polled at.
  
 diff --git a/drivers/usb/core/config.c b/drivers/usb/core/config.c
-index 880d52c0949d..9f2b7e9aad96 100644
+index 880d52c0949d4..9f2b7e9aad965 100644
 --- a/drivers/usb/core/config.c
 +++ b/drivers/usb/core/config.c
 @@ -19,6 +19,149 @@
@@ -44275,7 +44275,7 @@ index 880d52c0949d..9f2b7e9aad96 100644
 +	mutex_unlock(&interrupt_interval_override_mutex);
 +}
 diff --git a/drivers/usb/core/usb.c b/drivers/usb/core/usb.c
-index 0b4685aad2d5..730331689a42 100644
+index 0b4685aad2d50..730331689a42a 100644
 --- a/drivers/usb/core/usb.c
 +++ b/drivers/usb/core/usb.c
 @@ -1135,6 +1135,7 @@ static void __exit usb_exit(void)
@@ -44287,7 +44287,7 @@ index 0b4685aad2d5..730331689a42 100644
  	usb_major_cleanup();
  	usb_deregister(&usbfs_driver);
 diff --git a/drivers/usb/core/usb.h b/drivers/usb/core/usb.h
-index b8324ea05b20..f6f57d7d73d4 100644
+index b8324ea05b20f..f6f57d7d73d48 100644
 --- a/drivers/usb/core/usb.h
 +++ b/drivers/usb/core/usb.h
 @@ -38,6 +38,7 @@ extern void usb_authorize_interface(struct usb_interface *);
@@ -44299,7 +44299,7 @@ index b8324ea05b20..f6f57d7d73d4 100644
  		struct usb_host_interface *intf,
  		struct usb_endpoint_descriptor *epd);
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -44312,7 +44312,7 @@ Subject: set ds controller bluetooth pollrate to 1 ms
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/hid/hid-playstation.c b/drivers/hid/hid-playstation.c
-index 1468fb11e39d..52f48be5fc55 100644
+index 1468fb11e39df..52f48be5fc55a 100644
 --- a/drivers/hid/hid-playstation.c
 +++ b/drivers/hid/hid-playstation.c
 @@ -337,8 +337,8 @@ struct dualsense_output_report {
@@ -44327,7 +44327,7 @@ index 1468fb11e39d..52f48be5fc55 100644
  #define DS4_OUTPUT_HWCTL_HID		0x80
  
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -44342,7 +44342,7 @@ Signed-off-by: Jan200101 <sentrycraft123@gmail.com>
  2 files changed, 10 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-index 6f3161796fd2..dd05dae981cb 100644
+index 6f3161796fd2a..dd05dae981cb9 100644
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
 @@ -628,13 +628,8 @@ module_param_named(timeout_period, amdgpu_watchdog_timer.period, uint, 0644);
@@ -44374,7 +44374,7 @@ index 6f3161796fd2..dd05dae981cb 100644
  module_param_named(cik_support, amdgpu_cik_support, int, 0444);
  #endif
 diff --git a/drivers/gpu/drm/radeon/radeon_drv.c b/drivers/gpu/drm/radeon/radeon_drv.c
-index e5a6f3e7c75b..fa10cd4be7a6 100644
+index e5a6f3e7c75b6..fa10cd4be7a6c 100644
 --- a/drivers/gpu/drm/radeon/radeon_drv.c
 +++ b/drivers/gpu/drm/radeon/radeon_drv.c
 @@ -239,12 +239,22 @@ module_param_named(uvd, radeon_uvd, int, 0444);
@@ -44401,7 +44401,7 @@ index e5a6f3e7c75b..fa10cd4be7a6 100644
  
  static struct pci_device_id pciidlist[] = {
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -44424,7 +44424,7 @@ d09009bc80d9d0d812b988888c40cd86e52eaf1e respectively.
  3 files changed, 1 insertion(+), 431 deletions(-)
 
 diff --git a/drivers/bluetooth/btmtk.c b/drivers/bluetooth/btmtk.c
-index 85e99641eaae..ac139f8d9b3d 100644
+index af487abe9932a..d1480b0449f5c 100644
 --- a/drivers/bluetooth/btmtk.c
 +++ b/drivers/bluetooth/btmtk.c
 @@ -22,9 +22,6 @@
@@ -44760,7 +44760,7 @@ index 85e99641eaae..ac139f8d9b3d 100644
  	default:
  		bt_dev_err(hdev, "Unsupported hardware variant (%08x)",
 diff --git a/drivers/bluetooth/btmtk.h b/drivers/bluetooth/btmtk.h
-index 5df7c3296624..c61337123a19 100644
+index 5df7c32966247..c61337123a195 100644
 --- a/drivers/bluetooth/btmtk.h
 +++ b/drivers/bluetooth/btmtk.h
 @@ -40,9 +40,6 @@
@@ -44836,7 +44836,7 @@ index 5df7c3296624..c61337123a19 100644
  {
  	return -EOPNOTSUPP;
 diff --git a/drivers/bluetooth/btusb.c b/drivers/bluetooth/btusb.c
-index 4f9d9fdfa7be..d6a4815c4ada 100644
+index 4f9d9fdfa7be1..d6a4815c4ada1 100644
 --- a/drivers/bluetooth/btusb.c
 +++ b/drivers/bluetooth/btusb.c
 @@ -2631,51 +2631,6 @@ static int btusb_recv_event_realtek(struct hci_dev *hdev, struct sk_buff *skb)
@@ -44967,7 +44967,7 @@ index 4f9d9fdfa7be..d6a4815c4ada 100644
  
  	if (id->driver_info & BTUSB_SWAVE) {
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -44977,7 +44977,7 @@ Subject: [BEGIN] Hibernate fix for AMDGPU
 
 Closes: https://gitlab.freedesktop.org/drm/amd/-/issues/3781
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -45000,7 +45000,7 @@ Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
-index 45e28726e148..942c4b134348 100644
+index 45e28726e148e..942c4b1343486 100644
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
 @@ -4692,8 +4692,8 @@ static int amdgpu_device_evict_resources(struct amdgpu_device *adev)
@@ -45015,7 +45015,7 @@ index 45e28726e148..942c4b134348 100644
  
  	ret = amdgpu_ttm_evict_resources(adev, TTM_PL_VRAM);
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -45048,7 +45048,7 @@ Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
  2 files changed, 43 insertions(+)
 
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu.h b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
-index 7617963901fa..03933b2c5ebc 100644
+index 7617963901fa2..03933b2c5ebca 100644
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu.h
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
 @@ -855,6 +855,7 @@ struct amdgpu_device {
@@ -45060,7 +45060,7 @@ index 7617963901fa..03933b2c5ebc 100644
  	struct debugfs_blob_wrapper     debugfs_vbios_blob;
  	struct debugfs_blob_wrapper     debugfs_discovery_blob;
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
-index 942c4b134348..ca530cdf1b3e 100644
+index 942c4b1343486..ca530cdf1b3eb 100644
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
 @@ -145,6 +145,8 @@ const char *amdgpu_asic_name[] = {
@@ -45134,7 +45134,7 @@ index 942c4b134348..ca530cdf1b3e 100644
   * amdgpu_device_prepare - prepare for device suspend
   *
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -45143,7 +45143,7 @@ Date: Fri, 25 Oct 2024 09:54:28 +0200
 Subject: [BEGIN] 6.13 Cherry picks
 
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -45160,7 +45160,7 @@ Signed-off-by: Luke D. Jones <luke@ljones.dev>
  1 file changed, 16 insertions(+)
 
 diff --git a/drivers/platform/x86/amd/pmf/pmf-quirks.c b/drivers/platform/x86/amd/pmf/pmf-quirks.c
-index 7cde5733b9ca..02b9d0b49092 100644
+index 7cde5733b9cac..02b9d0b490928 100644
 --- a/drivers/platform/x86/amd/pmf/pmf-quirks.c
 +++ b/drivers/platform/x86/amd/pmf/pmf-quirks.c
 @@ -29,6 +29,22 @@ static const struct dmi_system_id fwbug_list[] = {
@@ -45187,7 +45187,7 @@ index 7cde5733b9ca..02b9d0b49092 100644
  		.ident = "ROG Ally X",
  		.matches = {
 -- 
-2.47.1
+2.48.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
@@ -45204,7 +45204,7 @@ Signed-off-by: Luke D. Jones <luke@ljones.dev>
  1 file changed, 2 insertions(+)
 
 diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
-index fec38789091c..e49e5c7fe5a7 100644
+index fec38789091c5..e49e5c7fe5a7b 100644
 --- a/sound/pci/hda/patch_realtek.c
 +++ b/sound/pci/hda/patch_realtek.c
 @@ -10681,6 +10681,8 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
@@ -45217,5 +45217,67 @@ index fec38789091c..e49e5c7fe5a7 100644
  	SND_PCI_QUIRK(0x1043, 0x1eb3, "ASUS Ally RCLA72", ALC287_FIXUP_TAS2781_I2C),
  	SND_PCI_QUIRK(0x1043, 0x1ed3, "ASUS HN7306W", ALC287_FIXUP_CS35L41_I2C_2),
 -- 
-2.47.1
+2.48.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mario Limonciello <mario.limonciello@amd.com>
+Date: Wed, 22 Jan 2025 20:49:13 -0600
+Subject: ASoC: acp: Support microphone from Lenovo Go S
+
+On Lenovo Go S there is a DMIC connected to the ACP but the firmware
+has no `AcpDmicConnected` ACPI _DSD.
+
+Add a DMI entry for all possible Lenovo Go S SKUs to enable DMIC.
+
+Cc: nijs1@lenovo.com
+Cc: pgriffais@valvesoftware.com
+Cc: mpearson-lenovo@squebb.ca
+Cc: stable@vger.kernel.org
+Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+---
+ sound/soc/amd/yc/acp6x-mach.c | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
+
+diff --git a/sound/soc/amd/yc/acp6x-mach.c b/sound/soc/amd/yc/acp6x-mach.c
+index ecf57a6cb7c37..b16587d8f97a8 100644
+--- a/sound/soc/amd/yc/acp6x-mach.c
++++ b/sound/soc/amd/yc/acp6x-mach.c
+@@ -304,6 +304,34 @@ static const struct dmi_system_id yc_acp_quirk_table[] = {
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "83AS"),
+ 		}
+ 	},
++	{
++		.driver_data = &acp6x_card,
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "LENOVO"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "83L3"),
++		}
++	},
++	{
++		.driver_data = &acp6x_card,
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "LENOVO"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "83N6"),
++		}
++	},
++	{
++		.driver_data = &acp6x_card,
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "LENOVO"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "83Q2"),
++		}
++	},
++	{
++		.driver_data = &acp6x_card,
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "LENOVO"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "83Q3"),
++		}
++	},
+ 	{
+ 		.driver_data = &acp6x_card,
+ 		.matches = {
+-- 
+2.48.0
 
