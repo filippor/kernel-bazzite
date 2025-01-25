@@ -135,6 +135,8 @@ CONFIG_REGULATOR_QCOM_USB_VBUS=m
 CONFIG_CHARGER_QCOM_SMB5=m
 CONFIG_BATTERY_QCOM_FG=m
 
+CONFIG_ASUS_ARMOURY=m
+
 # from batoceran, ignore for now # CONFIG_DRM_HDLCD is not set
 # from batoceran, ignore for now # CONFIG_DRM_MALI_DISPLAY is not set
 # from batoceran, ignore for now # CONFIG_DRM_KOMEDA is not set
