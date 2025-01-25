@@ -9780,14 +9780,14 @@ current driver functionality.
 
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- drivers/hwmon/oxp-sensors.c | 16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ drivers/hwmon/oxp-sensors.c | 23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index 83730d9318240..5cb0da3e5d546 100644
+index 83730d9318240..5a4230ad3757e 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
-@@ -205,7 +205,21 @@ static const struct dmi_system_id dmi_table[] = {
+@@ -205,7 +205,28 @@ static const struct dmi_system_id dmi_table[] = {
  	{
  		.matches = {
  			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
@@ -9807,6 +9807,13 @@ index 83730d9318240..5cb0da3e5d546 100644
 +		.matches = {
 +			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
 +			DMI_EXACT_MATCH(DMI_BOARD_NAME, "ONEXPLAYER X1 mini"),
++		},
++		.driver_data = (void *)oxp_x1,
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
++			DMI_EXACT_MATCH(DMI_BOARD_NAME, "ONEXPLAYER X1Pro"),
  		},
  		.driver_data = (void *)oxp_x1,
  	},
@@ -9843,7 +9850,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 35 insertions(+)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index 5cb0da3e5d546..6aed7b3c86743 100644
+index 5a4230ad3757e..f7a64fbc8f33e 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
 @@ -188,6 +188,41 @@ static const struct dmi_system_id dmi_table[] = {
@@ -9907,7 +9914,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index 6aed7b3c86743..64046e30d4806 100644
+index f7a64fbc8f33e..cd66093b94182 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
 @@ -169,7 +169,7 @@ static const struct dmi_system_id dmi_table[] = {
@@ -9988,7 +9995,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 206 insertions(+)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index 64046e30d4806..688b0cc5c6d6c 100644
+index cd66093b94182..890dca68169c9 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
 @@ -26,6 +26,7 @@
@@ -10035,7 +10042,7 @@ index 64046e30d4806..688b0cc5c6d6c 100644
  static const struct dmi_system_id dmi_table[] = {
  	{
  		.matches = {
-@@ -429,6 +459,177 @@ static ssize_t tt_toggle_show(struct device *dev,
+@@ -436,6 +466,177 @@ static ssize_t tt_toggle_show(struct device *dev,
  
  static DEVICE_ATTR_RW(tt_toggle);
  
@@ -10213,7 +10220,7 @@ index 64046e30d4806..688b0cc5c6d6c 100644
  /* PWM enable/disable functions */
  static int oxp_pwm_enable(void)
  {
-@@ -746,6 +947,9 @@ static int __init oxp_platform_init(void)
+@@ -753,6 +954,9 @@ static int __init oxp_platform_init(void)
  		platform_create_bundle(&oxp_platform_driver,
  				       oxp_platform_probe, NULL, 0, NULL, 0);
  
@@ -10223,7 +10230,7 @@ index 64046e30d4806..688b0cc5c6d6c 100644
  	return PTR_ERR_OR_ZERO(oxp_platform_device);
  }
  
-@@ -753,6 +957,8 @@ static void __exit oxp_platform_exit(void)
+@@ -760,6 +964,8 @@ static void __exit oxp_platform_exit(void)
  {
  	platform_device_unregister(oxp_platform_device);
  	platform_driver_unregister(&oxp_platform_driver);
@@ -10252,10 +10259,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index 688b0cc5c6d6c..9aa327e8169ad 100644
+index 890dca68169c9..ea82c102e85fe 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
-@@ -877,18 +877,18 @@ static const struct hwmon_channel_info * const oxp_platform_sensors[] = {
+@@ -884,18 +884,18 @@ static const struct hwmon_channel_info * const oxp_platform_sensors[] = {
  	NULL,
  };
  
@@ -10308,7 +10315,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 84 insertions(+)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index 9aa327e8169ad..ea75a2c231ff8 100644
+index ea82c102e85fe..ce7f51d654b96 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
 @@ -101,6 +101,12 @@ static enum oxp_board board;
@@ -10324,7 +10331,7 @@ index 9aa327e8169ad..ea75a2c231ff8 100644
  enum charge_type_value_index {
  	CT_OFF,
  	CT_S0,
-@@ -459,6 +465,73 @@ static ssize_t tt_toggle_show(struct device *dev,
+@@ -466,6 +472,73 @@ static ssize_t tt_toggle_show(struct device *dev,
  
  static DEVICE_ATTR_RW(tt_toggle);
  
@@ -10398,7 +10405,7 @@ index 9aa327e8169ad..ea75a2c231ff8 100644
  /* Callbacks for turbo toggle attribute */
  static bool charge_control_supported(void)
  {
-@@ -887,8 +960,19 @@ static struct attribute_group oxp_tt_toggle_attribute_group = {
+@@ -894,8 +967,19 @@ static struct attribute_group oxp_tt_toggle_attribute_group = {
  	.attrs = oxp_tt_toggle_attrs,
  };
  
@@ -10442,10 +10449,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 27 insertions(+), 23 deletions(-)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index ea75a2c231ff8..54ee980462a0a 100644
+index ce7f51d654b96..d1a6f0fe1d870 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
-@@ -755,6 +755,32 @@ static int oxp_pwm_disable(void)
+@@ -762,6 +762,32 @@ static int oxp_pwm_disable(void)
  	}
  }
  
@@ -10478,7 +10485,7 @@ index ea75a2c231ff8..54ee980462a0a 100644
  /* Callbacks for hwmon interface */
  static umode_t oxp_ec_hwmon_is_visible(const void *drvdata,
  				       enum hwmon_sensor_types type, u32 attr, int channel)
-@@ -852,29 +878,7 @@ static int oxp_platform_read(struct device *dev, enum hwmon_sensor_types type,
+@@ -859,29 +885,7 @@ static int oxp_platform_read(struct device *dev, enum hwmon_sensor_types type,
  			}
  			return 0;
  		case hwmon_pwm_enable:
@@ -10532,10 +10539,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 87 insertions(+), 75 deletions(-)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index 54ee980462a0a..627345da6d52e 100644
+index d1a6f0fe1d870..e70f57ad85843 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
-@@ -795,6 +795,91 @@ static umode_t oxp_ec_hwmon_is_visible(const void *drvdata,
+@@ -802,6 +802,91 @@ static umode_t oxp_ec_hwmon_is_visible(const void *drvdata,
  	}
  }
  
@@ -10627,7 +10634,7 @@ index 54ee980462a0a..627345da6d52e 100644
  static int oxp_platform_read(struct device *dev, enum hwmon_sensor_types type,
  			     u32 attr, int channel, long *val)
  {
-@@ -835,48 +920,7 @@ static int oxp_platform_read(struct device *dev, enum hwmon_sensor_types type,
+@@ -842,48 +927,7 @@ static int oxp_platform_read(struct device *dev, enum hwmon_sensor_types type,
  	case hwmon_pwm:
  		switch (attr) {
  		case hwmon_pwm_input:
@@ -10677,7 +10684,7 @@ index 54ee980462a0a..627345da6d52e 100644
  		case hwmon_pwm_enable:
  			return oxp_pwm_read(val);
  		default:
-@@ -902,39 +946,7 @@ static int oxp_platform_write(struct device *dev, enum hwmon_sensor_types type,
+@@ -909,39 +953,7 @@ static int oxp_platform_write(struct device *dev, enum hwmon_sensor_types type,
  				return oxp_pwm_disable();
  			return -EINVAL;
  		case hwmon_pwm_input:
@@ -10737,10 +10744,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 29 insertions(+), 24 deletions(-)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index 627345da6d52e..3f974973b7142 100644
+index e70f57ad85843..e2d27ac2c992a 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
-@@ -795,6 +795,34 @@ static umode_t oxp_ec_hwmon_is_visible(const void *drvdata,
+@@ -802,6 +802,34 @@ static umode_t oxp_ec_hwmon_is_visible(const void *drvdata,
  	}
  }
  
@@ -10775,7 +10782,7 @@ index 627345da6d52e..3f974973b7142 100644
  /* PWM input read/write functions */
  static int oxp_pwm_input_write(long val)
  {
-@@ -889,30 +917,7 @@ static int oxp_platform_read(struct device *dev, enum hwmon_sensor_types type,
+@@ -896,30 +924,7 @@ static int oxp_platform_read(struct device *dev, enum hwmon_sensor_types type,
  	case hwmon_fan:
  		switch (attr) {
  		case hwmon_fan_input:
@@ -10833,10 +10840,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 33 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index 3f974973b7142..227429f6424c5 100644
+index e2d27ac2c992a..8e360c0f1a17f 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
-@@ -927,7 +927,27 @@ static int oxp_platform_read(struct device *dev, enum hwmon_sensor_types type,
+@@ -934,7 +934,27 @@ static int oxp_platform_read(struct device *dev, enum hwmon_sensor_types type,
  		case hwmon_pwm_input:
  			return oxp_pwm_input_read(val);
  		case hwmon_pwm_enable:
@@ -10865,7 +10872,7 @@ index 3f974973b7142..227429f6424c5 100644
  		default:
  			break;
  		}
-@@ -941,15 +961,24 @@ static int oxp_platform_read(struct device *dev, enum hwmon_sensor_types type,
+@@ -948,15 +968,24 @@ static int oxp_platform_read(struct device *dev, enum hwmon_sensor_types type,
  static int oxp_platform_write(struct device *dev, enum hwmon_sensor_types type,
  			      u32 attr, int channel, long val)
  {
@@ -10892,7 +10899,7 @@ index 3f974973b7142..227429f6424c5 100644
  		case hwmon_pwm_input:
  			return oxp_pwm_input_write(val);
  		default:
-@@ -1014,7 +1043,7 @@ static int oxp_platform_probe(struct platform_device *pdev)
+@@ -1021,7 +1050,7 @@ static int oxp_platform_probe(struct platform_device *pdev)
  	struct device *dev = &pdev->dev;
  	struct device *hwdev;
  
@@ -34581,7 +34588,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  3 files changed, 130 insertions(+)
 
 diff --git a/include/linux/suspend.h b/include/linux/suspend.h
-index 01ee64321cda5..b8fe781d80262 100644
+index 01ee64321cda5..d120d9b425978 100644
 --- a/include/linux/suspend.h
 +++ b/include/linux/suspend.h
 @@ -40,6 +40,15 @@ typedef int __bitwise suspend_state_t;
@@ -34604,7 +34611,7 @@ index 01ee64321cda5..b8fe781d80262 100644
  
  extern int pm_suspend(suspend_state_t state);
  extern bool sync_on_suspend_enabled;
-+extern int pm_standby_transition(standby_state_t state);
++extern int pm_standby_transition(standby_state_t state, bool skip_transition);
 +extern int pm_standby_state(void);
  #else /* !CONFIG_SUSPEND */
  #define suspend_valid_only_mem	NULL
@@ -34622,7 +34629,7 @@ index de0e6b1077f23..4ee067cd0d4dd 100644
  extern int suspend_devices_and_enter(suspend_state_t state);
  #else /* !CONFIG_SUSPEND */
 diff --git a/kernel/power/suspend.c b/kernel/power/suspend.c
-index a42e8514ee7a0..8d78aa2ccfcfc 100644
+index a42e8514ee7a0..48aec7be22b13 100644
 --- a/kernel/power/suspend.c
 +++ b/kernel/power/suspend.c
 @@ -45,12 +45,21 @@ static const char * const mem_sleep_labels[] = {
@@ -34739,14 +34746,17 @@ index a42e8514ee7a0..8d78aa2ccfcfc 100644
 + * Fires the appropriate firmware notifications to transition to the requested
 + * state. Returns an error if the transition fails. The function does not
 + * rollback. It is up to userspace to handle the error and re-transition when
-+ * appropriate.
++ * appropriate. skip_transition can be used after hibernation power on to
++ * sync the kernel state with the firmware state. It is up to the caller
++ * to lock system sleep.
 + */
-+int pm_standby_transition(standby_state_t state)
++int pm_standby_transition(standby_state_t state, bool skip_transition)
 +{
-+	unsigned int sleep_flags = lock_system_sleep();
-+	int error = platform_standby_transition_internal(state);
-+	unlock_system_sleep(sleep_flags);
-+	return error;
++	if (skip_transition) {
++		standby_current = state;
++		return 0;
++	}
++	return platform_standby_transition_internal(state);
 +}
 +EXPORT_SYMBOL_GPL(pm_standby_transition);
 +
@@ -34755,10 +34765,7 @@ index a42e8514ee7a0..8d78aa2ccfcfc 100644
 + */
 +int pm_standby_state(void)
 +{
-+	unsigned int sleep_flags = lock_system_sleep();
-+	int state = standby_current;
-+	unlock_system_sleep(sleep_flags);
-+	return state;
++	return standby_current;
 +}
 +EXPORT_SYMBOL_GPL(pm_standby_state);
 +
@@ -35606,6 +35613,91 @@ index 1101e5b2488e5..a94d8fc792878 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sat, 25 Jan 2025 16:49:52 +0100
+Subject: PM: hibernate: Enter s2idle sleep state before hibernation
+
+Windows enters the s2idle sleep state before hibernation to pulse the
+suspend light and turn off auxiliaries prior to hibernation. These
+auxiliaries are 1) not used to maintain the swap of the system and
+2) can misbehave during the wake-ups in hibernation.
+
+One example is the OneXPlayer X1 controller, which will have its
+vibration motor stuck on, if it is not first deactivated by entering
+the sleep state.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ kernel/power/hibernate.c | 29 ++++++++++++++++++++++++++++-
+ 1 file changed, 28 insertions(+), 1 deletion(-)
+
+diff --git a/kernel/power/hibernate.c b/kernel/power/hibernate.c
+index 6d54eb03b63d4..180e009978529 100644
+--- a/kernel/power/hibernate.c
++++ b/kernel/power/hibernate.c
+@@ -739,6 +739,10 @@ int hibernate(void)
+ 	bool snapshot_test = false;
+ 	unsigned int sleep_flags;
+ 	int error;
++	bool powered_down = false;
++#ifdef CONFIG_SUSPEND
++	standby_state_t previous_standby;
++#endif
+ 
+ 	if (!hibernation_available()) {
+ 		pm_pr_dbg("Hibernation not available.\n");
+@@ -764,6 +768,12 @@ int hibernate(void)
+ 	}
+ 
+ 	pr_info("hibernation entry\n");
++
++#if CONFIG_SUSPEND
++	previous_standby = pm_standby_state();
++	pm_standby_transition(PM_STANDBY_SLEEP, false);
++#endif
++
+ 	pm_prepare_console();
+ 	error = pm_notifier_call_chain_robust(PM_HIBERNATION_PREPARE, PM_POST_HIBERNATION);
+ 	if (error)
+@@ -814,8 +824,10 @@ int hibernate(void)
+ 		if (!error) {
+ 			if (hibernation_mode == HIBERNATION_TEST_RESUME)
+ 				snapshot_test = true;
+-			else
++			else {
++				powered_down = true;
+ 				power_down();
++			}
+ 		}
+ 		in_suspend = 0;
+ 		pm_restore_gfp_mask();
+@@ -840,6 +852,21 @@ int hibernate(void)
+  Exit:
+ 	pm_notifier_call_chain(PM_POST_HIBERNATION);
+  Restore:
++#if CONFIG_SUSPEND
++	/*
++	 * If we powered down, current standby state will be active but
++	 * the suspend module will remember the previous state so we need
++	 * to sync it. After hibernation, standby state will always be active.
++	 * 
++	 * If the hibernation fails or we performed a snapshot test, we need
++	 * to restore the user's standby state.
++	 */
++	if (powered_down)
++		pm_standby_transition(PM_STANDBY_ACTIVE, true);
++	else
++		pm_standby_transition(previous_standby, false);
++#endif
++
+ 	pm_restore_console();
+ 	hibernate_release();
+  Unlock:
+-- 
+2.48.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
 Date: Fri, 15 Nov 2024 20:16:02 +0100
 Subject: PM: standby: Add sysfs attribute for modern standby transitions
 
@@ -35617,14 +35709,14 @@ suspend process and userspace will never see it.
 
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- kernel/power/main.c | 72 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 72 insertions(+)
+ kernel/power/main.c | 82 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 82 insertions(+)
 
 diff --git a/kernel/power/main.c b/kernel/power/main.c
-index 6254814d48171..e17b6e1f1bdcc 100644
+index 6254814d48171..cb894b39e4bae 100644
 --- a/kernel/power/main.c
 +++ b/kernel/power/main.c
-@@ -748,6 +748,77 @@ static ssize_t state_store(struct kobject *kobj, struct kobj_attribute *attr,
+@@ -748,6 +748,87 @@ static ssize_t state_store(struct kobject *kobj, struct kobj_attribute *attr,
  
  power_attr(state);
  
@@ -35640,18 +35732,21 @@ index 6254814d48171..e17b6e1f1bdcc 100644
 + * store() accepts one of those strings, translates it into the proper
 + * enumerated value, and initiates a transition to that standby state.
 + * 
-+ * When the system suspends, it will first enter the state "lps0", suspend,
-+ * and then restore the last state before entering "lps0". I.e., if userspace 
++ * When the system suspends, it will first enter the state "sleep", suspend,
++ * and then restore the last state before entering "sleep". I.e., if userspace 
 + * is not S0ix-aware, the transitions expected by Modern Standby devices will 
-+ * always be performed. Userspace cannot see or enter "lps0", as that is
-+ * the state where the kernel is suspended.
++ * always be performed.
 + */
 +static ssize_t standby_show(struct kobject *kobj, struct kobj_attribute *attr,
 +			  char *buf)
 +{
++	unsigned int sleep_flags;
 +	char *s = buf;
 +	standby_state_t i;
++	
++	sleep_flags = lock_system_sleep();
 +	standby_state_t curr = pm_standby_state();
++	unlock_system_sleep(sleep_flags);
 +
 +	if (curr < 0)
 +		return -EBUSY;
@@ -35688,11 +35783,18 @@ index 6254814d48171..e17b6e1f1bdcc 100644
 +static ssize_t standby_store(struct kobject *kobj, struct kobj_attribute *attr,
 +			   const char *buf, size_t n)
 +{
-+	standby_state_t state = decode_standby_state(buf, n);
++	unsigned int sleep_flags;
++	standby_state_t state;
++
++	state = decode_standby_state(buf, n);
++
 +	if (state >= PM_STANDBY_MAX)
 +		return -EINVAL;
 +
-+	int error = pm_standby_transition(state);
++	sleep_flags = lock_system_sleep();
++	int error = pm_standby_transition(state, false);
++	unlock_system_sleep(sleep_flags);
++	
 +	return error ? error : n;
 +}
 +
@@ -35702,7 +35804,7 @@ index 6254814d48171..e17b6e1f1bdcc 100644
  #ifdef CONFIG_PM_SLEEP
  /*
   * The 'wakeup_count' attribute, along with the functions defined in
-@@ -974,6 +1045,7 @@ static struct attribute * g[] = {
+@@ -974,6 +1055,7 @@ static struct attribute * g[] = {
  #ifdef CONFIG_SUSPEND
  	&mem_sleep_attr.attr,
  	&sync_on_suspend_attr.attr,
