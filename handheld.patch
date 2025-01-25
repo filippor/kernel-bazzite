@@ -5,9 +5,13 @@ Subject: [NA] add dev tools
 
 ---
  .gitignore   |  4 ++++
+ README       | 18 ------------------
+ README.md    | 12 ++++++++++++
  sync-arch.sh | 20 ++++++++++++++++++++
  sync.sh      | 30 ++++++++++++++++++++++++++++++
- 3 files changed, 54 insertions(+)
+ 5 files changed, 66 insertions(+), 18 deletions(-)
+ delete mode 100644 README
+ create mode 100644 README.md
  create mode 100755 sync-arch.sh
  create mode 100755 sync.sh
 
@@ -23,6 +27,49 @@ index edf4f52c829ae..18c89c307909c 100644
 +# Bazzite Dev stuff
 +cert.der
 +key.*
+\ No newline at end of file
+diff --git a/README b/README
+deleted file mode 100644
+index fd903645e6de0..0000000000000
+--- a/README
++++ /dev/null
+@@ -1,18 +0,0 @@
+-Linux kernel
+-============
+-
+-There are several guides for kernel developers and users. These guides can
+-be rendered in a number of formats, like HTML and PDF. Please read
+-Documentation/admin-guide/README.rst first.
+-
+-In order to build the documentation, use ``make htmldocs`` or
+-``make pdfdocs``.  The formatted documentation can also be read online at:
+-
+-    https://www.kernel.org/doc/html/latest/
+-
+-There are various text files in the Documentation/ subdirectory,
+-several of them using the reStructuredText markup notation.
+-
+-Please read the Documentation/process/changes.rst file, as it contains the
+-requirements for building and running the kernel, and information about
+-the problems which may result by upgrading your kernel.
+diff --git a/README.md b/README.md
+new file mode 100644
+index 0000000000000..90e71ffe344a9
+--- /dev/null
++++ b/README.md
+@@ -0,0 +1,12 @@
++# Bazzite Kernel patchwork
++
++Welcome to the Bazzite kernel patchwork repository. Here, you can find the patch series that is currently used on Bazzite, in addition to a tagged history of all the previous series.
++
++When parts of the Bazzite patch series are ready for upstreaming, you might see an additional temporary branch for them, starting with `upstream/`.
++
++## Contributing
++
++If you believe a patch is missing or a patch should be included, please open an issue with the patch or lore link in the [kernel-bazzite](https://github.com/hhd-dev/kernel-bazzite) repository.
++
++> [!WARNING]
++> Do not open Pull Requests or issues in this repository!! They will be closed.
 \ No newline at end of file
 diff --git a/sync-arch.sh b/sync-arch.sh
 new file mode 100755
@@ -11452,6 +11499,36 @@ index 88bf250dc8cad..cc21e42724606 100644
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: "Luke D. Jones" <luke@ljones.dev>
+Date: Sat, 21 Sep 2024 16:04:58 +1200
+Subject: hid-asus: Add MODULE_IMPORT_NS(ASUS_WMI)
+
+A small change to asus_wmi_evaluate_method() was introduced during
+asus-armoury driver development to put the exports behind a namespace.
+
+Import that namespace here.
+
+Signed-off-by: Luke D. Jones <luke@ljones.dev>
+Acked-by: Jiri Kosina <jkosina@suse.com>
+---
+ drivers/hid/hid-asus.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
+index a4b47319ad8ea..9540e3e19cce8 100644
+--- a/drivers/hid/hid-asus.c
++++ b/drivers/hid/hid-asus.c
+@@ -1301,4 +1301,5 @@ static struct hid_driver asus_driver = {
+ };
+ module_hid_driver(asus_driver);
+ 
++MODULE_IMPORT_NS(ASUS_WMI);
+ MODULE_LICENSE("GPL");
+-- 
+2.48.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <git@antheas.dev>
 Date: Sat, 2 Nov 2024 17:45:04 +0100
 Subject: [BEGIN] Batocera Qualcomm patches
@@ -20802,7 +20879,7 @@ for the platform (should NOOP though).
  1 file changed, 6 deletions(-)
 
 diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index a4b47319ad8ea..331129d2f0345 100644
+index 9540e3e19cce8..272d787a20ed0 100644
 --- a/drivers/hid/hid-asus.c
 +++ b/drivers/hid/hid-asus.c
 @@ -1252,12 +1252,6 @@ static const struct hid_device_id asus_devices[] = {
@@ -47435,7 +47512,7 @@ Tested-by: Jan Schmidt <jan@centricular.com>
  2 files changed, 31 insertions(+)
 
 diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index 331129d2f0345..059e41e2b4fc0 100644
+index 272d787a20ed0..281069cf30727 100644
 --- a/drivers/hid/hid-asus.c
 +++ b/drivers/hid/hid-asus.c
 @@ -432,6 +432,26 @@ static int asus_kbd_get_functions(struct hid_device *hdev,
