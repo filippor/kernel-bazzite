@@ -22218,14 +22218,14 @@ to both the Intel and AMD variants.
 
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- drivers/gpu/drm/drm_panel_orientation_quirks.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/gpu/drm/drm_panel_orientation_quirks.c | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
 diff --git a/drivers/gpu/drm/drm_panel_orientation_quirks.c b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-index 2fb4cd3d0c658..3b795eff82f9f 100644
+index 2fb4cd3d0c658..5430085533a6a 100644
 --- a/drivers/gpu/drm/drm_panel_orientation_quirks.c
 +++ b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-@@ -455,6 +455,18 @@ static const struct dmi_system_id orientation_data[] = {
+@@ -455,6 +455,24 @@ static const struct dmi_system_id orientation_data[] = {
  		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "ONE XPLAYER"),
  		},
  		.driver_data = (void *)&lcd1600x2560_leftside_up,
@@ -22233,6 +22233,12 @@ index 2fb4cd3d0c658..3b795eff82f9f 100644
 +		.matches = {
 +		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "ONE-NETBOOK"),
 +		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "ONEXPLAYER X1 A"),
++		},
++		.driver_data = (void *)&lcd1600x2560_leftside_up,
++	}, {	/* OneXPlayer X1 AMD Strix Point */
++		.matches = {
++		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "ONE-NETBOOK"),
++		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "ONEXPLAYER X1Pro"),
 +		},
 +		.driver_data = (void *)&lcd1600x2560_leftside_up,
 +	}, {	/* OneXPlayer X1 Intel */
@@ -22263,10 +22269,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 6 insertions(+)
 
 diff --git a/drivers/gpu/drm/drm_panel_orientation_quirks.c b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-index 3b795eff82f9f..f32ef44772d3e 100644
+index 5430085533a6a..520d56fa3bf6d 100644
 --- a/drivers/gpu/drm/drm_panel_orientation_quirks.c
 +++ b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-@@ -467,6 +467,12 @@ static const struct dmi_system_id orientation_data[] = {
+@@ -473,6 +473,12 @@ static const struct dmi_system_id orientation_data[] = {
  		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "ONEXPLAYER X1 i"),
  		},
  		.driver_data = (void *)&lcd1600x2560_leftside_up,
@@ -22299,10 +22305,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 12 insertions(+)
 
 diff --git a/drivers/gpu/drm/drm_panel_orientation_quirks.c b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-index f32ef44772d3e..b6b4ff27c8ac6 100644
+index 520d56fa3bf6d..67b415cf75046 100644
 --- a/drivers/gpu/drm/drm_panel_orientation_quirks.c
 +++ b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-@@ -473,6 +473,18 @@ static const struct dmi_system_id orientation_data[] = {
+@@ -479,6 +479,18 @@ static const struct dmi_system_id orientation_data[] = {
  		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "ONEXPLAYER X1 mini"),
  		},
  		.driver_data = (void *)&lcd1600x2560_leftside_up,
@@ -22383,10 +22389,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 6 insertions(+)
 
 diff --git a/drivers/gpu/drm/drm_panel_orientation_quirks.c b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-index b6b4ff27c8ac6..a44209be1dc2b 100644
+index 67b415cf75046..465eb43570ed9 100644
 --- a/drivers/gpu/drm/drm_panel_orientation_quirks.c
 +++ b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-@@ -485,6 +485,12 @@ static const struct dmi_system_id orientation_data[] = {
+@@ -491,6 +491,12 @@ static const struct dmi_system_id orientation_data[] = {
  		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "ONEXPLAYER F1 EVA-02"),
  		},
  		.driver_data = (void *)&lcd1080x1920_leftside_up,
@@ -46717,6 +46723,175 @@ index bf0ec4687a744..cb5b0ca0a3c83 100644
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mario Limonciello <mario.limonciello@amd.com>
+Date: Sun, 25 Aug 2024 21:21:32 -0500
+Subject: acpi/x86: s2idle: Add ability to configure wakeup by AC adapter
+ changes
+
+According to https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/modern-standby-wake-sources#environmental-context-changes-1 the system MUST ALWAYS wake up the SOC when a power capable dock/charger is attached/detached to the device.
+
+Currently, this causes issues on the original Ally and the Legion Go S. So, let's start nice and slow by quirking those two.
+
+Add the ability for the LPS0 device to wake the system when AC
+adapter state changes and add it to the delay quirk table.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/acpi/x86/s2idle.c | 57 ++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 56 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
+index cb5b0ca0a3c83..a67137d47ab21 100644
+--- a/drivers/acpi/x86/s2idle.c
++++ b/drivers/acpi/x86/s2idle.c
+@@ -19,6 +19,7 @@
+ #include <linux/device.h>
+ #include <linux/dmi.h>
+ #include <linux/delay.h>
++#include <linux/power_supply.h>
+ #include <linux/suspend.h>
+ 
+ #include "../sleep.h"
+@@ -55,6 +56,7 @@ static const struct acpi_device_id lps0_device_ids[] = {
+ #define ACPI_LPS0_DISPLAY_OFF_AMD   4
+ #define ACPI_LPS0_DISPLAY_ON_AMD    5
+ 
++static struct acpi_device *lps0_device;
+ static acpi_handle lps0_device_handle;
+ static guid_t lps0_dsm_guid;
+ static int lps0_dsm_func_mask;
+@@ -64,6 +66,7 @@ static int lps0_dsm_func_mask_microsoft;
+ static int lps0_dsm_state;
+ static bool lps0_dsm_in_display_off;
+ static bool lps0_dsm_in_sleep;
++static int lps0_ac_state;
+ 
+ /* Device constraint entry structure */
+ struct lpi_device_info {
+@@ -97,6 +100,7 @@ struct s2idle_delay_quirks {
+ 	int delay_sleep_entry;
+ 	int delay_sleep_exit;
+ 	int delay_display_on;
++	bool wake_on_ac;
+ };
+ 
+ /*
+@@ -112,6 +116,12 @@ struct s2idle_delay_quirks {
+ static const struct s2idle_delay_quirks rog_ally_quirks = {
+ 	.delay_display_off = 350,
+ 	.delay_sleep_entry = 150,
++	.wake_on_ac = true,
++};
++
++static const struct s2idle_delay_quirks rog_ally_quirks_x = {
++	.delay_display_off = 350,
++	.delay_sleep_entry = 150,
+ };
+ 
+ static const struct s2idle_delay_quirks msi_claw_quirks = {
+@@ -121,6 +131,10 @@ static const struct s2idle_delay_quirks msi_claw_quirks = {
+ 	.delay_display_on = 200,
+ };
+ 
++static const struct s2idle_delay_quirks legion_go_s_quirks = {
++	.wake_on_ac = true,
++};
++
+ static const struct dmi_system_id s2idle_delay_quirks[] = {
+ 	{
+ 		.matches = {
+@@ -132,7 +146,7 @@ static const struct dmi_system_id s2idle_delay_quirks[] = {
+ 		.matches = {
+ 			DMI_MATCH(DMI_BOARD_NAME, "RC72L"),
+ 		},
+-		.driver_data = (void *)&rog_ally_quirks
++		.driver_data = (void *)&rog_ally_quirks_x
+ 	},
+ 	{
+ 		.matches = {
+@@ -140,6 +154,31 @@ static const struct dmi_system_id s2idle_delay_quirks[] = {
+ 		},
+ 		.driver_data = (void *)&msi_claw_quirks
+ 	},
++	/* Legion Go S */
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_NAME, "83L3"),
++		},
++		.driver_data = (void *)&legion_go_s_quirks
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_NAME, "83N6"),
++		},
++		.driver_data = (void *)&legion_go_s_quirks
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_NAME, "83Q2"),
++		},
++		.driver_data = (void *)&legion_go_s_quirks
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_NAME, "83N6"),
++		},
++		.driver_data = (void *)&legion_go_s_quirks
++	},
+ 	{}
+ };
+ 
+@@ -565,6 +604,8 @@ static int lps0_device_attach(struct acpi_device *adev,
+ 		return 0; //function evaluation failed
+ 
+ 	lps0_device_handle = adev->handle;
++	lps0_device = adev;
++	device_set_wakeup_capable(&adev->dev, true);
+ 
+ 	if (acpi_s2idle_vendor_amd())
+ 		lpi_device_get_constraints_amd();
+@@ -739,6 +780,9 @@ int acpi_s2idle_prepare_late(void)
+ 	if (pm_debug_messages_on)
+ 		lpi_check_constraints();
+ 
++	/* capture AC adapter state */
++	lps0_ac_state = power_supply_is_system_supplied();
++
+ 	/* LPS0 entry */
+ 	if (lps0_dsm_func_mask > 0 && acpi_s2idle_vendor_amd())
+ 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_ENTRY_AMD,
+@@ -771,6 +815,15 @@ void acpi_s2idle_check(void)
+ 		if (handler->check)
+ 			handler->check();
+ 	}
++
++	/* if configured, wake system from AC adapter changes */
++	if (device_may_wakeup(&lps0_device->dev) &&
++	    power_supply_is_system_supplied() != lps0_ac_state) {
++		if (pm_debug_messages_on)
++			acpi_handle_info(lps0_device_handle,
++					"AC adapter state changed\n");
++		acpi_pm_wakeup_event(&lps0_device->dev);
++	}
+ }
+ 
+ void acpi_s2idle_restore_early(void)
+@@ -823,6 +876,8 @@ void __init acpi_s2idle_setup(void)
+ 	const struct dmi_system_id *s2idle_sysid =
+ 		dmi_first_match(s2idle_delay_quirks);
+ 	delay_quirks = s2idle_sysid ? s2idle_sysid->driver_data : NULL;
++	if (delay_quirks && delay_quirks->wake_on_ac)
++		device_set_wakeup_enable(&lps0_device->dev, true);
+ 	unlock_system_sleep(sleep_flags);
+ }
+ 
+-- 
+2.48.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
 Date: Thu, 19 Sep 2024 00:29:59 +0200
 Subject: platform/x86: asus-wmi: remove Ally (1st gen) and Ally X suspend
@@ -47065,14 +47240,14 @@ GPD, we do S3, which has also sets some other variables.
 
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- drivers/acpi/sleep.c | 52 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 52 insertions(+)
+ drivers/acpi/sleep.c | 59 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 59 insertions(+)
 
 diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index c8ee8e42b0f64..7e89b72c2d764 100644
+index c8ee8e42b0f64..7671f3140145a 100644
 --- a/drivers/acpi/sleep.c
 +++ b/drivers/acpi/sleep.c
-@@ -810,8 +810,49 @@ bool acpi_s2idle_wake(void)
+@@ -810,8 +810,56 @@ bool acpi_s2idle_wake(void)
  	return false;
  }
  
@@ -47088,6 +47263,13 @@ index c8ee8e42b0f64..7e89b72c2d764 100644
 +		.matches = {
 +			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
 +			DMI_EXACT_MATCH(DMI_BOARD_NAME, "ONEXPLAYER X1 i"),
++		},
++		.driver_data = (void *)ACPI_STATE_S0,
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
++			DMI_EXACT_MATCH(DMI_BOARD_NAME, "ONEXPLAYER X1Pro"),
 +		},
 +		.driver_data = (void *)ACPI_STATE_S0,
 +	},
@@ -47122,7 +47304,7 @@ index c8ee8e42b0f64..7e89b72c2d764 100644
  	/*
  	 * Drain pending events before restoring the working-state configuration
  	 * of GPEs.
-@@ -825,6 +866,17 @@ void acpi_s2idle_restore(void)
+@@ -825,6 +873,17 @@ void acpi_s2idle_restore(void)
  	acpi_enable_all_runtime_gpes();
  
  	acpi_disable_wakeup_devices(ACPI_STATE_S0);
@@ -47571,6 +47753,237 @@ index cc21e42724606..c427b6c20d3fa 100644
  	{
  		.matches = {
  			DMI_MATCH(DMI_BOARD_NAME, "GA403U"),
+-- 
+2.48.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Mon, 27 Jan 2025 00:44:21 +0100
+Subject: CI: add kmod downloader
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/Kconfig            |   1 +
+ drivers/Makefile           |   2 +
+ drivers/custom/.gitignore  |  17 +++++
+ drivers/custom/Kconfig     |   0
+ drivers/custom/Makefile    |   0
+ drivers/custom/download.sh | 146 +++++++++++++++++++++++++++++++++++++
+ 6 files changed, 166 insertions(+)
+ create mode 100644 drivers/custom/.gitignore
+ create mode 100644 drivers/custom/Kconfig
+ create mode 100644 drivers/custom/Makefile
+ create mode 100755 drivers/custom/download.sh
+
+diff --git a/drivers/Kconfig b/drivers/Kconfig
+index 7bdad836fc620..9376413731385 100644
+--- a/drivers/Kconfig
++++ b/drivers/Kconfig
+@@ -10,6 +10,7 @@ source "drivers/cxl/Kconfig"
+ source "drivers/pcmcia/Kconfig"
+ source "drivers/rapidio/Kconfig"
+ 
++source "drivers/custom/Kconfig"
+ 
+ source "drivers/base/Kconfig"
+ 
+diff --git a/drivers/Makefile b/drivers/Makefile
+index 45d1c3e630f75..bf0fa1efe6d0a 100644
+--- a/drivers/Makefile
++++ b/drivers/Makefile
+@@ -6,6 +6,8 @@
+ # Rewritten to use lists instead of if-statements.
+ #
+ 
++obj-y				+= custom/
++
+ obj-y				+= cache/
+ obj-y				+= irqchip/
+ obj-y				+= bus/
+diff --git a/drivers/custom/.gitignore b/drivers/custom/.gitignore
+new file mode 100644
+index 0000000000000..a641013d0a524
+--- /dev/null
++++ b/drivers/custom/.gitignore
+@@ -0,0 +1,17 @@
++**/*
++!*/
++!Makefile
++!Kconfig
++!**/Makefile
++!**/Kconfig
++# Fragments for nvidia-open
++!nvidia_open/.Kbuild
++!**/*.Kbuild
++# hals for wifi drifers
++!**/hal/**
++**/hal/**/*.cmd
++**/hal/**/*.o
++!**/*.c
++**/*.mod.c
++!**/*.h
++!download.sh
+\ No newline at end of file
+diff --git a/drivers/custom/Kconfig b/drivers/custom/Kconfig
+new file mode 100644
+index 0000000000000..e69de29bb2d1d
+diff --git a/drivers/custom/Makefile b/drivers/custom/Makefile
+new file mode 100644
+index 0000000000000..e69de29bb2d1d
+diff --git a/drivers/custom/download.sh b/drivers/custom/download.sh
+new file mode 100755
+index 0000000000000..4e6b3e0c383c8
+--- /dev/null
++++ b/drivers/custom/download.sh
+@@ -0,0 +1,146 @@
++#!/bin/sh
++
++# Get script directory
++DIR=$(dirname $0)
++
++download_mod() {
++    # $1 is name, $2 is url
++
++    # Download the module
++    echo ""
++    echo "##### Downloading $1"
++
++    # Check if the module is already downloaded
++    if [ -d $DIR/$1 ]; then
++        echo "$1 is already downloaded"
++        rm -rf $DIR/$1
++    fi
++
++    if [ -z "$3" ]; then
++        git clone --depth=1 $2 $DIR/$1
++    else
++        git clone --depth=200 $2 $DIR/$1
++        git -C $DIR/$1 checkout $3
++    fi
++
++    # Get short sha of the module
++    SHA=$(git -C $DIR/$1 rev-parse --short HEAD)
++
++    if [ "$1" = "kvfm" ] || [ "$1" = "evdi" ]; then
++        # kvfm/evdi is inside module folder
++        mv $DIR/$1 $DIR/other
++        mv $DIR/other/module $DIR/$1
++        rm -rf $DIR/other
++    fi
++
++    if [ "$1" = "xpadneo" ]; then
++         # xpadneo is inside module folder
++        mv $DIR/$1 $DIR/other
++        mv $DIR/other/hid-xpadneo $DIR/$1
++        rm -rf $DIR/other
++    fi
++
++    if [ "$1" = "openrazer" ]; then
++         # openrazer is inside module folder
++        mv $DIR/$1 $DIR/other
++        mv $DIR/other/driver $DIR/$1
++        rm -rf $DIR/other
++    fi
++
++    # Remove files to minimize diff
++    rm -rf $DIR/$1/.git \
++        $DIR/$1/.gitignore \
++        $DIR/$1/.gitmodules \
++        $DIR/$1/.github \
++        $DIR/$1/*.spec \
++        $DIR/$1/*.md \
++        $DIR/$1/*.rst \
++        $DIR/$1/VERSION \
++        $DIR/$1/docs \
++        $DIR/$1/android \
++        $DIR/$1/pylib \
++        $DIR/$1/daemon \
++        $DIR/$1/tests \
++        $DIR/$1/.builds \
++        $DIR/$1/dkms.conf
++
++    # Add the module to Makefile
++    echo "obj-\$(CONFIG_${1^^}) += $1/" >> $DIR/Makefile
++    # echo "obj-m += $1/" >> $DIR/Makefile
++
++    # Handle kconfig
++    if [ -f $DIR/$1/Kconfig ]; then
++        echo "source \"drivers/custom/$1/Kconfig\"" >> $DIR/Kconfig
++    else
++        echo "config ${1^^}" >> $DIR/Kconfig
++        echo "    tristate \"$1\"" >> $DIR/Kconfig
++        echo "    help" >> $DIR/Kconfig
++        echo "        $1 driver. For more information see:" >> $DIR/Kconfig
++        echo "        $2" >> $DIR/Kconfig
++    fi
++    echo "" >> $DIR/Kconfig
++
++    # If there is no Makefile, create one based on Kbuild (xone)
++    if [ ! -f $DIR/$1/Makefile ]; then
++        cp $DIR/$1/Kbuild $DIR/$1/Makefile
++    fi
++
++    # Commit the changes
++    git add $DIR/$1 $DIR/Makefile $DIR/Kconfig
++    git commit -m "modules: Add $1 ($SHA)"
++}
++
++# Get current hash
++HASH=$(git rev-parse --short HEAD)
++
++# Switch to akmods branch
++git branch -D akmods &>/dev/null || true
++git checkout -b akmods
++
++# Build modules only for x86
++echo "ifneq (\$(ARCH),arm64)" > $DIR/Makefile
++git add $DIR/Makefile
++git commit -m "modules: start arch check"
++
++# Download modules
++download_mod "ayn_platform"     "https://github.com/KyleGospo/ayn-platform"
++download_mod "ayaneo_platform"  "https://github.com/KyleGospo/ayaneo-platform.git"
++download_mod "bmi260"           "https://github.com/KyleGospo/bmi260.git"
++download_mod "framework_laptop" "https://github.com/KyleGospo/framework-laptop-kmod.git"
++download_mod "xonedo"           "https://github.com/KyleGospo/xonedo.git"
++download_mod "xpadneo"          "https://github.com/atar-axis/xpadneo"
++download_mod "new_lg4ff"        "https://github.com/berarma/new-lg4ff.git"
++download_mod "88xxau"           "https://github.com/morrownr/8814au"
++download_mod "rtl8814au"        "https://github.com/aircrack-ng/rtl8812au"
++download_mod "nct6687d"         "https://github.com/ublue-os/nct6687d.git"
++download_mod "zenergy"          "https://github.com/KyleGospo/zenergy.git"
++download_mod "openrazer"        "https://github.com/ublue-os/openrazer.git"
++download_mod "gpd_fan"          "https://github.com/KyleGospo/gpd-fan-driver.git"
++download_mod "gcadapter_oc"     "https://github.com/hannesmann/gcadapter-oc-kmod"
++download_mod "system76"         "https://github.com/pop-os/system76-dkms"
++download_mod "system76_io"      "https://github.com/pop-os/system76-io-dkms"
++download_mod "kvfm"             "https://github.com/gnif/LookingGlass"
++download_mod "drm_evdi"         "https://github.com/DisplayLink/evdi"
++download_mod "v4l2loopback"     "https://github.com/umlaeute/v4l2loopback"
++download_mod "facetimehd"       "https://github.com/patjak/facetimehd/"
++
++echo "endif" >> $DIR/Makefile
++git add $DIR/Makefile
++git commit -m "modules: finish arch check"
++
++# CROS_EC=y # for framework kmod
++# CONFIG_AYN_PLATFORM=m
++# CONFIG_AYANEO_PLATFORM=m
++# CONFIG_BMI260=m
++# CONFIG_FRAMEWORK_LAPTOP=m
++# CONFIG_XONEDO=m
++# CONFIG_NEW_LG4FF=m
++# CONFIG_RTL8814AU=m
++# CONFIG_88XXAU=m
++# CONFIG_NCT6687D=m
++# CONFIG_ZENERGY=m
++# CONFIG_OPENRAZER=m
++# CONFIG_GPD_FAN=m
++
++# Pretty print the changes to the file $1 or 0000-akmods.patch if it is not provided
++git format-patch --stdout --zero-commit -k $HASH > ${1:-0000-akmods.patch}
+\ No newline at end of file
 -- 
 2.48.0
 
