@@ -46743,11 +46743,11 @@ adapter state changes and add it to the delay quirk table.
 Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- drivers/acpi/x86/s2idle.c | 57 ++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 56 insertions(+), 1 deletion(-)
+ drivers/acpi/x86/s2idle.c | 71 +++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 69 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-index f21f002887c87..ff84857368fa9 100644
+index f21f002887c87..3fcf03b394897 100644
 --- a/drivers/acpi/x86/s2idle.c
 +++ b/drivers/acpi/x86/s2idle.c
 @@ -19,6 +19,7 @@
@@ -46865,32 +46865,60 @@ index f21f002887c87..ff84857368fa9 100644
  	unlock_system_sleep(sleep_flags);
  
  	return 0;
-@@ -747,6 +790,9 @@ int acpi_s2idle_prepare_late(void)
- 	if (pm_debug_messages_on)
- 		lpi_check_constraints();
+@@ -737,6 +780,26 @@ static int acpi_s2idle_display_on(void)
+ 	return 0;
+ }
  
-+	/* capture AC adapter state */
-+	lps0_ac_state = power_supply_is_system_supplied();
-+
- 	/* LPS0 entry */
- 	if (lps0_dsm_func_mask > 0 && acpi_s2idle_vendor_amd())
- 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_ENTRY_AMD,
-@@ -779,6 +825,15 @@ void acpi_s2idle_check(void)
- 		if (handler->check)
- 			handler->check();
- 	}
-+
++static void acpi_s2idle_check_ac(void)
++{
 +	/* if configured, wake system from AC adapter changes */
 +	if (device_may_wakeup(&lps0_device->dev) &&
 +	    power_supply_is_system_supplied() != lps0_ac_state) {
 +		if (pm_debug_messages_on)
 +			acpi_handle_info(lps0_device_handle,
-+					"AC adapter state changed\n");
++					 "AC adapter state changed\n");
 +		acpi_pm_wakeup_event(&lps0_device->dev);
 +	}
++}
++
++static int acpi_s2idle_begin_wrap(void)
++{
++	/* capture AC adapter state */
++	lps0_ac_state = power_supply_is_system_supplied();
++
++	return acpi_s2idle_begin();
++}
++
+ int acpi_s2idle_prepare_late(void)
+ {
+ 	struct acpi_s2idle_dev_ops *handler;
+@@ -747,6 +810,8 @@ int acpi_s2idle_prepare_late(void)
+ 	if (pm_debug_messages_on)
+ 		lpi_check_constraints();
+ 
++	acpi_s2idle_check_ac();
++
+ 	/* LPS0 entry */
+ 	if (lps0_dsm_func_mask > 0 && acpi_s2idle_vendor_amd())
+ 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_ENTRY_AMD,
+@@ -779,6 +844,8 @@ void acpi_s2idle_check(void)
+ 		if (handler->check)
+ 			handler->check();
+ 	}
++
++	acpi_s2idle_check_ac();
  }
  
  void acpi_s2idle_restore_early(void)
+@@ -807,7 +874,7 @@ void acpi_s2idle_restore_early(void)
+ static const struct platform_s2idle_ops acpi_s2idle_ops_lps0 = {
+ 	.display_off = acpi_s2idle_display_off,
+ 	.sleep_entry = acpi_s2idle_sleep_entry,
+-	.begin = acpi_s2idle_begin,
++	.begin = acpi_s2idle_begin_wrap,
+ 	.prepare = acpi_s2idle_prepare,
+ 	.prepare_late = acpi_s2idle_prepare_late,
+ 	.check = acpi_s2idle_check,
 -- 
 2.48.0
 
