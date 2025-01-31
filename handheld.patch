@@ -46685,69 +46685,30 @@ index 2d097d020e3b6..ba1a38d355a46 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Fri, 15 Nov 2024 20:52:34 +0100
-Subject: [TEMPORARY] Add s2idle delays for MSI Claw
+Date: Fri, 31 Jan 2025 17:05:49 +0100
+Subject: acpi/x86: s2idle: Add AC/DC burst wakeup support
 
----
- drivers/acpi/x86/s2idle.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+According to Microsoft, when a power capable dock/charger is
+attached/detached to the device, the SOC is expected to wake up.
+Further, when the event is a connection to AC, the display of the
+system is expected to turn on for five seconds.
 
-diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-index ba1a38d355a46..f21f002887c87 100644
---- a/drivers/acpi/x86/s2idle.c
-+++ b/drivers/acpi/x86/s2idle.c
-@@ -114,6 +114,13 @@ static const struct s2idle_delay_quirks rog_ally_quirks = {
- 	.delay_sleep_entry = 150,
- };
- 
-+static const struct s2idle_delay_quirks msi_claw_quirks = {
-+	.delay_display_off = 500,
-+	.delay_sleep_entry = 500,
-+	.delay_sleep_exit = 200,
-+	.delay_display_on = 200,
-+};
-+
- static const struct dmi_system_id s2idle_delay_quirks[] = {
- 	{
- 		.matches = {
-@@ -127,6 +134,12 @@ static const struct dmi_system_id s2idle_delay_quirks[] = {
- 		},
- 		.driver_data = (void *)&rog_ally_quirks
- 	},
-+	{
-+		.matches = {
-+			DMI_MATCH(DMI_BOARD_NAME, "MS-1T41"), // MSI CLAW
-+		},
-+		.driver_data = (void *)&msi_claw_quirks
-+	},
- 	{}
- };
- 
--- 
-2.48.0
+The absence of this feature causes issues with the Ally and the Legion
+Go S. So, let's start nice and slow by quirking those two. The Go S
+will overheat badly by waking up its CPU when connected to a charger,
+and the Ally will remain in prochot once the system wakes up.
 
+Add the ability for s2idle to wake up the system from sleep on adapter
+changes and add it to the delay quirk table.
 
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Mario Limonciello <mario.limonciello@amd.com>
-Date: Sun, 25 Aug 2024 21:21:32 -0500
-Subject: acpi/x86: s2idle: Add ability to configure wakeup by AC adapter
- changes
-
-According to https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/modern-standby-wake-sources#environmental-context-changes-1 the system MUST ALWAYS wake up the SOC when a power capable dock/charger is attached/detached to the device.
-
-Currently, this causes issues on the original Ally and the Legion Go S. So, let's start nice and slow by quirking those two.
-
-Add the ability for the LPS0 device to wake the system when AC
-adapter state changes and add it to the delay quirk table.
-
-Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+Co-developed-by: Mario Limonciello <mario.limonciello@amd.com>
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- drivers/acpi/x86/s2idle.c | 71 +++++++++++++++++++++++++++++++++++++--
- 1 file changed, 69 insertions(+), 2 deletions(-)
+ drivers/acpi/x86/s2idle.c | 65 ++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 64 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-index f21f002887c87..3fcf03b394897 100644
+index ba1a38d355a46..5bfd118d62335 100644
 --- a/drivers/acpi/x86/s2idle.c
 +++ b/drivers/acpi/x86/s2idle.c
 @@ -19,6 +19,7 @@
@@ -46782,42 +46743,25 @@ index f21f002887c87..3fcf03b394897 100644
  };
  
  /*
-@@ -112,6 +116,12 @@ struct s2idle_delay_quirks {
+@@ -112,9 +116,15 @@ struct s2idle_delay_quirks {
  static const struct s2idle_delay_quirks rog_ally_quirks = {
  	.delay_display_off = 350,
  	.delay_sleep_entry = 150,
 +	.wake_on_ac = true,
 +};
 +
-+static const struct s2idle_delay_quirks rog_ally_quirks_x = {
-+	.delay_display_off = 350,
-+	.delay_sleep_entry = 150,
- };
- 
- static const struct s2idle_delay_quirks msi_claw_quirks = {
-@@ -121,6 +131,10 @@ static const struct s2idle_delay_quirks msi_claw_quirks = {
- 	.delay_display_on = 200,
- };
- 
 +static const struct s2idle_delay_quirks legion_go_s_quirks = {
 +	.wake_on_ac = true,
-+};
-+
+ };
+ 
  static const struct dmi_system_id s2idle_delay_quirks[] = {
++	/* ROG Ally */
  	{
  		.matches = {
-@@ -132,7 +146,7 @@ static const struct dmi_system_id s2idle_delay_quirks[] = {
- 		.matches = {
- 			DMI_MATCH(DMI_BOARD_NAME, "RC72L"),
+ 			DMI_MATCH(DMI_BOARD_NAME, "RC71L"),
+@@ -127,6 +137,31 @@ static const struct dmi_system_id s2idle_delay_quirks[] = {
  		},
--		.driver_data = (void *)&rog_ally_quirks
-+		.driver_data = (void *)&rog_ally_quirks_x
- 	},
- 	{
- 		.matches = {
-@@ -140,6 +154,31 @@ static const struct dmi_system_id s2idle_delay_quirks[] = {
- 		},
- 		.driver_data = (void *)&msi_claw_quirks
+ 		.driver_data = (void *)&rog_ally_quirks
  	},
 +	/* Legion Go S */
 +	{
@@ -46847,7 +46791,7 @@ index f21f002887c87..3fcf03b394897 100644
  	{}
  };
  
-@@ -567,6 +606,8 @@ static int lps0_device_attach(struct acpi_device *adev,
+@@ -554,6 +589,8 @@ static int lps0_device_attach(struct acpi_device *adev,
  		return 0; //function evaluation failed
  
  	lps0_device_handle = adev->handle;
@@ -46856,7 +46800,7 @@ index f21f002887c87..3fcf03b394897 100644
  
  	if (acpi_s2idle_vendor_amd())
  		lpi_device_get_constraints_amd();
-@@ -595,6 +636,8 @@ static int lps0_device_attach(struct acpi_device *adev,
+@@ -582,6 +619,8 @@ static int lps0_device_attach(struct acpi_device *adev,
  	const struct dmi_system_id *s2idle_sysid =
  		dmi_first_match(s2idle_delay_quirks);
  	delay_quirks = s2idle_sysid ? s2idle_sysid->driver_data : NULL;
@@ -46865,7 +46809,7 @@ index f21f002887c87..3fcf03b394897 100644
  	unlock_system_sleep(sleep_flags);
  
  	return 0;
-@@ -737,6 +780,26 @@ static int acpi_s2idle_display_on(void)
+@@ -724,6 +763,26 @@ static int acpi_s2idle_display_on(void)
  	return 0;
  }
  
@@ -46892,7 +46836,7 @@ index f21f002887c87..3fcf03b394897 100644
  int acpi_s2idle_prepare_late(void)
  {
  	struct acpi_s2idle_dev_ops *handler;
-@@ -747,6 +810,8 @@ int acpi_s2idle_prepare_late(void)
+@@ -734,6 +793,8 @@ int acpi_s2idle_prepare_late(void)
  	if (pm_debug_messages_on)
  		lpi_check_constraints();
  
@@ -46901,7 +46845,7 @@ index f21f002887c87..3fcf03b394897 100644
  	/* LPS0 entry */
  	if (lps0_dsm_func_mask > 0 && acpi_s2idle_vendor_amd())
  		acpi_sleep_run_lps0_dsm(ACPI_LPS0_ENTRY_AMD,
-@@ -779,6 +844,8 @@ void acpi_s2idle_check(void)
+@@ -766,6 +827,8 @@ void acpi_s2idle_check(void)
  		if (handler->check)
  			handler->check();
  	}
@@ -46910,7 +46854,7 @@ index f21f002887c87..3fcf03b394897 100644
  }
  
  void acpi_s2idle_restore_early(void)
-@@ -807,7 +874,7 @@ void acpi_s2idle_restore_early(void)
+@@ -794,7 +857,7 @@ void acpi_s2idle_restore_early(void)
  static const struct platform_s2idle_ops acpi_s2idle_ops_lps0 = {
  	.display_off = acpi_s2idle_display_off,
  	.sleep_entry = acpi_s2idle_sleep_entry,
@@ -46919,6 +46863,51 @@ index f21f002887c87..3fcf03b394897 100644
  	.prepare = acpi_s2idle_prepare,
  	.prepare_late = acpi_s2idle_prepare_late,
  	.check = acpi_s2idle_check,
+-- 
+2.48.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Fri, 15 Nov 2024 20:52:34 +0100
+Subject: [TEMPORARY] Add s2idle delays for MSI Claw
+
+---
+ drivers/acpi/x86/s2idle.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
+index 5bfd118d62335..27f9e1941a865 100644
+--- a/drivers/acpi/x86/s2idle.c
++++ b/drivers/acpi/x86/s2idle.c
+@@ -123,6 +123,13 @@ static const struct s2idle_delay_quirks legion_go_s_quirks = {
+ 	.wake_on_ac = true,
+ };
+ 
++static const struct s2idle_delay_quirks msi_claw_quirks = {
++	.delay_display_off = 500,
++	.delay_sleep_entry = 500,
++	.delay_sleep_exit = 200,
++	.delay_display_on = 200,
++};
++
+ static const struct dmi_system_id s2idle_delay_quirks[] = {
+ 	/* ROG Ally */
+ 	{
+@@ -162,6 +169,13 @@ static const struct dmi_system_id s2idle_delay_quirks[] = {
+ 		},
+ 		.driver_data = (void *)&legion_go_s_quirks
+ 	},
++	/* MSI Claw */
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_NAME, "MS-1T41"),
++		},
++		.driver_data = (void *)&msi_claw_quirks
++	},
+ 	{}
+ };
+ 
 -- 
 2.48.0
 
