@@ -19542,117 +19542,6 @@ index 831fa4a12159..aec5c5ab9e64 100644
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: GloriousEggroll <gloriouseggroll@gmail.com>
-Date: Mon, 30 Oct 2023 22:36:19 -0600
-Subject: Fix the steam deck not coming back from hibernation with revert
-
-Revert "nvme-pci: drop redundant pci_enable_pcie_error_reporting()"
-
-This reverts commits:
-1ad11eafc63ac16e667853bee4273879226d2d1b
-7ec4b34be4234599cf1241ef807cdb7c3636f6fe
-69b264df8a412820e98867dbab871c6526c5e5aa
----
- drivers/nvme/host/pci.c |  6 +++++-
- drivers/pci/pcie/aer.c  | 15 ++++++++++++++-
- include/linux/aer.h     | 11 +++++++++++
- 3 files changed, 30 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
-index 76b3f7b396c8..fc2963b830a3 100644
---- a/drivers/nvme/host/pci.c
-+++ b/drivers/nvme/host/pci.c
-@@ -5,6 +5,7 @@
-  */
- 
- #include <linux/acpi.h>
-+#include <linux/aer.h>
- #include <linux/async.h>
- #include <linux/blkdev.h>
- #include <linux/blk-mq.h>
-@@ -2596,6 +2597,7 @@ static int nvme_pci_enable(struct nvme_dev *dev)
- 
- 	nvme_map_cmb(dev);
- 
-+	pci_enable_pcie_error_reporting(pdev);
- 	pci_save_state(pdev);
- 
- 	result = nvme_pci_configure_admin_queue(dev);
-@@ -2660,8 +2662,10 @@ static void nvme_dev_disable(struct nvme_dev *dev, bool shutdown)
- 	nvme_suspend_io_queues(dev);
- 	nvme_suspend_queue(dev, 0);
- 	pci_free_irq_vectors(pdev);
--	if (pci_is_enabled(pdev))
-+	if (pci_is_enabled(pdev)) {
-+		pci_disable_pcie_error_reporting(pdev);
- 		pci_disable_device(pdev);
-+	}
- 	nvme_reap_pending_cqes(dev);
- 
- 	nvme_cancel_tagset(&dev->ctrl);
-diff --git a/drivers/pci/pcie/aer.c b/drivers/pci/pcie/aer.c
-index 13b8586924ea..12ba10cbc174 100644
---- a/drivers/pci/pcie/aer.c
-+++ b/drivers/pci/pcie/aer.c
-@@ -232,7 +232,7 @@ int pcie_aer_is_native(struct pci_dev *dev)
- }
- EXPORT_SYMBOL_NS_GPL(pcie_aer_is_native, CXL);
- 
--static int pci_enable_pcie_error_reporting(struct pci_dev *dev)
-+int pci_enable_pcie_error_reporting(struct pci_dev *dev)
- {
- 	int rc;
- 
-@@ -242,6 +242,19 @@ static int pci_enable_pcie_error_reporting(struct pci_dev *dev)
- 	rc = pcie_capability_set_word(dev, PCI_EXP_DEVCTL, PCI_EXP_AER_FLAGS);
- 	return pcibios_err_to_errno(rc);
- }
-+EXPORT_SYMBOL_GPL(pci_enable_pcie_error_reporting);
-+
-+int pci_disable_pcie_error_reporting(struct pci_dev *dev)
-+{
-+	int rc;
-+
-+	if (!pcie_aer_is_native(dev))
-+		return -EIO;
-+
-+	rc = pcie_capability_clear_word(dev, PCI_EXP_DEVCTL, PCI_EXP_AER_FLAGS);
-+	return pcibios_err_to_errno(rc);
-+}
-+EXPORT_SYMBOL_GPL(pci_disable_pcie_error_reporting);
- 
- int pci_aer_clear_nonfatal_status(struct pci_dev *dev)
- {
-diff --git a/include/linux/aer.h b/include/linux/aer.h
-index 4b97f38f3fcf..3b338b556ecb 100644
---- a/include/linux/aer.h
-+++ b/include/linux/aer.h
-@@ -40,9 +40,20 @@ struct aer_capability_regs {
- int pcie_read_tlp_log(struct pci_dev *dev, int where, struct pcie_tlp_log *log);
- 
- #if defined(CONFIG_PCIEAER)
-+/* PCIe port driver needs this function to enable AER */
-+int pci_enable_pcie_error_reporting(struct pci_dev *dev);
-+int pci_disable_pcie_error_reporting(struct pci_dev *dev);
- int pci_aer_clear_nonfatal_status(struct pci_dev *dev);
- int pcie_aer_is_native(struct pci_dev *dev);
- #else
-+static inline int pci_enable_pcie_error_reporting(struct pci_dev *dev)
-+{
-+	return -EINVAL;
-+}
-+static inline int pci_disable_pcie_error_reporting(struct pci_dev *dev)
-+{
-+	return -EINVAL;
-+}
- static inline int pci_aer_clear_nonfatal_status(struct pci_dev *dev)
- {
- 	return -EINVAL;
--- 
-2.48.0
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Steven Barrett <steven@liquorix.net>
 Date: Fri, 15 Mar 2024 12:36:51 -0500
 Subject: Cachy: drm/amdgpu/pm: Allow override of min_power_limit with
@@ -44243,6 +44132,117 @@ index 0e504b3c2796..a60fa7db9141 100644
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: GloriousEggroll <gloriouseggroll@gmail.com>
+Date: Mon, 30 Oct 2023 22:36:19 -0600
+Subject: Fix the steam deck not coming back from hibernation with revert
+
+Revert "nvme-pci: drop redundant pci_enable_pcie_error_reporting()"
+
+This reverts commits:
+1ad11eafc63ac16e667853bee4273879226d2d1b
+7ec4b34be4234599cf1241ef807cdb7c3636f6fe
+69b264df8a412820e98867dbab871c6526c5e5aa
+---
+ drivers/nvme/host/pci.c |  6 +++++-
+ drivers/pci/pcie/aer.c  | 15 ++++++++++++++-
+ include/linux/aer.h     | 11 +++++++++++
+ 3 files changed, 30 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
+index 76b3f7b396c8..fc2963b830a3 100644
+--- a/drivers/nvme/host/pci.c
++++ b/drivers/nvme/host/pci.c
+@@ -5,6 +5,7 @@
+  */
+ 
+ #include <linux/acpi.h>
++#include <linux/aer.h>
+ #include <linux/async.h>
+ #include <linux/blkdev.h>
+ #include <linux/blk-mq.h>
+@@ -2596,6 +2597,7 @@ static int nvme_pci_enable(struct nvme_dev *dev)
+ 
+ 	nvme_map_cmb(dev);
+ 
++	pci_enable_pcie_error_reporting(pdev);
+ 	pci_save_state(pdev);
+ 
+ 	result = nvme_pci_configure_admin_queue(dev);
+@@ -2660,8 +2662,10 @@ static void nvme_dev_disable(struct nvme_dev *dev, bool shutdown)
+ 	nvme_suspend_io_queues(dev);
+ 	nvme_suspend_queue(dev, 0);
+ 	pci_free_irq_vectors(pdev);
+-	if (pci_is_enabled(pdev))
++	if (pci_is_enabled(pdev)) {
++		pci_disable_pcie_error_reporting(pdev);
+ 		pci_disable_device(pdev);
++	}
+ 	nvme_reap_pending_cqes(dev);
+ 
+ 	nvme_cancel_tagset(&dev->ctrl);
+diff --git a/drivers/pci/pcie/aer.c b/drivers/pci/pcie/aer.c
+index 13b8586924ea..12ba10cbc174 100644
+--- a/drivers/pci/pcie/aer.c
++++ b/drivers/pci/pcie/aer.c
+@@ -232,7 +232,7 @@ int pcie_aer_is_native(struct pci_dev *dev)
+ }
+ EXPORT_SYMBOL_NS_GPL(pcie_aer_is_native, CXL);
+ 
+-static int pci_enable_pcie_error_reporting(struct pci_dev *dev)
++int pci_enable_pcie_error_reporting(struct pci_dev *dev)
+ {
+ 	int rc;
+ 
+@@ -242,6 +242,19 @@ static int pci_enable_pcie_error_reporting(struct pci_dev *dev)
+ 	rc = pcie_capability_set_word(dev, PCI_EXP_DEVCTL, PCI_EXP_AER_FLAGS);
+ 	return pcibios_err_to_errno(rc);
+ }
++EXPORT_SYMBOL_GPL(pci_enable_pcie_error_reporting);
++
++int pci_disable_pcie_error_reporting(struct pci_dev *dev)
++{
++	int rc;
++
++	if (!pcie_aer_is_native(dev))
++		return -EIO;
++
++	rc = pcie_capability_clear_word(dev, PCI_EXP_DEVCTL, PCI_EXP_AER_FLAGS);
++	return pcibios_err_to_errno(rc);
++}
++EXPORT_SYMBOL_GPL(pci_disable_pcie_error_reporting);
+ 
+ int pci_aer_clear_nonfatal_status(struct pci_dev *dev)
+ {
+diff --git a/include/linux/aer.h b/include/linux/aer.h
+index 4b97f38f3fcf..3b338b556ecb 100644
+--- a/include/linux/aer.h
++++ b/include/linux/aer.h
+@@ -40,9 +40,20 @@ struct aer_capability_regs {
+ int pcie_read_tlp_log(struct pci_dev *dev, int where, struct pcie_tlp_log *log);
+ 
+ #if defined(CONFIG_PCIEAER)
++/* PCIe port driver needs this function to enable AER */
++int pci_enable_pcie_error_reporting(struct pci_dev *dev);
++int pci_disable_pcie_error_reporting(struct pci_dev *dev);
+ int pci_aer_clear_nonfatal_status(struct pci_dev *dev);
+ int pcie_aer_is_native(struct pci_dev *dev);
+ #else
++static inline int pci_enable_pcie_error_reporting(struct pci_dev *dev)
++{
++	return -EINVAL;
++}
++static inline int pci_disable_pcie_error_reporting(struct pci_dev *dev)
++{
++	return -EINVAL;
++}
+ static inline int pci_aer_clear_nonfatal_status(struct pci_dev *dev)
+ {
+ 	return -EINVAL;
+-- 
+2.48.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <git@antheas.dev>
 Date: Sat, 12 Oct 2024 19:38:52 +0200
 Subject: [BEGIN] Steam Deck OLED fixes
@@ -45473,6 +45473,125 @@ index 7d04739c3ba1..ac3f1ed59cc3 100644
  	dc->caps.is_apu = true;
  	dc->caps.post_blend_color_processing = true;
  	dc->caps.force_dp_tps4_for_cp2520 = true;
+-- 
+2.48.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
+Date: Fri, 31 Jan 2025 13:26:21 +0200
+Subject: [NOT-FOR-UPSTREAM] ASoC: SOF: pm: Insert some delays during
+ sof_resume()
+
+Temporary workaround to improve reliability when resuming from suspend,
+which, in some cases, causes the DSP firmware to enter an unrecoverable
+faulty state.  When this happens, the kernel ring buffer is flooded with
+IPC related error messages:
+
+snd_sof_amd_vangogh 0000:04:00.5: acp_sof_ipc_send_msg: Failed to acquire HW lock
+snd_sof_amd_vangogh 0000:04:00.5: ipc3_tx_msg_unlocked: ipc message send for 0x30100000 failed: -22
+snd_sof_amd_vangogh 0000:04:00.5: Failed to setup widget PIPELINE.6.ACPHS1.IN
+snd_sof_amd_vangogh 0000:04:00.5: Failed to restore pipeline after resume -22
+[...]
+snd_sof_amd_vangogh 0000:04:00.5: ipc tx error for 0x30010000 (msg/reply size: 92/0): -22
+snd_sof_amd_vangogh 0000:04:00.5: Failed to setup widget PCM1P
+snd_sof_amd_vangogh 0000:04:00.5: Failed to set up connected widgets
+snd_sof_amd_vangogh 0000:04:00.5: error: failed widget list set up for pcm 1 dir 0
+snd_sof_amd_vangogh 0000:04:00.5: error: set pcm hw_params after resume
+snd_sof_amd_vangogh 0000:04:00.5: ASoC: error at snd_soc_pcm_component_prepare on 0000:04:00.5: -22
+[...]
+
+Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
+
+Edited by Atapi <34801996+Sterophonick@users.noreply.github.com> to apply
+only to SD OLED
+---
+ sound/soc/sof/pm.c | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
+
+diff --git a/sound/soc/sof/pm.c b/sound/soc/sof/pm.c
+index 8e3bcf602beb..ffa6c2ffe220 100644
+--- a/sound/soc/sof/pm.c
++++ b/sound/soc/sof/pm.c
+@@ -8,10 +8,21 @@
+ // Author: Liam Girdwood <liam.r.girdwood@linux.intel.com>
+ //
+ 
++#include <linux/dmi.h>
+ #include "ops.h"
+ #include "sof-priv.h"
+ #include "sof-audio.h"
+ 
++static const struct dmi_system_id is_steamdeck_oled[] = {
++	{	/* Valve Steam Deck OLED (Galileo) */
++		.matches = {
++			DMI_EXACT_MATCH(DMI_SYS_VENDOR, "Valve"),
++			DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Galileo"),
++		},
++	},
++	{}
++};
++
+ /*
+  * Helper function to determine the target DSP state during
+  * system suspend. This function only cares about the device
+@@ -78,6 +89,8 @@ static int sof_resume(struct device *dev, bool runtime_resume)
+ 	u32 old_state = sdev->dsp_power_state.state;
+ 	int ret;
+ 
++	bool is_galileo = (bool)dmi_first_match(is_steamdeck_oled);
++
+ 	/* do nothing if dsp resume callbacks are not set */
+ 	if (!runtime_resume && !sof_ops(sdev)->resume)
+ 		return 0;
+@@ -135,6 +148,9 @@ static int sof_resume(struct device *dev, bool runtime_resume)
+ 		return ret;
+ 	}
+ 
++	if (is_galileo)
++		msleep(150);
++
+ 	sof_set_fw_state(sdev, SOF_FW_BOOT_IN_PROGRESS);
+ 
+ 	/*
+@@ -150,6 +166,9 @@ static int sof_resume(struct device *dev, bool runtime_resume)
+ 		return ret;
+ 	}
+ 
++	if (is_galileo)
++		msleep(150);
++
+ 	/* resume DMA trace */
+ 	ret = sof_fw_trace_resume(sdev);
+ 	if (ret < 0) {
+@@ -159,6 +178,9 @@ static int sof_resume(struct device *dev, bool runtime_resume)
+ 			 ret);
+ 	}
+ 
++	if (is_galileo)
++		msleep(150);
++
+ 	/* restore pipelines */
+ 	if (tplg_ops && tplg_ops->set_up_all_pipelines) {
+ 		ret = tplg_ops->set_up_all_pipelines(sdev, false);
+@@ -166,11 +188,17 @@ static int sof_resume(struct device *dev, bool runtime_resume)
+ 			dev_err(sdev->dev, "Failed to restore pipeline after resume %d\n", ret);
+ 			goto setup_fail;
+ 		}
++
++		if (is_galileo)
++			msleep(150);
+ 	}
+ 
+ 	/* Notify clients not managed by pm framework about core resume */
+ 	sof_resume_clients(sdev);
+ 
++	if (is_galileo)
++		msleep(150);
++
+ 	/* notify DSP of system resume */
+ 	if (pm_ops && pm_ops->ctx_restore) {
+ 		ret = pm_ops->ctx_restore(sdev);
 -- 
 2.48.0
 
