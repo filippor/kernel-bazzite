@@ -47150,22 +47150,20 @@ attached/detached to the device, the SOC is expected to wake up.
 Further, when the event is a connection to AC, the display of the
 system is expected to turn on for five seconds.
 
-The absence of this feature causes issues with the Ally and the Legion
-Go S. So, let's start nice and slow by quirking those two. The Go S
-will overheat badly by waking up its CPU when connected to a charger,
-and the Ally will remain in prochot once the system wakes up.
+The absence of this feature causes an issue where the original Ally
+unit will get stuck in prochot.
 
 Add the ability for s2idle to wake up the system from sleep on adapter
-changes and add it to the delay quirk table.
+changes when s2idle is set as a wakeup source.
 
 Co-developed-by: Mario Limonciello <mario.limonciello@amd.com>
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- drivers/acpi/x86/s2idle.c | 72 +++++++++++++++++++++++++++++++++++++--
- 1 file changed, 70 insertions(+), 2 deletions(-)
+ drivers/acpi/x86/s2idle.c | 35 ++++++++++++++++++++++++++++++++++-
+ 1 file changed, 34 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-index ba1a38d355a4..e4be9345257d 100644
+index ba1a38d355a4..343d960df04b 100644
 --- a/drivers/acpi/x86/s2idle.c
 +++ b/drivers/acpi/x86/s2idle.c
 @@ -19,6 +19,7 @@
@@ -47200,20 +47198,7 @@ index ba1a38d355a4..e4be9345257d 100644
  };
  
  /*
-@@ -112,9 +116,20 @@ struct s2idle_delay_quirks {
- static const struct s2idle_delay_quirks rog_ally_quirks = {
- 	.delay_display_off = 350,
- 	.delay_sleep_entry = 150,
-+	.wake_on_ac = true,
-+};
-+
-+static const struct s2idle_delay_quirks rog_ally_x_quirks = {
-+	.delay_display_off = 350,
-+	.delay_sleep_entry = 150,
-+};
-+
-+static const struct s2idle_delay_quirks legion_go_s_quirks = {
-+	.wake_on_ac = true,
+@@ -115,6 +119,7 @@ static const struct s2idle_delay_quirks rog_ally_quirks = {
  };
  
  static const struct dmi_system_id s2idle_delay_quirks[] = {
@@ -47221,41 +47206,7 @@ index ba1a38d355a4..e4be9345257d 100644
  	{
  		.matches = {
  			DMI_MATCH(DMI_BOARD_NAME, "RC71L"),
-@@ -125,7 +140,32 @@ static const struct dmi_system_id s2idle_delay_quirks[] = {
- 		.matches = {
- 			DMI_MATCH(DMI_BOARD_NAME, "RC72L"),
- 		},
--		.driver_data = (void *)&rog_ally_quirks
-+		.driver_data = (void *)&rog_ally_x_quirks
-+	},
-+	/* Legion Go S */
-+	{
-+		.matches = {
-+			DMI_MATCH(DMI_PRODUCT_NAME, "83L3"),
-+		},
-+		.driver_data = (void *)&legion_go_s_quirks
-+	},
-+	{
-+		.matches = {
-+			DMI_MATCH(DMI_PRODUCT_NAME, "83N6"),
-+		},
-+		.driver_data = (void *)&legion_go_s_quirks
-+	},
-+	{
-+		.matches = {
-+			DMI_MATCH(DMI_PRODUCT_NAME, "83Q2"),
-+		},
-+		.driver_data = (void *)&legion_go_s_quirks
-+	},
-+	{
-+		.matches = {
-+			DMI_MATCH(DMI_PRODUCT_NAME, "83Q3"),
-+		},
-+		.driver_data = (void *)&legion_go_s_quirks
- 	},
- 	{}
- };
-@@ -554,6 +594,8 @@ static int lps0_device_attach(struct acpi_device *adev,
+@@ -554,6 +559,8 @@ static int lps0_device_attach(struct acpi_device *adev,
  		return 0; //function evaluation failed
  
  	lps0_device_handle = adev->handle;
@@ -47264,7 +47215,7 @@ index ba1a38d355a4..e4be9345257d 100644
  
  	if (acpi_s2idle_vendor_amd())
  		lpi_device_get_constraints_amd();
-@@ -582,6 +624,8 @@ static int lps0_device_attach(struct acpi_device *adev,
+@@ -582,6 +589,8 @@ static int lps0_device_attach(struct acpi_device *adev,
  	const struct dmi_system_id *s2idle_sysid =
  		dmi_first_match(s2idle_delay_quirks);
  	delay_quirks = s2idle_sysid ? s2idle_sysid->driver_data : NULL;
@@ -47273,7 +47224,7 @@ index ba1a38d355a4..e4be9345257d 100644
  	unlock_system_sleep(sleep_flags);
  
  	return 0;
-@@ -724,6 +768,26 @@ static int acpi_s2idle_display_on(void)
+@@ -724,6 +733,26 @@ static int acpi_s2idle_display_on(void)
  	return 0;
  }
  
@@ -47300,7 +47251,7 @@ index ba1a38d355a4..e4be9345257d 100644
  int acpi_s2idle_prepare_late(void)
  {
  	struct acpi_s2idle_dev_ops *handler;
-@@ -734,6 +798,8 @@ int acpi_s2idle_prepare_late(void)
+@@ -734,6 +763,8 @@ int acpi_s2idle_prepare_late(void)
  	if (pm_debug_messages_on)
  		lpi_check_constraints();
  
@@ -47309,7 +47260,7 @@ index ba1a38d355a4..e4be9345257d 100644
  	/* LPS0 entry */
  	if (lps0_dsm_func_mask > 0 && acpi_s2idle_vendor_amd())
  		acpi_sleep_run_lps0_dsm(ACPI_LPS0_ENTRY_AMD,
-@@ -766,6 +832,8 @@ void acpi_s2idle_check(void)
+@@ -766,6 +797,8 @@ void acpi_s2idle_check(void)
  		if (handler->check)
  			handler->check();
  	}
@@ -47318,7 +47269,7 @@ index ba1a38d355a4..e4be9345257d 100644
  }
  
  void acpi_s2idle_restore_early(void)
-@@ -794,7 +862,7 @@ void acpi_s2idle_restore_early(void)
+@@ -794,7 +827,7 @@ void acpi_s2idle_restore_early(void)
  static const struct platform_s2idle_ops acpi_s2idle_ops_lps0 = {
  	.display_off = acpi_s2idle_display_off,
  	.sleep_entry = acpi_s2idle_sleep_entry,
@@ -47343,11 +47294,11 @@ to allow power draw to lower before beginning the suspend sequence.
 
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- drivers/acpi/x86/s2idle.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/acpi/x86/s2idle.c | 34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
 
 diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-index e4be9345257d..93c47d1d7f13 100644
+index 343d960df04b..86adad4a7f25 100644
 --- a/drivers/acpi/x86/s2idle.c
 +++ b/drivers/acpi/x86/s2idle.c
 @@ -100,6 +100,7 @@ struct s2idle_delay_quirks {
@@ -47358,15 +47309,50 @@ index e4be9345257d..93c47d1d7f13 100644
  	bool wake_on_ac;
  };
  
-@@ -125,6 +126,7 @@ static const struct s2idle_delay_quirks rog_ally_x_quirks = {
+@@ -118,6 +119,10 @@ static const struct s2idle_delay_quirks rog_ally_quirks = {
+ 	.delay_sleep_entry = 150,
  };
  
- static const struct s2idle_delay_quirks legion_go_s_quirks = {
++static const struct s2idle_delay_quirks legion_go_s_quirks = {
 +	.delay_begin = 500,
- 	.wake_on_ac = true,
++};
++
+ static const struct dmi_system_id s2idle_delay_quirks[] = {
+ 	/* ROG Ally */
+ 	{
+@@ -132,6 +137,31 @@ static const struct dmi_system_id s2idle_delay_quirks[] = {
+ 		},
+ 		.driver_data = (void *)&rog_ally_quirks
+ 	},
++	/* Legion Go S */
++	{
++		.matches = {
++			DMI_MATCH(DMI_PRODUCT_NAME, "83L3"),
++		},
++		.driver_data = (void *)&legion_go_s_quirks
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_PRODUCT_NAME, "83N6"),
++		},
++		.driver_data = (void *)&legion_go_s_quirks
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_PRODUCT_NAME, "83Q2"),
++		},
++		.driver_data = (void *)&legion_go_s_quirks
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_PRODUCT_NAME, "83Q3"),
++		},
++		.driver_data = (void *)&legion_go_s_quirks
++	},
+ 	{}
  };
  
-@@ -785,6 +787,10 @@ static int acpi_s2idle_begin_wrap(void)
+@@ -750,6 +780,10 @@ static int acpi_s2idle_begin_wrap(void)
  	/* capture AC adapter state */
  	lps0_ac_state = power_supply_is_system_supplied();
  
@@ -47391,11 +47377,11 @@ Subject: [TEMPORARY] Add s2idle delays for MSI Claw
  1 file changed, 14 insertions(+)
 
 diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-index 93c47d1d7f13..72bb8542782e 100644
+index 86adad4a7f25..4b8af73ca7bc 100644
 --- a/drivers/acpi/x86/s2idle.c
 +++ b/drivers/acpi/x86/s2idle.c
-@@ -130,6 +130,13 @@ static const struct s2idle_delay_quirks legion_go_s_quirks = {
- 	.wake_on_ac = true,
+@@ -123,6 +123,13 @@ static const struct s2idle_delay_quirks legion_go_s_quirks = {
+ 	.delay_begin = 500,
  };
  
 +static const struct s2idle_delay_quirks msi_claw_quirks = {
@@ -47408,7 +47394,7 @@ index 93c47d1d7f13..72bb8542782e 100644
  static const struct dmi_system_id s2idle_delay_quirks[] = {
  	/* ROG Ally */
  	{
-@@ -169,6 +176,13 @@ static const struct dmi_system_id s2idle_delay_quirks[] = {
+@@ -162,6 +169,13 @@ static const struct dmi_system_id s2idle_delay_quirks[] = {
  		},
  		.driver_data = (void *)&legion_go_s_quirks
  	},
@@ -47748,6 +47734,61 @@ index 6254814d4817..cb894b39e4ba 100644
  #endif
  #ifdef CONFIG_PM_AUTOSLEEP
  	&autosleep_attr.attr,
+-- 
+2.48.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sun, 2 Feb 2025 10:38:18 +0100
+Subject: [HACK] remove EC wakeups from legion go s
+
+Fix the wake-ups causing the APU to stay awake on the Legio Go S by
+disabling listening to EC wakeups altogether. Fixes overheating issue
+when plugging an AC power adapter and after a battery check awake
+happens.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/acpi/ec.c | 25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
+
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 25399f6dde7e..64f130865679 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -2301,6 +2301,31 @@ static const struct dmi_system_id acpi_ec_no_wakeup[] = {
+ 			DMI_MATCH(DMI_PRODUCT_FAMILY, "103C_5336AN HP ZHAN 66 Pro"),
+ 		},
+ 	},
++	/* Legion Go S */
++	{
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "83L3"),
++		},
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "83N6"),
++		},
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "83Q2"),
++		},
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "83Q3"),
++		},
++	},
+ 	{ },
+ };
+ 
 -- 
 2.48.0
 
@@ -48485,59 +48526,6 @@ index 000000000000..4e6b3e0c383c
 +# Pretty print the changes to the file $1 or 0000-akmods.patch if it is not provided
 +git format-patch --stdout --zero-commit -k $HASH > ${1:-0000-akmods.patch}
 \ No newline at end of file
--- 
-2.48.0
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sun, 2 Feb 2025 10:38:18 +0100
-Subject: [TMP] remove EC wakeups from legion go s
-
-Let's try to deal with the sporadic wake-ups by disabling listening to
-them altogether.
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- drivers/acpi/ec.c | 25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
-
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 25399f6dde7e..64f130865679 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -2301,6 +2301,31 @@ static const struct dmi_system_id acpi_ec_no_wakeup[] = {
- 			DMI_MATCH(DMI_PRODUCT_FAMILY, "103C_5336AN HP ZHAN 66 Pro"),
- 		},
- 	},
-+	/* Legion Go S */
-+	{
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "83L3"),
-+		},
-+	},
-+	{
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "83N6"),
-+		},
-+	},
-+	{
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "83Q2"),
-+		},
-+	},
-+	{
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "83Q3"),
-+		},
-+	},
- 	{ },
- };
- 
 -- 
 2.48.0
 
