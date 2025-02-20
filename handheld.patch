@@ -11515,14 +11515,14 @@ Acked-by: Jiri Kosina <jkosina@suse.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index 46e3e42f9eb5..b12fc236f062 100644
+index 46e3e42f9eb5..2df6a1ca57ba 100644
 --- a/drivers/hid/hid-asus.c
 +++ b/drivers/hid/hid-asus.c
 @@ -1327,4 +1327,5 @@ static struct hid_driver asus_driver = {
  };
  module_hid_driver(asus_driver);
  
-+MODULE_IMPORT_NS(ASUS_WMI);
++MODULE_IMPORT_NS("ASUS_WMI");
  MODULE_LICENSE("GPL");
 -- 
 2.48.0
@@ -13344,7 +13344,7 @@ index 57014aa9d47b..cdc7a73d9c7e 100644
  obj-$(CONFIG_FUEL_GAUGE_MM8013)	+= mm8013.o
 diff --git a/drivers/power/supply/qcom_fg.c b/drivers/power/supply/qcom_fg.c
 new file mode 100644
-index 000000000000..a3b164994fe4
+index 000000000000..7f0c210f1bdb
 --- /dev/null
 +++ b/drivers/power/supply/qcom_fg.c
 @@ -0,0 +1,1364 @@
@@ -14698,7 +14698,7 @@ index 000000000000..a3b164994fe4
 +
 +static struct platform_driver qcom_fg_driver = {
 +	.probe = qcom_fg_probe,
-+	.remove_new = qcom_fg_remove,
++	.remove = qcom_fg_remove,
 +	.driver = {
 +		.name = "qcom-fg",
 +		.of_match_table = fg_match_id_table,
@@ -20335,7 +20335,7 @@ for the platform (should NOOP though).
  1 file changed, 6 deletions(-)
 
 diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index b12fc236f062..0924e4498b8a 100644
+index 2df6a1ca57ba..61237ec51e70 100644
 --- a/drivers/hid/hid-asus.c
 +++ b/drivers/hid/hid-asus.c
 @@ -1278,12 +1278,6 @@ static const struct hid_device_id asus_devices[] = {
