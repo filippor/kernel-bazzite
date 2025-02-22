@@ -154,3 +154,7 @@ CONFIG_ASUS_ARMOURY=m
 
 # ntsync backport
 CONFIG_NTSYNC=m
+
+# add OxpSensors new place
+CONFIG_OXP_EC=m
+# CONFIG_SENSORS_OXP is not set
