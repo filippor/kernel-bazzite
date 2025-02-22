@@ -151,3 +151,6 @@ CONFIG_ASUS_ARMOURY=m
 
 # From Valve: Disable simple-framebuffer to fix logo regression
 # CONFIG_SYSFB_SIMPLEFB is not set
+
+# ntsync backport
+CONFIG_NTSYNC=m
