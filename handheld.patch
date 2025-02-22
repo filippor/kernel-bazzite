@@ -27819,37 +27819,6 @@ index 5a4230ad3757..f7a64fbc8f33 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Mon, 6 Jan 2025 03:05:06 +0100
-Subject: hwmon: (oxp-sensors) Fix One XPlayer manufacturer
-
-This specific model was before OneXPlayer started using ONE-NETBOOK as
-a board_name. This can also be seen in the display_quirks table. For
-some reason, it was missed here, so fix it.
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- drivers/hwmon/oxp-sensors.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index f7a64fbc8f33..cd66093b9418 100644
---- a/drivers/hwmon/oxp-sensors.c
-+++ b/drivers/hwmon/oxp-sensors.c
-@@ -169,7 +169,7 @@ static const struct dmi_system_id dmi_table[] = {
- 	},
- 	{
- 		.matches = {
--			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
-+			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK TECHNOLOGY CO., LTD."),
- 			DMI_EXACT_MATCH(DMI_BOARD_NAME, "ONE XPLAYER"),
- 		},
- 		.driver_data = (void *)oxp_mini_amd,
--- 
-2.48.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
 Date: Sun, 22 Dec 2024 19:06:12 +0100
 Subject: ABI: testing: sysfs-class-power: add BypassS0 charge_type
 
@@ -27913,7 +27882,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 206 insertions(+)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index cd66093b9418..890dca68169c 100644
+index f7a64fbc8f33..f8ffc78deedd 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
 @@ -26,6 +26,7 @@
@@ -27932,7 +27901,7 @@ index cd66093b9418..890dca68169c 100644
 +#define OXP_X1_CHARGE_BYPASS_REG     0xA4 /* X1 bypass charging */
 +
 +#define OXP_X1_CHARGE_BYPASS_MASK_S0 0x01
-+/* 
++/*
 + * Cannot control S3, S5 individually.
 + * X1 Mask is 0x0A, OneXFly F1Pro is just 0x02
 + * but the extra bit on the X1 does nothing.
@@ -28109,7 +28078,7 @@ index cd66093b9418..890dca68169c 100644
 +	if (device_create_file(&battery->dev,
 +	    &dev_attr_charge_control_end_threshold))
 +		return -ENODEV;
-+	
++
 +	if (device_create_file(&battery->dev,
 +	    &dev_attr_charge_type)) {
 +		device_remove_file(&battery->dev,
@@ -28177,7 +28146,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index 890dca68169c..ea82c102e85f 100644
+index f8ffc78deedd..1c01636582d7 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
 @@ -884,18 +884,18 @@ static const struct hwmon_channel_info * const oxp_platform_sensors[] = {
@@ -28233,7 +28202,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 84 insertions(+)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index ea82c102e85f..ce7f51d654b9 100644
+index 1c01636582d7..9c43ec0fc994 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
 @@ -101,6 +101,12 @@ static enum oxp_board board;
@@ -28367,7 +28336,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 27 insertions(+), 23 deletions(-)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index ce7f51d654b9..d1a6f0fe1d87 100644
+index 9c43ec0fc994..1da1e1655f96 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
 @@ -762,6 +762,32 @@ static int oxp_pwm_disable(void)
@@ -28457,7 +28426,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 87 insertions(+), 75 deletions(-)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index d1a6f0fe1d87..e70f57ad8584 100644
+index 1da1e1655f96..dade2f76124e 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
 @@ -802,6 +802,91 @@ static umode_t oxp_ec_hwmon_is_visible(const void *drvdata,
@@ -28662,7 +28631,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 29 insertions(+), 24 deletions(-)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index e70f57ad8584..e2d27ac2c992 100644
+index dade2f76124e..a9332312b2b1 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
 @@ -802,6 +802,34 @@ static umode_t oxp_ec_hwmon_is_visible(const void *drvdata,
@@ -28758,7 +28727,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 33 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/hwmon/oxp-sensors.c
-index e2d27ac2c992..8e360c0f1a17 100644
+index a9332312b2b1..b5ba863a762a 100644
 --- a/drivers/hwmon/oxp-sensors.c
 +++ b/drivers/hwmon/oxp-sensors.c
 @@ -934,7 +934,27 @@ static int oxp_platform_read(struct device *dev, enum hwmon_sensor_types type,
@@ -28780,7 +28749,7 @@ index e2d27ac2c992..8e360c0f1a17 100644
 +			ret = oxp_pwm_fan_speed(val);
 +			if (ret)
 +				return ret;
-+			
++
 +			if (*val == 255)
 +				*val = 0;
 +			else
@@ -28826,6 +28795,333 @@ index e2d27ac2c992..8e360c0f1a17 100644
  						     &oxp_ec_chip_info, NULL);
  
  	return PTR_ERR_OR_ZERO(hwdev);
+-- 
+2.48.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sat, 22 Feb 2025 16:07:56 +0100
+Subject: platform/x86: oxpec: Move hwmon/oxp-sensors to platform/x86
+
+Once upon a time, the platform EC of handheld devices only
+controlled the fan. This is no longer the case, with the
+EC of OneXPlayer gaining additional functionality.
+
+As it will be beneficial from a complexity perspective
+to retain this driver as a single unit, move it out
+of hwmon, and into platform/x86.
+
+While at it, add myself to the maintainer's file.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ Documentation/hwmon/index.rst                         |  2 +-
+ Documentation/hwmon/{oxp-sensors.rst => oxpec.rst}    |  0
+ MAINTAINERS                                           |  7 ++++---
+ drivers/hwmon/Kconfig                                 | 11 -----------
+ drivers/hwmon/Makefile                                |  1 -
+ drivers/platform/x86/Kconfig                          | 11 +++++++++++
+ drivers/platform/x86/Makefile                         |  3 +++
+ drivers/{hwmon/oxp-sensors.c => platform/x86/oxpec.c} | 10 ++++------
+ 8 files changed, 23 insertions(+), 22 deletions(-)
+ rename Documentation/hwmon/{oxp-sensors.rst => oxpec.rst} (100%)
+ rename drivers/{hwmon/oxp-sensors.c => platform/x86/oxpec.c} (98%)
+
+diff --git a/Documentation/hwmon/index.rst b/Documentation/hwmon/index.rst
+index 55f1111594b2..0221839d9b18 100644
+--- a/Documentation/hwmon/index.rst
++++ b/Documentation/hwmon/index.rst
+@@ -185,7 +185,7 @@ Hardware Monitoring Kernel Drivers
+    nzxt-kraken3
+    nzxt-smart2
+    occ
+-   oxp-sensors
++   oxpec
+    pc87360
+    pc87427
+    pcf8591
+diff --git a/Documentation/hwmon/oxp-sensors.rst b/Documentation/hwmon/oxpec.rst
+similarity index 100%
+rename from Documentation/hwmon/oxp-sensors.rst
+rename to Documentation/hwmon/oxpec.rst
+diff --git a/MAINTAINERS b/MAINTAINERS
+index cd3237d46dcf..7c854cc745ac 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -17442,12 +17442,13 @@ S:	Maintained
+ F:	drivers/mtd/nand/onenand/
+ F:	include/linux/mtd/onenand*.h
+ 
+-ONEXPLAYER FAN DRIVER
++ONEXPLAYER PLATFORM EC DRIVER
++M:	Antheas Kapenekakis <lkml@antheas.dev>
+ M:	Derek John Clark <derekjohn.clark@gmail.com>
+ M:	Joaquín Ignacio Aramendía <samsagax@gmail.com>
+-L:	linux-hwmon@vger.kernel.org
++L:	platform-driver-x86@vger.kernel.org
+ S:	Maintained
+-F:	drivers/hwmon/oxp-sensors.c
++F:	drivers/platform/x86/oxpec.c
+ 
+ ONIE TLV NVMEM LAYOUT DRIVER
+ M:	Miquel Raynal <miquel.raynal@bootlin.com>
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 9afa70f877cc..b1af6d6d94eb 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -1772,17 +1772,6 @@ config SENSORS_NZXT_SMART2
+ 
+ source "drivers/hwmon/occ/Kconfig"
+ 
+-config SENSORS_OXP
+-	tristate "OneXPlayer EC fan control"
+-	depends on ACPI_EC
+-	depends on X86
+-	help
+-		If you say yes here you get support for fan readings and control over
+-		OneXPlayer handheld devices. Only OneXPlayer mini AMD handheld variant
+-		boards are supported.
+-
+-		Can also be built as a module. In that case it will be called oxp-sensors.
+-
+ config SENSORS_PCF8591
+ 	tristate "Philips PCF8591 ADC/DAC"
+ 	depends on I2C
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index b827b92f2a78..1c3dba124054 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -181,7 +181,6 @@ obj-$(CONFIG_SENSORS_NTC_THERMISTOR)	+= ntc_thermistor.o
+ obj-$(CONFIG_SENSORS_NZXT_KRAKEN2) += nzxt-kraken2.o
+ obj-$(CONFIG_SENSORS_NZXT_KRAKEN3) += nzxt-kraken3.o
+ obj-$(CONFIG_SENSORS_NZXT_SMART2) += nzxt-smart2.o
+-obj-$(CONFIG_SENSORS_OXP) += oxp-sensors.o
+ obj-$(CONFIG_SENSORS_PC87360)	+= pc87360.o
+ obj-$(CONFIG_SENSORS_PC87427)	+= pc87427.o
+ obj-$(CONFIG_SENSORS_PCF8591)	+= pcf8591.o
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index 17c9dae4e658..02c3ebe770ab 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -1203,6 +1203,17 @@ config SEL3350_PLATFORM
+ 	  To compile this driver as a module, choose M here: the module
+ 	  will be called sel3350-platform.
+ 
++config OXP_EC
++	tristate "OneXPlayer EC platform control"
++	depends on ACPI_EC
++	depends on X86
++	help
++		Enables support for the platform EC of OneXPlayer and AOKZOE
++		handheld devices. This includes fan speed, fan controls, and
++		disabling the default TDP behavior of the device. Due to legacy
++		reasons, this driver also provides hwmon functionality to Ayaneo
++		devices and the OrangePi Neo.
++
+ endif # X86_PLATFORM_DEVICES
+ 
+ config P2SB
+diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
+index 3558da59b4a5..337a96f03e64 100644
+--- a/drivers/platform/x86/Makefile
++++ b/drivers/platform/x86/Makefile
+@@ -158,3 +158,6 @@ obj-$(CONFIG_WINMATE_FM07_KEYS)		+= winmate-fm07-keys.o
+ 
+ # SEL
+ obj-$(CONFIG_SEL3350_PLATFORM)		+= sel3350-platform.o
++
++# OneXPlayer
++obj-$(CONFIG_OXP_EC)		+= oxpec.o
+\ No newline at end of file
+diff --git a/drivers/hwmon/oxp-sensors.c b/drivers/platform/x86/oxpec.c
+similarity index 98%
+rename from drivers/hwmon/oxp-sensors.c
+rename to drivers/platform/x86/oxpec.c
+index b5ba863a762a..51845aae8a44 100644
+--- a/drivers/hwmon/oxp-sensors.c
++++ b/drivers/platform/x86/oxpec.c
+@@ -1,11 +1,8 @@
+ // SPDX-License-Identifier: GPL-2.0+
+ /*
+- * Platform driver for OneXPlayer, AOKZOE, AYANEO, and OrangePi Handhelds
+- * that expose fan reading and control via hwmon sysfs.
+- *
+- * Old OXP boards have the same DMI strings and they are told apart by
+- * the boot cpu vendor (Intel/AMD). Of these older models only AMD is
+- * supported.
++ * Platform driver for OneXPlayer and AOKZOE devices. For the time being,
++ * it also exposes fan controls for AYANEO, and OrangePi Handhelds via
++ * hwmon sysfs.
+  *
+  * Fan control is provided via pwm interface in the range [0-255].
+  * Old AMD boards use [0-100] as range in the EC, the written value is
+@@ -16,6 +13,7 @@
+  *
+  * Copyright (C) 2022 Joaquín I. Aramendía <samsagax@gmail.com>
+  * Copyright (C) 2024 Derek J. Clark <derekjohn.clark@gmail.com>
++ * Copyright (C) 2025 Antheas Kapenekakis <lkml@antheas.dev>
+  */
+ 
+ #include <linux/acpi.h>
+-- 
+2.48.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sat, 22 Feb 2025 16:36:46 +0100
+Subject: ABI: testing: add tt_toggle and tt_led entries
+
+When tt_toggle was introduced, it was not added to the platform sysfs.
+Add it, then add documentation for tt_led. Remove the documentation
+from the hwmon entry, then update its readme to be current.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ Documentation/ABI/testing/sysfs-platform-oxp | 29 +++++++++
+ Documentation/hwmon/oxpec.rst                | 62 +++++++-------------
+ 2 files changed, 49 insertions(+), 42 deletions(-)
+ create mode 100644 Documentation/ABI/testing/sysfs-platform-oxp
+
+diff --git a/Documentation/ABI/testing/sysfs-platform-oxp b/Documentation/ABI/testing/sysfs-platform-oxp
+new file mode 100644
+index 000000000000..8727d5ecaab5
+--- /dev/null
++++ b/Documentation/ABI/testing/sysfs-platform-oxp
+@@ -0,0 +1,29 @@
++What:		/sys/devices/platform/<platform>/tt_toggle
++Date:		Jun 2023
++KernelVersion:	6.5
++Contact:	"Antheas Kapenekakis" <lkml@antheas.dev>
++Description:
++		Takeover TDP controls from the device. OneXPlayer devices have a
++        turbo button that can be used to switch between two TDP modes
++        (usually 15W and 25W). By setting this attribute to 1, this
++        functionality is disabled, handing TDP control over to (Windows)
++        userspace software and the Turbo button turns into a keyboard
++        shortcut over the AT keyboard of the device. In addition,
++        using this setting is a prerequisite for PWM control for most
++        devices (otherwise it NOOPs).
++
++        This attribute was originally introduced in 6.5, without a
++        corresponding documentation entry.
++
++What:		/sys/devices/platform/<platform>/tt_led
++Date:		Feb 2025
++KernelVersion:	6.15
++Contact:	"Antheas Kapenekakis" <lkml@antheas.dev>
++Description:
++		Some OneXPlayer devices (e.g., X1 series) feature a little LED
++        nested in the Turbo button. This LED is illuminated when the
++        device is in the higher TDP mode (e.g., 25W). Once tt_toggle
++        is engaged, this LED is left dangling to its last state. This
++        attribute allows userspace to control the LED state manually
++        (either with 1 or 0). Only a subset of devices contain this LED.
++
+diff --git a/Documentation/hwmon/oxpec.rst b/Documentation/hwmon/oxpec.rst
+index 581c4dafbfa1..0a0a7c5d0263 100644
+--- a/Documentation/hwmon/oxpec.rst
++++ b/Documentation/hwmon/oxpec.rst
+@@ -1,35 +1,41 @@
+ .. SPDX-License-Identifier: GPL-2.0-or-later
+ 
+-Kernel driver oxp-sensors
++Kernel driver oxpec
+ =========================
+ 
+ Authors:
+     - Derek John Clark <derekjohn.clark@gmail.com>
+     - Joaquín Ignacio Aramendía <samsagax@gmail.com>
++    - Antheas Kapenekakis <lkml@antheas.dev>
+ 
+ Description:
+ ------------
+ 
+-Handheld devices from OneNetbook, AOKZOE, AYANEO, And OrangePi provide fan
+-readings and fan control through their embedded controllers.
++Handheld devices from OneXPlayer and AOKZOE provide fan readings and fan
++control through their embedded controllers, which can be accessed via this
++module. If the device has the platform `tt_toggle` attribute (see
++Documentation/ABI/testing/sysfs-platform-oxp), controlling these attributes
++without having it engaged is undefined behavior.
+ 
+-Currently supports OneXPlayer devices, AOKZOE, AYANEO, and OrangePi
+-handheld devices. AYANEO devices preceding the AIR and OneXPlayer devices
+-preceding the Mini A07 are not supportable as the EC model is different
+-and do not have manual control capabilities.
+-
+-Some OneXPlayer and AOKZOE models have a toggle for changing the behaviour
+-of the "Turbo/Silent" button of the device. It will change the key event
+-that it triggers with a flip of the `tt_toggle` attribute. See below for
+-boards that support this function.
++In addition, for legacy reasons, this driver provides hwmon functionality
++to Ayaneo devices, and the OrangePi Neo (AOKZOE is a sister company of
++OneXPlayer and uses the same EC).
+ 
+ Supported devices
+ -----------------
+ 
+ Currently the driver supports the following handhelds:
+-
+  - AOKZOE A1
+  - AOKZOE A1 PRO
++ - OneXPlayer 2/2 Pro
++ - OneXPlayer AMD
++ - OneXPlayer mini AMD
++ - OneXPlayer mini AMD PRO
++ - OneXPlayer OneXFly variants
++ - OneXPlayer X1 variants
++
++In addition, until a driver is upstreamed for the following, the driver
++also supports controlling them:
+  - AYANEO 2
+  - AYANEO 2S
+  - AYANEO AIR
+@@ -41,29 +47,8 @@ Currently the driver supports the following handhelds:
+  - AYANEO Geek
+  - AYANEO Geek 1S
+  - AYANEO KUN
+- - OneXPlayer 2
+- - OneXPlayer 2 Pro
+- - OneXPlayer AMD
+- - OneXPlayer mini AMD
+- - OneXPlayer mini AMD PRO
+- - OneXPlayer OneXFly
+- - OneXPlayer X1 A
+- - OneXPlayer X1 i
+- - OneXPlayer X1 mini
+  - OrangePi NEO-01
+ 
+-"Turbo/Silent" button behaviour toggle is only supported on:
+- - AOK ZOE A1
+- - AOK ZOE A1 PRO
+- - OneXPlayer 2
+- - OneXPlayer 2 Pro
+- - OneXPlayer mini AMD (only with updated alpha BIOS)
+- - OneXPlayer mini AMD PRO
+- - OneXPlayer OneXFly
+- - OneXPlayer X1 A
+- - OneXPlayer X1 i
+- - OneXPlayer X1 mini
+-
+ Sysfs entries
+ -------------
+ 
+@@ -79,11 +64,4 @@ pwm1_enable
+ pwm1
+   Read Write. Read this attribute to see current duty cycle in the range [0-255].
+   When pwm1_enable is set to "1" (manual) write any value in the range [0-255]
+-  to set fan speed.
+-
+-tt_toggle
+-  Read Write. Read this attribute to check the status of the turbo/silent
+-  button behaviour function. Write "1" to activate the switch and "0" to
+-  deactivate it. The specific keycodes and behaviour is specific to the device
+-  both with this function on and off. This attribute is attached to the platform
+-  driver and not to the hwmon driver (/sys/devices/platform/oxp-platform/tt_toggle)
++  to set fan speed.
+\ No newline at end of file
 -- 
 2.48.1
 
@@ -50106,10 +50402,10 @@ Signed-off-by: Jan200101 <sentrycraft123@gmail.com>
  create mode 100644 drivers/hwmon/steamdeck-hwmon.c
 
 diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index 9afa70f877cc..c48f50ba31f7 100644
+index b1af6d6d94eb..329285ef7703 100644
 --- a/drivers/hwmon/Kconfig
 +++ b/drivers/hwmon/Kconfig
-@@ -2075,6 +2075,17 @@ config SENSORS_SCH5636
+@@ -2064,6 +2064,17 @@ config SENSORS_SCH5636
  	  This driver can also be built as a module. If so, the module
  	  will be called sch5636.
  
@@ -50128,10 +50424,10 @@ index 9afa70f877cc..c48f50ba31f7 100644
  	tristate "ST Microelectronics STTS751"
  	depends on I2C
 diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-index b827b92f2a78..0a832b0bc8ef 100644
+index 1c3dba124054..19039f8a9ac7 100644
 --- a/drivers/hwmon/Makefile
 +++ b/drivers/hwmon/Makefile
-@@ -210,6 +210,7 @@ obj-$(CONFIG_SENSORS_SMSC47M1)	+= smsc47m1.o
+@@ -209,6 +209,7 @@ obj-$(CONFIG_SENSORS_SMSC47M1)	+= smsc47m1.o
  obj-$(CONFIG_SENSORS_SMSC47M192)+= smsc47m192.o
  obj-$(CONFIG_SENSORS_SPARX5)	+= sparx5-temp.o
  obj-$(CONFIG_SENSORS_SPD5118)	+= spd5118.o
@@ -54867,6 +55163,83 @@ index 000000000000..4e6b3e0c383c
 +# Pretty print the changes to the file $1 or 0000-akmods.patch if it is not provided
 +git format-patch --stdout --zero-commit -k $HASH > ${1:-0000-akmods.patch}
 \ No newline at end of file
+-- 
+2.48.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sat, 22 Feb 2025 21:27:30 +0100
+Subject: Revert "ALSA: hda/realtek: tas2781: Fix ROG ALLY X audio"
+
+This reverts commit ebfb5a57caa4e2e2203883ac6669bf8a294e7c89.
+---
+ sound/pci/hda/patch_realtek.c | 8 --------
+ 1 file changed, 8 deletions(-)
+
+diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
+index aa058e9c6fdb..976455163bff 100644
+--- a/sound/pci/hda/patch_realtek.c
++++ b/sound/pci/hda/patch_realtek.c
+@@ -7693,7 +7693,6 @@ enum {
+ 	ALC285_FIXUP_THINKPAD_X1_GEN7,
+ 	ALC285_FIXUP_THINKPAD_HEADSET_JACK,
+ 	ALC294_FIXUP_ASUS_ALLY,
+-	ALC294_FIXUP_ASUS_ALLY_X,
+ 	ALC294_FIXUP_ASUS_ALLY_PINS,
+ 	ALC294_FIXUP_ASUS_ALLY_VERBS,
+ 	ALC294_FIXUP_ASUS_ALLY_SPEAKER,
+@@ -9173,12 +9172,6 @@ static const struct hda_fixup alc269_fixups[] = {
+ 		.chained = true,
+ 		.chain_id = ALC294_FIXUP_ASUS_ALLY_PINS
+ 	},
+-	[ALC294_FIXUP_ASUS_ALLY_X] = {
+-		.type = HDA_FIXUP_FUNC,
+-		.v.func = tas2781_fixup_i2c,
+-		.chained = true,
+-		.chain_id = ALC294_FIXUP_ASUS_ALLY_PINS
+-	},
+ 	[ALC294_FIXUP_ASUS_ALLY_PINS] = {
+ 		.type = HDA_FIXUP_PINS,
+ 		.v.pins = (const struct hda_pintbl[]) {
+@@ -10671,7 +10664,6 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
+ 	SND_PCI_QUIRK(0x1043, 0x1740, "ASUS UX430UA", ALC295_FIXUP_ASUS_DACS),
+ 	SND_PCI_QUIRK(0x1043, 0x17d1, "ASUS UX431FL", ALC294_FIXUP_ASUS_DUAL_SPK),
+ 	SND_PCI_QUIRK(0x1043, 0x17f3, "ROG Ally NR2301L/X", ALC294_FIXUP_ASUS_ALLY),
+-	SND_PCI_QUIRK(0x1043, 0x1eb3, "ROG Ally X RC72LA", ALC294_FIXUP_ASUS_ALLY_X),
+ 	SND_PCI_QUIRK(0x1043, 0x1863, "ASUS UX6404VI/VV", ALC245_FIXUP_CS35L41_SPI_2),
+ 	SND_PCI_QUIRK(0x1043, 0x1881, "ASUS Zephyrus S/M", ALC294_FIXUP_ASUS_GX502_PINS),
+ 	SND_PCI_QUIRK(0x1043, 0x18b1, "Asus MJ401TA", ALC256_FIXUP_ASUS_HEADSET_MIC),
+-- 
+2.48.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sat, 22 Feb 2025 21:44:42 +0100
+Subject: ALSA: hda/realtek: Fix Asus Z13 2025 audio
+
+dsdt entry is the same as the original Ally, so borrow its quirks.
+Sound works in both speakers, headphones, and microphone. Whereas
+none worked before.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ sound/pci/hda/patch_realtek.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
+index 976455163bff..e3b96dfc41ac 100644
+--- a/sound/pci/hda/patch_realtek.c
++++ b/sound/pci/hda/patch_realtek.c
+@@ -10719,6 +10719,7 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
+ 	SND_PCI_QUIRK(0x1043, 0x1f1f, "ASUS H7604JI/JV/J3D", ALC245_FIXUP_CS35L41_SPI_2),
+ 	SND_PCI_QUIRK(0x1043, 0x1f62, "ASUS UX7602ZM", ALC245_FIXUP_CS35L41_SPI_2),
+ 	SND_PCI_QUIRK(0x1043, 0x1f92, "ASUS ROG Flow X16", ALC289_FIXUP_ASUS_GA401),
++	SND_PCI_QUIRK(0x1043, 0x1fb3, "ASUS ROG Flow Z13 GZ302EA", ALC294_FIXUP_ASUS_ALLY),
+ 	SND_PCI_QUIRK(0x1043, 0x3030, "ASUS ZN270IE", ALC256_FIXUP_ASUS_AIO_GPIO2),
+ 	SND_PCI_QUIRK(0x1043, 0x31d0, "ASUS Zen AIO 27 Z272SD_A272SD", ALC274_FIXUP_ASUS_ZEN_AIO_27),
+ 	SND_PCI_QUIRK(0x1043, 0x3a20, "ASUS G614JZR", ALC285_FIXUP_ASUS_SPI_REAR_SPEAKERS),
 -- 
 2.48.1
 
