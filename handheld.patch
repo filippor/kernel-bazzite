@@ -55228,3 +55228,85 @@ index a1120af3f90a..38d9dd70c178 100644
 -- 
 2.48.1
 
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sun, 23 Feb 2025 23:46:58 +0100
+Subject: ACPI: platform_profile: add all platform profiles to amd-pmf
+
+amd-pmf is currently the only (sometimes) secondary consumer of the
+platform-profiles ABI. This is what prompted this elaborate refactor
+after all. However, it seems that when it is active with a WMI driver
+that does not implement the same name of the power saving variant
+(e.g., COOL instead of LOW_POWER), it eats that option.
+
+This causes increased power consumption when userspace software
+such as ppd or tuned tries to write to the unified platform-profile,
+as it will no longer find a low power profile.
+
+As amd-pmf for most laptops is a secondary consumer, make sure it
+implements all the platform profiles, so regardless of what consumers
+write to, it is available.
+
+Tested on an Asus Z13.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/platform/x86/amd/pmf/spc.c | 3 +++
+ drivers/platform/x86/amd/pmf/sps.c | 6 ++++++
+ 2 files changed, 9 insertions(+)
+
+diff --git a/drivers/platform/x86/amd/pmf/spc.c b/drivers/platform/x86/amd/pmf/spc.c
+index 06226eb0eab3..793a89e77a29 100644
+--- a/drivers/platform/x86/amd/pmf/spc.c
++++ b/drivers/platform/x86/amd/pmf/spc.c
+@@ -153,12 +153,15 @@ static int amd_pmf_get_slider_info(struct amd_pmf_dev *dev, struct ta_pmf_enact_
+ 
+ 	switch (dev->current_profile) {
+ 	case PLATFORM_PROFILE_PERFORMANCE:
++	case PLATFORM_PROFILE_BALANCED_PERFORMANCE:
+ 		val = TA_BEST_PERFORMANCE;
+ 		break;
+ 	case PLATFORM_PROFILE_BALANCED:
+ 		val = TA_BETTER_PERFORMANCE;
+ 		break;
+ 	case PLATFORM_PROFILE_LOW_POWER:
++	case PLATFORM_PROFILE_COOL:
++	case PLATFORM_PROFILE_QUIET:
+ 		val = TA_BEST_BATTERY;
+ 		break;
+ 	default:
+diff --git a/drivers/platform/x86/amd/pmf/sps.c b/drivers/platform/x86/amd/pmf/sps.c
+index bd2bd6cfc39a..2c6881deb0ef 100644
+--- a/drivers/platform/x86/amd/pmf/sps.c
++++ b/drivers/platform/x86/amd/pmf/sps.c
+@@ -297,12 +297,15 @@ int amd_pmf_get_pprof_modes(struct amd_pmf_dev *pmf)
+ 
+ 	switch (pmf->current_profile) {
+ 	case PLATFORM_PROFILE_PERFORMANCE:
++	case PLATFORM_PROFILE_BALANCED_PERFORMANCE:
+ 		mode = POWER_MODE_PERFORMANCE;
+ 		break;
+ 	case PLATFORM_PROFILE_BALANCED:
+ 		mode = POWER_MODE_BALANCED_POWER;
+ 		break;
+ 	case PLATFORM_PROFILE_LOW_POWER:
++	case PLATFORM_PROFILE_COOL:
++	case PLATFORM_PROFILE_QUIET:
+ 		mode = POWER_MODE_POWER_SAVER;
+ 		break;
+ 	default:
+@@ -412,7 +415,10 @@ int amd_pmf_init_sps(struct amd_pmf_dev *dev)
+ 
+ 	/* Setup supported modes */
+ 	set_bit(PLATFORM_PROFILE_LOW_POWER, dev->pprof.choices);
++	set_bit(PLATFORM_PROFILE_COOL, dev->pprof.choices);
++	set_bit(PLATFORM_PROFILE_QUIET, dev->pprof.choices);
+ 	set_bit(PLATFORM_PROFILE_BALANCED, dev->pprof.choices);
++	set_bit(PLATFORM_PROFILE_BALANCED_PERFORMANCE, dev->pprof.choices);
+ 	set_bit(PLATFORM_PROFILE_PERFORMANCE, dev->pprof.choices);
+ 
+ 	/* Create platform_profile structure and register */
+-- 
+2.48.1
+
