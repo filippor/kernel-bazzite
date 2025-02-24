@@ -15074,7 +15074,7 @@ Patchset: surface-typecover
  1 file changed, 3 insertions(+)
 
 diff --git a/drivers/usb/core/quirks.c b/drivers/usb/core/quirks.c
-index 13171454f959..a83beefd25f3 100644
+index 027479179f09..ee5a6bf5452d 100644
 --- a/drivers/usb/core/quirks.c
 +++ b/drivers/usb/core/quirks.c
 @@ -223,6 +223,9 @@ static const struct usb_device_id usb_quirk_list[] = {
@@ -15127,7 +15127,7 @@ Patchset: surface-typecover
  1 file changed, 98 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/hid/hid-multitouch.c b/drivers/hid/hid-multitouch.c
-index 82900857bfd8..171222d44bfd 100644
+index e50887a6d22c..4ce18f21a141 100644
 --- a/drivers/hid/hid-multitouch.c
 +++ b/drivers/hid/hid-multitouch.c
 @@ -35,7 +35,10 @@
@@ -15199,7 +15199,7 @@ index 82900857bfd8..171222d44bfd 100644
  	{ }
  };
  
-@@ -1756,6 +1776,69 @@ static void mt_expired_timeout(struct timer_list *t)
+@@ -1759,6 +1779,69 @@ static void mt_expired_timeout(struct timer_list *t)
  	clear_bit_unlock(MT_IO_FLAGS_RUNNING, &td->mt_io_flags);
  }
  
@@ -15269,7 +15269,7 @@ index 82900857bfd8..171222d44bfd 100644
  static int mt_probe(struct hid_device *hdev, const struct hid_device_id *id)
  {
  	int ret, i;
-@@ -1779,6 +1862,9 @@ static int mt_probe(struct hid_device *hdev, const struct hid_device_id *id)
+@@ -1782,6 +1865,9 @@ static int mt_probe(struct hid_device *hdev, const struct hid_device_id *id)
  	td->inputmode_value = MT_INPUTMODE_TOUCHSCREEN;
  	hid_set_drvdata(hdev, td);
  
@@ -15279,7 +15279,7 @@ index 82900857bfd8..171222d44bfd 100644
  	INIT_LIST_HEAD(&td->applications);
  	INIT_LIST_HEAD(&td->reports);
  
-@@ -1817,8 +1903,10 @@ static int mt_probe(struct hid_device *hdev, const struct hid_device_id *id)
+@@ -1820,8 +1906,10 @@ static int mt_probe(struct hid_device *hdev, const struct hid_device_id *id)
  	timer_setup(&td->release_timer, mt_expired_timeout, 0);
  
  	ret = hid_parse(hdev);
@@ -15291,7 +15291,7 @@ index 82900857bfd8..171222d44bfd 100644
  
  	if (mtclass->quirks & MT_QUIRK_FIX_CONST_CONTACT_ID)
  		mt_fix_const_fields(hdev, HID_DG_CONTACTID);
-@@ -1827,8 +1915,10 @@ static int mt_probe(struct hid_device *hdev, const struct hid_device_id *id)
+@@ -1830,8 +1918,10 @@ static int mt_probe(struct hid_device *hdev, const struct hid_device_id *id)
  		hdev->quirks |= HID_QUIRK_NOGET;
  
  	ret = hid_hw_start(hdev, HID_CONNECT_DEFAULT);
@@ -15303,7 +15303,7 @@ index 82900857bfd8..171222d44bfd 100644
  
  	ret = sysfs_create_group(&hdev->dev.kobj, &mt_attribute_group);
  	if (ret)
-@@ -1878,6 +1968,7 @@ static void mt_remove(struct hid_device *hdev)
+@@ -1881,6 +1971,7 @@ static void mt_remove(struct hid_device *hdev)
  {
  	struct mt_device *td = hid_get_drvdata(hdev);
  
@@ -15311,7 +15311,7 @@ index 82900857bfd8..171222d44bfd 100644
  	del_timer_sync(&td->release_timer);
  
  	sysfs_remove_group(&hdev->dev.kobj, &mt_attribute_group);
-@@ -2301,6 +2392,11 @@ static const struct hid_device_id mt_devices[] = {
+@@ -2304,6 +2395,11 @@ static const struct hid_device_id mt_devices[] = {
  		MT_USB_DEVICE(USB_VENDOR_ID_XIROKU,
  			USB_DEVICE_ID_XIROKU_CSR2) },
  
@@ -15355,7 +15355,7 @@ Patchset: surface-typecover
  1 file changed, 122 insertions(+), 26 deletions(-)
 
 diff --git a/drivers/hid/hid-multitouch.c b/drivers/hid/hid-multitouch.c
-index 171222d44bfd..3e504c3f7e0f 100644
+index 4ce18f21a141..f5e4d52bd2eb 100644
 --- a/drivers/hid/hid-multitouch.c
 +++ b/drivers/hid/hid-multitouch.c
 @@ -78,6 +78,7 @@ MODULE_LICENSE("GPL");
@@ -15522,7 +15522,7 @@ index 171222d44bfd..3e504c3f7e0f 100644
  	default:
  		suffix = "UNKNOWN";
  		break;
-@@ -1776,30 +1865,6 @@ static void mt_expired_timeout(struct timer_list *t)
+@@ -1779,30 +1868,6 @@ static void mt_expired_timeout(struct timer_list *t)
  	clear_bit_unlock(MT_IO_FLAGS_RUNNING, &td->mt_io_flags);
  }
  
@@ -15553,7 +15553,7 @@ index 171222d44bfd..3e504c3f7e0f 100644
  static void update_keyboard_backlight(struct hid_device *hdev, bool enabled)
  {
  	struct usb_device *udev = hid_to_usb_dev(hdev);
-@@ -1808,8 +1873,9 @@ static void update_keyboard_backlight(struct hid_device *hdev, bool enabled)
+@@ -1811,8 +1876,9 @@ static void update_keyboard_backlight(struct hid_device *hdev, bool enabled)
  	/* Wake up the device in case it's already suspended */
  	pm_runtime_get_sync(&udev->dev);
  
@@ -15565,7 +15565,7 @@ index 171222d44bfd..3e504c3f7e0f 100644
  		hid_err(hdev, "couldn't find backlight field\n");
  		goto out;
  	}
-@@ -1946,13 +2012,24 @@ static int mt_suspend(struct hid_device *hdev, pm_message_t state)
+@@ -1949,13 +2015,24 @@ static int mt_suspend(struct hid_device *hdev, pm_message_t state)
  
  static int mt_reset_resume(struct hid_device *hdev)
  {
@@ -15590,7 +15590,7 @@ index 171222d44bfd..3e504c3f7e0f 100644
  	/* Some Elan legacy devices require SET_IDLE to be set on resume.
  	 * It should be safe to send it to other devices too.
  	 * Tested on 3M, Stantum, Cypress, Zytronic, eGalax, and Elan panels. */
-@@ -1961,12 +2038,31 @@ static int mt_resume(struct hid_device *hdev)
+@@ -1964,12 +2041,31 @@ static int mt_resume(struct hid_device *hdev)
  
  	mt_set_modes(hdev, HID_LATENCY_NORMAL, TOUCHPAD_REPORT_ALL);
  
@@ -15665,10 +15665,10 @@ index 35270172c833..529779994ef6 100644
  
  	if (drv && drv->shutdown)
 diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
-index d7af71f1825b..d442282047dc 100644
+index 8aba731f9ce3..5e02a01fefc2 100644
 --- a/drivers/pci/quirks.c
 +++ b/drivers/pci/quirks.c
-@@ -6325,3 +6325,39 @@ static void pci_mask_replay_timer_timeout(struct pci_dev *pdev)
+@@ -6338,3 +6338,39 @@ static void pci_mask_replay_timer_timeout(struct pci_dev *pdev)
  DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_GLI, 0x9750, pci_mask_replay_timer_timeout);
  DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_GLI, 0x9755, pci_mask_replay_timer_timeout);
  #endif
@@ -24188,46 +24188,6 @@ index e16b61d4c11a..e0f49e8e75cd 100644
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
-Date: Fri, 2 Aug 2024 22:47:33 +0300
-Subject: drm/msm/dpu1: don't choke on disabling the writeback connector
-
-During suspend/resume process all connectors are explicitly disabled and
-then reenabled. However resume fails because of the connector_status check:
-
-[ 1185.831970] [dpu error]connector not connected 3
-
-It doesn't make sense to check for the Writeback connected status (and
-other drivers don't perform such check), so drop the check.
-
-Fixes: 71174f362d67 ("drm/msm/dpu: move writeback's atomic_check to dpu_writeback.c")
-Cc: stable@vger.kernel.org
-Reported-by: Leonard Lausen <leonard@lausen.nl>
-Closes: https://gitlab.freedesktop.org/drm/msm/-/issues/57
-Signed-off-by: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
----
- drivers/gpu/drm/msm/disp/dpu1/dpu_writeback.c | 3 ---
- 1 file changed, 3 deletions(-)
-
-diff --git a/drivers/gpu/drm/msm/disp/dpu1/dpu_writeback.c b/drivers/gpu/drm/msm/disp/dpu1/dpu_writeback.c
-index 16f144cbc0c9..8ff496082902 100644
---- a/drivers/gpu/drm/msm/disp/dpu1/dpu_writeback.c
-+++ b/drivers/gpu/drm/msm/disp/dpu1/dpu_writeback.c
-@@ -42,9 +42,6 @@ static int dpu_wb_conn_atomic_check(struct drm_connector *connector,
- 	if (!conn_state || !conn_state->connector) {
- 		DPU_ERROR("invalid connector state\n");
- 		return -EINVAL;
--	} else if (conn_state->connector->status != connector_status_connected) {
--		DPU_ERROR("connector not connected %d\n", conn_state->connector->status);
--		return -EINVAL;
- 	}
- 
- 	crtc = conn_state->crtc;
--- 
-2.48.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Teguh Sobirin <teguh@sobir.in>
 Date: Thu, 10 Oct 2024 15:03:09 +0800
 Subject: arm64: dts: qcom: Batocera specific changes
@@ -24554,10 +24514,10 @@ This fixes 7700/7800 XT custom powercap.
  1 file changed, 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c b/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
-index 21bd635bcdfc..4f6eff2e744b 100644
+index c0b98749dde7..25df8a336328 100644
 --- a/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
 +++ b/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
-@@ -2787,7 +2787,6 @@ int smu_get_power_limit(void *handle,
+@@ -2788,7 +2788,6 @@ int smu_get_power_limit(void *handle,
  		case SMU_PPT_LIMIT_CURRENT:
  			switch (amdgpu_ip_version(adev, MP1_HWIP, 0)) {
  			case IP_VERSION(13, 0, 2):
@@ -25299,7 +25259,7 @@ index 000000000000..23aeb5649479
 +#endif // CONFIG_SYSCTL
 +#endif // CONFIG_SCHED_BORE
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index ffceb5ff4c5c..47f5e1101a23 100644
+index aeba4e920102..e1c09a7ac418 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -97,6 +97,8 @@
@@ -25632,7 +25592,7 @@ index 7d0a05660e5e..d10df202536d 100644
  }
  
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index c5d67a43fe52..e14855d24ae1 100644
+index 66744d60904d..918bd70cea0a 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
 @@ -2092,7 +2092,11 @@ static inline void update_sched_domain_debugfs(void) { }
@@ -26664,7 +26624,7 @@ index e322b97879c2..78d2c4b2d9e1 100644
  				Safety option to keep boot IRQs enabled. This
  				should never be necessary.
 diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
-index d442282047dc..c621555f9c2a 100644
+index 5e02a01fefc2..b1a5e8fa885c 100644
 --- a/drivers/pci/quirks.c
 +++ b/drivers/pci/quirks.c
 @@ -5041,6 +5041,106 @@ static int  pci_quirk_wangxun_nic_acs(struct pci_dev *dev, u16 acs_flags)
@@ -26801,7 +26761,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 9 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
-index c621555f9c2a..30e6f4e9ce7d 100644
+index b1a5e8fa885c..d388ca84a0c5 100644
 --- a/drivers/pci/quirks.c
 +++ b/drivers/pci/quirks.c
 @@ -5041,6 +5041,7 @@ static int  pci_quirk_wangxun_nic_acs(struct pci_dev *dev, u16 acs_flags)
@@ -27127,10 +27087,10 @@ index e8ae7681bf0a..8a0d873983f3 100644
  }
  
 diff --git a/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c b/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
-index 4f6eff2e744b..740c9fe4c78c 100644
+index 25df8a336328..591fcc344f19 100644
 --- a/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
 +++ b/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
-@@ -2808,7 +2808,10 @@ int smu_get_power_limit(void *handle,
+@@ -2809,7 +2809,10 @@ int smu_get_power_limit(void *handle,
  			*limit = smu->max_power_limit;
  			break;
  		case SMU_PPT_LIMIT_MIN:
@@ -27142,7 +27102,7 @@ index 4f6eff2e744b..740c9fe4c78c 100644
  			break;
  		default:
  			return -EINVAL;
-@@ -2832,7 +2835,14 @@ static int smu_set_power_limit(void *handle, uint32_t limit)
+@@ -2833,7 +2836,14 @@ static int smu_set_power_limit(void *handle, uint32_t limit)
  		if (smu->ppt_funcs->set_power_limit)
  			return smu->ppt_funcs->set_power_limit(smu, limit_type, limit);
  
@@ -50165,7 +50125,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 9 insertions(+)
 
 diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index 1f9fe50bba00..25145a6883c9 100644
+index f7746c57ba76..04560d9e5077 100644
 --- a/drivers/gpio/gpiolib-acpi.c
 +++ b/drivers/gpio/gpiolib-acpi.c
 @@ -1689,6 +1689,15 @@ static const struct dmi_system_id gpiolib_acpi_quirks[] __initconst = {
@@ -50181,9 +50141,9 @@ index 1f9fe50bba00..25145a6883c9 100644
 +			.ignore_wake = "PNP0C50:00@8",
 +		},
 +	},
- 	{} /* Terminating entry */
- };
- 
+ 	{
+ 		/*
+ 		 * Spurious wakeups from GPIO 11
 -- 
 2.48.1
 
@@ -52136,7 +52096,7 @@ further investigation.
  1 file changed, 3 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
-index 30e6f4e9ce7d..e1c4182b7479 100644
+index d388ca84a0c5..b6bb20a2e0a0 100644
 --- a/drivers/pci/quirks.c
 +++ b/drivers/pci/quirks.c
 @@ -712,7 +712,7 @@ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_ATI,	PCI_DEVICE_ID_ATI_RS100,   quirk_ati_
