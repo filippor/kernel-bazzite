@@ -3085,6 +3085,339 @@ index 4fccde2e4563..7f013356118a 100644
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Kurt Borja <kuurtb@gmail.com>
+Date: Wed, 12 Feb 2025 14:30:58 -0500
+Subject: ACPI: platform_profile: Fix memory leak in profile_class_is_visible()
+
+If class_find_device() finds a device it's reference count is
+incremented. Call put_device() to drop this reference before returning.
+
+Fixes: 77be5cacb2c2 ("ACPI: platform_profile: Create class for ACPI platform profile")
+Signed-off-by: Kurt Borja <kuurtb@gmail.com>
+Reviewed-by: Mark Pearson <mpearson-lenovo@squebb.ca>
+---
+ drivers/acpi/platform_profile.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/platform_profile.c b/drivers/acpi/platform_profile.c
+index 75a1415190ac..c3681954abce 100644
+--- a/drivers/acpi/platform_profile.c
++++ b/drivers/acpi/platform_profile.c
+@@ -397,8 +397,14 @@ static int profile_class_registered(struct device *dev, const void *data)
+ 
+ static umode_t profile_class_is_visible(struct kobject *kobj, struct attribute *attr, int idx)
+ {
+-	if (!class_find_device(&platform_profile_class, NULL, NULL, profile_class_registered))
++	struct device *dev;
++
++	dev = class_find_device(&platform_profile_class, NULL, NULL, profile_class_registered);
++	if (!dev)
+ 		return 0;
++
++	put_device(dev);
++
+ 	return attr->mode;
+ }
+ 
+-- 
+2.48.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Mon, 24 Feb 2025 17:29:17 +0100
+Subject: ACPI: platform_profile: Add support for secondary handlers
+
+Currently, only the subset of supported profiles are exposed when
+using platform profile. This is a big problem when e.g., asus-wmi
+and amd-pmf are loaded together, as they have conflicting low
+power options. This causes ppd and tuned to miss the low power
+option increasing power consumption.
+
+Therefore, add the secondary variable. Profile handlers with it should
+accept all profile options always. Only when they are the sole
+handler, their probe function will be used to expose available profiles.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/platform/x86/amd/pmf/sps.c | 1 +
+ include/linux/platform_profile.h   | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/drivers/platform/x86/amd/pmf/sps.c b/drivers/platform/x86/amd/pmf/sps.c
+index bd2bd6cfc39a..de76dd2fc76b 100644
+--- a/drivers/platform/x86/amd/pmf/sps.c
++++ b/drivers/platform/x86/amd/pmf/sps.c
+@@ -405,6 +405,7 @@ int amd_pmf_init_sps(struct amd_pmf_dev *dev)
+ 		amd_pmf_set_sps_power_limits(dev);
+ 	}
+ 
++	dev->pprof.secondary = true;
+ 	dev->pprof.name = "amd-pmf";
+ 	dev->pprof.dev = dev->dev;
+ 	dev->pprof.profile_get = amd_pmf_profile_get;
+diff --git a/include/linux/platform_profile.h b/include/linux/platform_profile.h
+index 0682bb4c57e5..602d31195ed3 100644
+--- a/include/linux/platform_profile.h
++++ b/include/linux/platform_profile.h
+@@ -32,6 +32,7 @@ struct platform_profile_handler {
+ 	struct device *dev;
+ 	struct device *class_dev;
+ 	int minor;
++	bool secondary;
+ 	unsigned long choices[BITS_TO_LONGS(PLATFORM_PROFILE_LAST)];
+ 	int (*profile_get)(struct platform_profile_handler *pprof,
+ 				enum platform_profile_option *profile);
+-- 
+2.48.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Mon, 24 Feb 2025 17:43:20 +0100
+Subject: ACPI: platform_profile: add all options to amd-pmf as a secondary
+ handler
+
+As a secondary handler, the amd-pmf module should be able to accept
+all platform profiles. In the case of a custom profile, it should NOOP
+without an error to allow primary handlers to receive a custom profile.
+The sysfs endpoint will still report custom, after all.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/platform/x86/amd/pmf/spc.c | 3 +++
+ drivers/platform/x86/amd/pmf/sps.c | 7 +++++++
+ 2 files changed, 10 insertions(+)
+
+diff --git a/drivers/platform/x86/amd/pmf/spc.c b/drivers/platform/x86/amd/pmf/spc.c
+index 06226eb0eab3..793a89e77a29 100644
+--- a/drivers/platform/x86/amd/pmf/spc.c
++++ b/drivers/platform/x86/amd/pmf/spc.c
+@@ -153,12 +153,15 @@ static int amd_pmf_get_slider_info(struct amd_pmf_dev *dev, struct ta_pmf_enact_
+ 
+ 	switch (dev->current_profile) {
+ 	case PLATFORM_PROFILE_PERFORMANCE:
++	case PLATFORM_PROFILE_BALANCED_PERFORMANCE:
+ 		val = TA_BEST_PERFORMANCE;
+ 		break;
+ 	case PLATFORM_PROFILE_BALANCED:
+ 		val = TA_BETTER_PERFORMANCE;
+ 		break;
+ 	case PLATFORM_PROFILE_LOW_POWER:
++	case PLATFORM_PROFILE_COOL:
++	case PLATFORM_PROFILE_QUIET:
+ 		val = TA_BEST_BATTERY;
+ 		break;
+ 	default:
+diff --git a/drivers/platform/x86/amd/pmf/sps.c b/drivers/platform/x86/amd/pmf/sps.c
+index de76dd2fc76b..51562ec39b6c 100644
+--- a/drivers/platform/x86/amd/pmf/sps.c
++++ b/drivers/platform/x86/amd/pmf/sps.c
+@@ -297,12 +297,15 @@ int amd_pmf_get_pprof_modes(struct amd_pmf_dev *pmf)
+ 
+ 	switch (pmf->current_profile) {
+ 	case PLATFORM_PROFILE_PERFORMANCE:
++	case PLATFORM_PROFILE_BALANCED_PERFORMANCE:
+ 		mode = POWER_MODE_PERFORMANCE;
+ 		break;
+ 	case PLATFORM_PROFILE_BALANCED:
+ 		mode = POWER_MODE_BALANCED_POWER;
+ 		break;
+ 	case PLATFORM_PROFILE_LOW_POWER:
++	case PLATFORM_PROFILE_COOL:
++	case PLATFORM_PROFILE_QUIET:
+ 		mode = POWER_MODE_POWER_SAVER;
+ 		break;
+ 	default:
+@@ -369,6 +372,10 @@ static int amd_pmf_profile_set(struct platform_profile_handler *pprof,
+ 	struct amd_pmf_dev *pmf = container_of(pprof, struct amd_pmf_dev, pprof);
+ 	int ret = 0;
+ 
++	/* If the profile is custom, bail without an error. */
++	if (profile == PLATFORM_PROFILE_CUSTOM)
++		return 0;
++
+ 	pmf->current_profile = profile;
+ 
+ 	/* Notify EC about the slider position change */
+-- 
+2.48.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Mon, 24 Feb 2025 19:52:40 +0100
+Subject: ACPI: platform_profile: Do not hide options missing in secondary
+ handlers
+
+In the legacy endpoint, previously, only the options common to all
+handlers were exposed. This causes an issue when the primary handler
+of the device has its options hidden, as it results in a performance
+degradation.
+
+Therefore, this commit introduces the concept of secondary handlers.
+These are handlers that are able to accept all options and do not
+partake in the process of selecting which profiles are visible.
+
+These handlers still have a probe function which is used for their
+endpoint and their endpoint works normally and will block other
+options. However, when called from the legacy endpoint, all options
+will be sent to them. It is the expectation that secondary handlers
+will pick the closest profile they have to what was sent.
+
+In the absence of a primary handler, the options shown in the legacy
+endpoint will be the union of all options of all secondary handlers.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/acpi/platform_profile.c | 57 ++++++++++++++++++++++++++++-----
+ 1 file changed, 49 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/acpi/platform_profile.c b/drivers/acpi/platform_profile.c
+index c3681954abce..10cc2dc84620 100644
+--- a/drivers/acpi/platform_profile.c
++++ b/drivers/acpi/platform_profile.c
+@@ -51,17 +51,18 @@ static ssize_t _commmon_choices_show(unsigned long *choices, char *buf)
+  * _store_class_profile - Set the profile for a class device
+  * @dev: The class device
+  * @data: The profile to set
++ * @enforce_valid: For secondary handlers, enforce that the profile is valid
+  *
+  * Return: 0 on success, -errno on failure
+  */
+-static int _store_class_profile(struct device *dev, void *data)
++static int _store_class_profile(struct device *dev, void *data, bool enforce_valid)
+ {
+ 	struct platform_profile_handler *handler;
+ 	int *bit = (int *)data;
+ 
+ 	lockdep_assert_held(&profile_lock);
+ 	handler = dev_get_drvdata(dev);
+-	if (!test_bit(*bit, handler->choices))
++	if ((enforce_valid || !handler->secondary) && !test_bit(*bit, handler->choices))
+ 		return -EOPNOTSUPP;
+ 
+ 	return handler->profile_set(handler, *bit);
+@@ -192,7 +193,7 @@ static ssize_t profile_store(struct device *dev,
+ 		return -EINVAL;
+ 
+ 	scoped_cond_guard(mutex_intr, return -ERESTARTSYS, &profile_lock) {
+-		ret = _store_class_profile(dev, &index);
++		ret = _store_class_profile(dev, &index, true);
+ 		if (ret)
+ 			return ret;
+ 	}
+@@ -223,21 +224,37 @@ static const struct class platform_profile_class = {
+  *
+  * Return: 0 on success, -errno on failure
+  */
+-static int _aggregate_choices(struct device *dev, void *data)
++static int _aggregate_choices(struct device *dev, void *data, bool secondary)
+ {
+ 	struct platform_profile_handler *handler;
+ 	unsigned long *aggregate = data;
+ 
+ 	lockdep_assert_held(&profile_lock);
+ 	handler = dev_get_drvdata(dev);
++
++	if (handler->secondary != secondary)
++		return 0;
++
+ 	if (test_bit(PLATFORM_PROFILE_LAST, aggregate))
+ 		bitmap_copy(aggregate, handler->choices, PLATFORM_PROFILE_LAST);
++	else if (handler->secondary)
++		bitmap_or(aggregate, handler->choices, aggregate, PLATFORM_PROFILE_LAST);
+ 	else
+ 		bitmap_and(aggregate, handler->choices, aggregate, PLATFORM_PROFILE_LAST);
+ 
+ 	return 0;
+ }
+ 
++static int _aggregate_choices_primary(struct device *dev, void *data)
++{
++	return _aggregate_choices(dev, data, false);
++}
++
++static int _aggregate_choices_secondary(struct device *dev, void *data)
++{
++	return _aggregate_choices(dev, data, true);
++}
++
+ /**
+  * platform_profile_choices_show - Show the available profile choices for legacy sysfs interface
+  * @dev: The device
+@@ -256,9 +273,16 @@ static ssize_t platform_profile_choices_show(struct device *dev,
+ 	set_bit(PLATFORM_PROFILE_LAST, aggregate);
+ 	scoped_cond_guard(mutex_intr, return -ERESTARTSYS, &profile_lock) {
+ 		err = class_for_each_device(&platform_profile_class, NULL,
+-					    aggregate, _aggregate_choices);
++					    aggregate, _aggregate_choices_primary);
+ 		if (err)
+ 			return err;
++
++		if (test_bit(PLATFORM_PROFILE_LAST, aggregate)) {
++			err = class_for_each_device(&platform_profile_class, NULL,
++							aggregate, _aggregate_choices_secondary);
++			if (err)
++				return err;
++		}
+ 	}
+ 
+ 	/* no profile handler registered any more */
+@@ -305,7 +329,7 @@ static int _store_and_notify(struct device *dev, void *data)
+ 	enum platform_profile_option *profile = data;
+ 	int err;
+ 
+-	err = _store_class_profile(dev, profile);
++	err = _store_class_profile(dev, profile, false);
+ 	if (err)
+ 		return err;
+ 	return _notify_class_profile(dev, NULL);
+@@ -364,9 +388,18 @@ static ssize_t platform_profile_store(struct device *dev,
+ 	set_bit(PLATFORM_PROFILE_LAST, choices);
+ 	scoped_cond_guard(mutex_intr, return -ERESTARTSYS, &profile_lock) {
+ 		ret = class_for_each_device(&platform_profile_class, NULL,
+-					    choices, _aggregate_choices);
++					    choices, _aggregate_choices_primary);
+ 		if (ret)
+ 			return ret;
++
++		if (test_bit(PLATFORM_PROFILE_LAST, choices)) {
++			ret = class_for_each_device(
++				&platform_profile_class, NULL, choices,
++				_aggregate_choices_secondary);
++			if (ret)
++				return ret;
++		}
++
+ 		if (!test_bit(i, choices))
+ 			return -EOPNOTSUPP;
+ 
+@@ -441,10 +474,18 @@ int platform_profile_cycle(void)
+ 			return -EINVAL;
+ 
+ 		err = class_for_each_device(&platform_profile_class, NULL,
+-					    choices, _aggregate_choices);
++					    choices, _aggregate_choices_primary);
+ 		if (err)
+ 			return err;
+ 
++		if (test_bit(PLATFORM_PROFILE_LAST, choices)) {
++			err = class_for_each_device(
++				&platform_profile_class, NULL, choices,
++				_aggregate_choices_secondary);
++			if (err)
++				return err;
++		}
++
+ 		/* never iterate into a custom if all drivers supported it */
+ 		clear_bit(PLATFORM_PROFILE_CUSTOM, choices);
+ 
+-- 
+2.48.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
 Date: Sat, 22 Feb 2025 11:00:39 +0100
 Subject: [BEGIN] NTSync backport
@@ -55161,90 +55494,10 @@ index a1120af3f90a..38d9dd70c178 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sun, 23 Feb 2025 23:46:58 +0100
-Subject: ACPI: platform_profile: add all platform profiles to amd-pmf
+Date: Mon, 24 Feb 2025 21:57:20 +0100
+Subject: ALSA: hda/realtek: Remove (revert) duplicate Ally X config
 
-amd-pmf is currently the only (sometimes) secondary consumer of the
-platform-profiles ABI. This is what prompted this elaborate refactor
-after all. However, it seems that when it is active with a WMI driver
-that does not implement the same name of the power saving variant
-(e.g., COOL instead of LOW_POWER), it eats that option.
-
-This causes increased power consumption when userspace software
-such as ppd or tuned tries to write to the unified platform-profile,
-as it will no longer find a low power profile.
-
-As amd-pmf for most laptops is a secondary consumer, make sure it
-implements all the platform profiles, so regardless of what consumers
-write to, it is available.
-
-Tested on an Asus Z13.
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- drivers/platform/x86/amd/pmf/spc.c | 3 +++
- drivers/platform/x86/amd/pmf/sps.c | 6 ++++++
- 2 files changed, 9 insertions(+)
-
-diff --git a/drivers/platform/x86/amd/pmf/spc.c b/drivers/platform/x86/amd/pmf/spc.c
-index 06226eb0eab3..793a89e77a29 100644
---- a/drivers/platform/x86/amd/pmf/spc.c
-+++ b/drivers/platform/x86/amd/pmf/spc.c
-@@ -153,12 +153,15 @@ static int amd_pmf_get_slider_info(struct amd_pmf_dev *dev, struct ta_pmf_enact_
- 
- 	switch (dev->current_profile) {
- 	case PLATFORM_PROFILE_PERFORMANCE:
-+	case PLATFORM_PROFILE_BALANCED_PERFORMANCE:
- 		val = TA_BEST_PERFORMANCE;
- 		break;
- 	case PLATFORM_PROFILE_BALANCED:
- 		val = TA_BETTER_PERFORMANCE;
- 		break;
- 	case PLATFORM_PROFILE_LOW_POWER:
-+	case PLATFORM_PROFILE_COOL:
-+	case PLATFORM_PROFILE_QUIET:
- 		val = TA_BEST_BATTERY;
- 		break;
- 	default:
-diff --git a/drivers/platform/x86/amd/pmf/sps.c b/drivers/platform/x86/amd/pmf/sps.c
-index bd2bd6cfc39a..2c6881deb0ef 100644
---- a/drivers/platform/x86/amd/pmf/sps.c
-+++ b/drivers/platform/x86/amd/pmf/sps.c
-@@ -297,12 +297,15 @@ int amd_pmf_get_pprof_modes(struct amd_pmf_dev *pmf)
- 
- 	switch (pmf->current_profile) {
- 	case PLATFORM_PROFILE_PERFORMANCE:
-+	case PLATFORM_PROFILE_BALANCED_PERFORMANCE:
- 		mode = POWER_MODE_PERFORMANCE;
- 		break;
- 	case PLATFORM_PROFILE_BALANCED:
- 		mode = POWER_MODE_BALANCED_POWER;
- 		break;
- 	case PLATFORM_PROFILE_LOW_POWER:
-+	case PLATFORM_PROFILE_COOL:
-+	case PLATFORM_PROFILE_QUIET:
- 		mode = POWER_MODE_POWER_SAVER;
- 		break;
- 	default:
-@@ -412,7 +415,10 @@ int amd_pmf_init_sps(struct amd_pmf_dev *dev)
- 
- 	/* Setup supported modes */
- 	set_bit(PLATFORM_PROFILE_LOW_POWER, dev->pprof.choices);
-+	set_bit(PLATFORM_PROFILE_COOL, dev->pprof.choices);
-+	set_bit(PLATFORM_PROFILE_QUIET, dev->pprof.choices);
- 	set_bit(PLATFORM_PROFILE_BALANCED, dev->pprof.choices);
-+	set_bit(PLATFORM_PROFILE_BALANCED_PERFORMANCE, dev->pprof.choices);
- 	set_bit(PLATFORM_PROFILE_PERFORMANCE, dev->pprof.choices);
- 
- 	/* Create platform_profile structure and register */
--- 
-2.48.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Mon, 24 Feb 2025 16:41:42 +0100
-Subject: ALSA: hda/realtek: Remove dup Ally X config
+This reverts commit ebfb5a57caa4e2e2203883ac6669bf8a294e7c89.
 
 In commit 1e9c708dc3ae ("ALSA: hda/tas2781: Add new quirk for Lenovo,
 ASUS, Dell projects") Baojun adds a bunch of projects to the file,
@@ -55252,22 +55505,41 @@ including for the Ally X. Turns out the initial Ally X was not sorted
 properly, so the kernel had 2 quirks for it.
 
 The previous quirk overrode the new one due to being earlier and they
-are different. When AB testing, it was found that the Ally X makes a
-popping sound during boot when using the (new) Lenovo quirk.
-
-Therefore, keep using the previous custom quirk for the Ally X and sort
-it properly, replacing the one added by Baojun.
+are different. When AB testing, the normal pin fixup seems to work ok
+but causes a bit of a minor popping. Given the other config is more
+complicated and may cause undefined behavior, revert it.
 
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- sound/pci/hda/patch_realtek.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ sound/pci/hda/patch_realtek.c | 8 --------
+ 1 file changed, 8 deletions(-)
 
 diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
-index aa058e9c6fdb..abe75c9357b8 100644
+index aa058e9c6fdb..976455163bff 100644
 --- a/sound/pci/hda/patch_realtek.c
 +++ b/sound/pci/hda/patch_realtek.c
-@@ -10671,7 +10671,6 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
+@@ -7693,7 +7693,6 @@ enum {
+ 	ALC285_FIXUP_THINKPAD_X1_GEN7,
+ 	ALC285_FIXUP_THINKPAD_HEADSET_JACK,
+ 	ALC294_FIXUP_ASUS_ALLY,
+-	ALC294_FIXUP_ASUS_ALLY_X,
+ 	ALC294_FIXUP_ASUS_ALLY_PINS,
+ 	ALC294_FIXUP_ASUS_ALLY_VERBS,
+ 	ALC294_FIXUP_ASUS_ALLY_SPEAKER,
+@@ -9173,12 +9172,6 @@ static const struct hda_fixup alc269_fixups[] = {
+ 		.chained = true,
+ 		.chain_id = ALC294_FIXUP_ASUS_ALLY_PINS
+ 	},
+-	[ALC294_FIXUP_ASUS_ALLY_X] = {
+-		.type = HDA_FIXUP_FUNC,
+-		.v.func = tas2781_fixup_i2c,
+-		.chained = true,
+-		.chain_id = ALC294_FIXUP_ASUS_ALLY_PINS
+-	},
+ 	[ALC294_FIXUP_ASUS_ALLY_PINS] = {
+ 		.type = HDA_FIXUP_PINS,
+ 		.v.pins = (const struct hda_pintbl[]) {
+@@ -10671,7 +10664,6 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
  	SND_PCI_QUIRK(0x1043, 0x1740, "ASUS UX430UA", ALC295_FIXUP_ASUS_DACS),
  	SND_PCI_QUIRK(0x1043, 0x17d1, "ASUS UX431FL", ALC294_FIXUP_ASUS_DUAL_SPK),
  	SND_PCI_QUIRK(0x1043, 0x17f3, "ROG Ally NR2301L/X", ALC294_FIXUP_ASUS_ALLY),
@@ -55275,15 +55547,6 @@ index aa058e9c6fdb..abe75c9357b8 100644
  	SND_PCI_QUIRK(0x1043, 0x1863, "ASUS UX6404VI/VV", ALC245_FIXUP_CS35L41_SPI_2),
  	SND_PCI_QUIRK(0x1043, 0x1881, "ASUS Zephyrus S/M", ALC294_FIXUP_ASUS_GX502_PINS),
  	SND_PCI_QUIRK(0x1043, 0x18b1, "Asus MJ401TA", ALC256_FIXUP_ASUS_HEADSET_MIC),
-@@ -10718,7 +10717,7 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
- 	SND_PCI_QUIRK(0x1043, 0x1e63, "ASUS H7606W", ALC285_FIXUP_ASUS_GU605_SPI_SPEAKER2_TO_DAC1),
- 	SND_PCI_QUIRK(0x1043, 0x1e83, "ASUS GA605W", ALC285_FIXUP_ASUS_GU605_SPI_SPEAKER2_TO_DAC1),
- 	SND_PCI_QUIRK(0x1043, 0x1e8e, "ASUS Zephyrus G15", ALC289_FIXUP_ASUS_GA401),
--	SND_PCI_QUIRK(0x1043, 0x1eb3, "ASUS Ally RCLA72", ALC287_FIXUP_TAS2781_I2C),
-+	SND_PCI_QUIRK(0x1043, 0x1eb3, "ROG Ally X RC72LA", ALC294_FIXUP_ASUS_ALLY_X),
- 	SND_PCI_QUIRK(0x1043, 0x1ed3, "ASUS HN7306W", ALC287_FIXUP_CS35L41_I2C_2),
- 	SND_PCI_QUIRK(0x1043, 0x1ee2, "ASUS UM6702RA/RC", ALC287_FIXUP_CS35L41_I2C_2),
- 	SND_PCI_QUIRK(0x1043, 0x1c52, "ASUS Zephyrus G15 2022", ALC289_FIXUP_ASUS_GA401),
 -- 
 2.48.1
 
@@ -55304,10 +55567,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 1 insertion(+)
 
 diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
-index abe75c9357b8..15ae2ac1a44d 100644
+index 976455163bff..3bcdae86e68f 100644
 --- a/sound/pci/hda/patch_realtek.c
 +++ b/sound/pci/hda/patch_realtek.c
-@@ -10726,6 +10726,7 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
+@@ -10719,6 +10719,7 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
  	SND_PCI_QUIRK(0x1043, 0x1f1f, "ASUS H7604JI/JV/J3D", ALC245_FIXUP_CS35L41_SPI_2),
  	SND_PCI_QUIRK(0x1043, 0x1f62, "ASUS UX7602ZM", ALC245_FIXUP_CS35L41_SPI_2),
  	SND_PCI_QUIRK(0x1043, 0x1f92, "ASUS ROG Flow X16", ALC289_FIXUP_ASUS_GA401),
