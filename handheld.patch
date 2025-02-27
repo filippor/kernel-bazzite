@@ -255,10 +255,10 @@ index 0fbcb5b6d7bf..8e9aa9131569 100644
  
  #define MEMBER(T, member, ...) T member;
 diff --git a/drivers/gpu/drm/xe/xe_device_types.h b/drivers/gpu/drm/xe/xe_device_types.h
-index b9ea455d6f59..64e4efd2c1a7 100644
+index 782eb224a46e..54fcc3f133eb 100644
 --- a/drivers/gpu/drm/xe/xe_device_types.h
 +++ b/drivers/gpu/drm/xe/xe_device_types.h
-@@ -568,6 +568,9 @@ struct xe_device {
+@@ -574,6 +574,9 @@ struct xe_device {
  		unsigned int czclk_freq;
  		unsigned int fsb_freq, mem_freq, is_ddr3;
  	};
@@ -16042,7 +16042,7 @@ index 8aba731f9ce3..5e02a01fefc2 100644
 +DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x466d, quirk_no_shutdown);  // Thunderbolt 4 NHI
 +DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x46a8, quirk_no_shutdown);  // GPU
 diff --git a/include/linux/pci.h b/include/linux/pci.h
-index db9b47ce3eef..ae90b9602d41 100644
+index f05903dd7695..d1e38fdaf8bb 100644
 --- a/include/linux/pci.h
 +++ b/include/linux/pci.h
 @@ -476,6 +476,7 @@ struct pci_dev {
@@ -25925,7 +25925,7 @@ index 7d0a05660e5e..d10df202536d 100644
  }
  
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index 66744d60904d..918bd70cea0a 100644
+index f3e121888d05..ace918ea91fd 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
 @@ -2092,7 +2092,11 @@ static inline void update_sched_domain_debugfs(void) { }
@@ -27193,7 +27193,7 @@ This reverts commit 907830b0fc9e374d00f3c83de5e426157b482c01.
  1 file changed, 1 insertion(+), 7 deletions(-)
 
 diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index 661f98c6c63a..29590522b9b4 100644
+index b0ae4bc1a1be..3ce285a7230a 100644
 --- a/drivers/pci/pci.c
 +++ b/drivers/pci/pci.c
 @@ -3764,14 +3764,8 @@ u32 pci_rebar_get_possible_sizes(struct pci_dev *pdev, int bar)
@@ -27378,10 +27378,10 @@ index 4653a8d2823a..6590e83dfbf0 100644
  extern int amdgpu_gart_size;
  extern int amdgpu_gtt_size;
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-index e63efe5c5b75..2a51d905648a 100644
+index 91a874bb0e24..675319937ae3 100644
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-@@ -138,6 +138,7 @@ enum AMDGPU_DEBUG_MASK {
+@@ -139,6 +139,7 @@ enum AMDGPU_DEBUG_MASK {
  };
  
  unsigned int amdgpu_vram_limit = UINT_MAX;
@@ -27389,7 +27389,7 @@ index e63efe5c5b75..2a51d905648a 100644
  int amdgpu_vis_vram_limit;
  int amdgpu_gart_size = -1; /* auto */
  int amdgpu_gtt_size = -1; /* auto */
-@@ -256,6 +257,15 @@ struct amdgpu_watchdog_timer amdgpu_watchdog_timer = {
+@@ -257,6 +258,15 @@ struct amdgpu_watchdog_timer amdgpu_watchdog_timer = {
  	.period = 0x0, /* default to 0x0 (timeout disable) */
  };
  
@@ -27754,10 +27754,10 @@ Signed-off-by: Jan200101 <sentrycraft123@gmail.com>
  2 files changed, 10 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-index 2a51d905648a..a1120af3f90a 100644
+index 675319937ae3..a0831b91dd91 100644
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-@@ -625,13 +625,8 @@ module_param_named(timeout_period, amdgpu_watchdog_timer.period, uint, 0644);
+@@ -626,13 +626,8 @@ module_param_named(timeout_period, amdgpu_watchdog_timer.period, uint, 0644);
   */
  #ifdef CONFIG_DRM_AMDGPU_SI
  
@@ -27771,7 +27771,7 @@ index 2a51d905648a..a1120af3f90a 100644
  
  module_param_named(si_support, amdgpu_si_support, int, 0444);
  #endif
-@@ -644,13 +639,8 @@ module_param_named(si_support, amdgpu_si_support, int, 0444);
+@@ -645,13 +640,8 @@ module_param_named(si_support, amdgpu_si_support, int, 0444);
   */
  #ifdef CONFIG_DRM_AMDGPU_CIK
  
@@ -50176,10 +50176,10 @@ Co-developed-by: linh1987
  1 file changed, 10 insertions(+)
 
 diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
-index 6c352602987b..0d3ad9f2a335 100644
+index ffe3de617d5d..d72609e06d8c 100644
 --- a/sound/pci/hda/patch_realtek.c
 +++ b/sound/pci/hda/patch_realtek.c
-@@ -7555,6 +7555,7 @@ enum {
+@@ -7556,6 +7556,7 @@ enum {
  	ALC269VB_FIXUP_ASUS_ZENBOOK,
  	ALC269VB_FIXUP_ASUS_ZENBOOK_UX31A,
  	ALC269VB_FIXUP_ASUS_MIC_NO_PRESENCE,
@@ -50187,7 +50187,7 @@ index 6c352602987b..0d3ad9f2a335 100644
  	ALC269_FIXUP_LIMIT_INT_MIC_BOOST_MUTE_LED,
  	ALC269VB_FIXUP_ORDISSIMO_EVE2,
  	ALC283_FIXUP_CHROME_BOOK,
-@@ -8265,6 +8266,13 @@ static const struct hda_fixup alc269_fixups[] = {
+@@ -8266,6 +8267,13 @@ static const struct hda_fixup alc269_fixups[] = {
  		.chained = true,
  		.chain_id = ALC269_FIXUP_HEADSET_MIC
  	},
@@ -50201,7 +50201,7 @@ index 6c352602987b..0d3ad9f2a335 100644
  	[ALC269_FIXUP_LIMIT_INT_MIC_BOOST_MUTE_LED] = {
  		.type = HDA_FIXUP_FUNC,
  		.v.func = alc269_fixup_limit_int_mic_boost,
-@@ -11024,6 +11032,7 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
+@@ -11025,6 +11033,7 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
  	SND_PCI_QUIRK(0x2782, 0x1705, "MEDION E15433", ALC269VC_FIXUP_INFINIX_Y4_MAX),
  	SND_PCI_QUIRK(0x2782, 0x1707, "Vaio VJFE-ADL", ALC298_FIXUP_SPK_VOLUME),
  	SND_PCI_QUIRK(0x2782, 0x4900, "MEDION E15443", ALC233_FIXUP_MEDION_MTL_SPK),
@@ -50209,7 +50209,7 @@ index 6c352602987b..0d3ad9f2a335 100644
  	SND_PCI_QUIRK(0x8086, 0x2074, "Intel NUC 8", ALC233_FIXUP_INTEL_NUC8_DMIC),
  	SND_PCI_QUIRK(0x8086, 0x2080, "Intel NUC 8 Rugged", ALC256_FIXUP_INTEL_NUC8_RUGGED),
  	SND_PCI_QUIRK(0x8086, 0x2081, "Intel NUC 10", ALC256_FIXUP_INTEL_NUC10),
-@@ -11148,6 +11157,7 @@ static const struct hda_model_fixup alc269_fixup_models[] = {
+@@ -11149,6 +11158,7 @@ static const struct hda_model_fixup alc269_fixup_models[] = {
  	{.id = ALC269VB_FIXUP_ASUS_ZENBOOK, .name = "asus-zenbook"},
  	{.id = ALC269VB_FIXUP_ASUS_ZENBOOK_UX31A, .name = "asus-zenbook-ux31a"},
  	{.id = ALC269VB_FIXUP_ORDISSIMO_EVE2, .name = "ordissimo"},
@@ -50233,10 +50233,10 @@ Co-developed-by: Bouke Sybren Haarsma <boukehaarsma23@gmail.com>
  1 file changed, 50 insertions(+), 1 deletion(-)
 
 diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
-index 0d3ad9f2a335..aa058e9c6fdb 100644
+index d72609e06d8c..7ea2903d3f4a 100644
 --- a/sound/pci/hda/patch_realtek.c
 +++ b/sound/pci/hda/patch_realtek.c
-@@ -6727,6 +6727,20 @@ static void alc294_gx502_toggle_output(struct hda_codec *codec,
+@@ -6728,6 +6728,20 @@ static void alc294_gx502_toggle_output(struct hda_codec *codec,
  		alc_write_coef_idx(codec, 0x10, 0x0a20);
  }
  
@@ -50257,7 +50257,7 @@ index 0d3ad9f2a335..aa058e9c6fdb 100644
  static void alc294_fixup_gx502_hp(struct hda_codec *codec,
  					const struct hda_fixup *fix, int action)
  {
-@@ -7542,6 +7556,8 @@ enum {
+@@ -7543,6 +7557,8 @@ enum {
  	ALC269_FIXUP_DELL4_MIC_NO_PRESENCE,
  	ALC269_FIXUP_DELL4_MIC_NO_PRESENCE_QUIET,
  	ALC269_FIXUP_HEADSET_MODE,
@@ -50266,7 +50266,7 @@ index 0d3ad9f2a335..aa058e9c6fdb 100644
  	ALC269_FIXUP_HEADSET_MODE_NO_HP_MIC,
  	ALC269_FIXUP_ASPIRE_HEADSET_MIC,
  	ALC269_FIXUP_ASUS_X101_FUNC,
-@@ -7799,6 +7815,30 @@ enum {
+@@ -7800,6 +7816,30 @@ enum {
  	ALC283_FIXUP_DELL_HP_RESUME,
  };
  
@@ -50297,7 +50297,7 @@ index 0d3ad9f2a335..aa058e9c6fdb 100644
  /* A special fixup for Lenovo C940 and Yoga Duet 7;
   * both have the very same PCI SSID, and we need to apply different fixups
   * depending on the codec ID
-@@ -9059,6 +9099,14 @@ static const struct hda_fixup alc269_fixups[] = {
+@@ -9060,6 +9100,14 @@ static const struct hda_fixup alc269_fixups[] = {
  			{ 0x1b, 0x90170152 } /* use as internal speaker (back) */
  		}
  	},
@@ -50312,7 +50312,7 @@ index 0d3ad9f2a335..aa058e9c6fdb 100644
  	[ALC299_FIXUP_PREDATOR_SPK] = {
  		.type = HDA_FIXUP_PINS,
  		.v.pins = (const struct hda_pintbl[]) {
-@@ -11031,8 +11079,9 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
+@@ -11032,8 +11080,9 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
  	SND_PCI_QUIRK(0x2782, 0x1701, "Infinix Y4 Max", ALC269VC_FIXUP_INFINIX_Y4_MAX),
  	SND_PCI_QUIRK(0x2782, 0x1705, "MEDION E15433", ALC269VC_FIXUP_INFINIX_Y4_MAX),
  	SND_PCI_QUIRK(0x2782, 0x1707, "Vaio VJFE-ADL", ALC298_FIXUP_SPK_VOLUME),
@@ -55476,10 +55476,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-index a1120af3f90a..38d9dd70c178 100644
+index a0831b91dd91..825c9822c14b 100644
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-@@ -2996,7 +2996,7 @@ static int __init amdgpu_init(void)
+@@ -2997,7 +2997,7 @@ static int __init amdgpu_init(void)
  
  	if (amdgpu_pp_feature_mask & PP_OVERDRIVE_MASK) {
  		add_taint(TAINT_CPU_OUT_OF_SPEC, LOCKDEP_STILL_OK);
@@ -55515,10 +55515,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 8 deletions(-)
 
 diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
-index aa058e9c6fdb..976455163bff 100644
+index 7ea2903d3f4a..1a45bb11e92d 100644
 --- a/sound/pci/hda/patch_realtek.c
 +++ b/sound/pci/hda/patch_realtek.c
-@@ -7693,7 +7693,6 @@ enum {
+@@ -7694,7 +7694,6 @@ enum {
  	ALC285_FIXUP_THINKPAD_X1_GEN7,
  	ALC285_FIXUP_THINKPAD_HEADSET_JACK,
  	ALC294_FIXUP_ASUS_ALLY,
@@ -55526,7 +55526,7 @@ index aa058e9c6fdb..976455163bff 100644
  	ALC294_FIXUP_ASUS_ALLY_PINS,
  	ALC294_FIXUP_ASUS_ALLY_VERBS,
  	ALC294_FIXUP_ASUS_ALLY_SPEAKER,
-@@ -9173,12 +9172,6 @@ static const struct hda_fixup alc269_fixups[] = {
+@@ -9174,12 +9173,6 @@ static const struct hda_fixup alc269_fixups[] = {
  		.chained = true,
  		.chain_id = ALC294_FIXUP_ASUS_ALLY_PINS
  	},
@@ -55539,7 +55539,7 @@ index aa058e9c6fdb..976455163bff 100644
  	[ALC294_FIXUP_ASUS_ALLY_PINS] = {
  		.type = HDA_FIXUP_PINS,
  		.v.pins = (const struct hda_pintbl[]) {
-@@ -10671,7 +10664,6 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
+@@ -10672,7 +10665,6 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
  	SND_PCI_QUIRK(0x1043, 0x1740, "ASUS UX430UA", ALC295_FIXUP_ASUS_DACS),
  	SND_PCI_QUIRK(0x1043, 0x17d1, "ASUS UX431FL", ALC294_FIXUP_ASUS_DUAL_SPK),
  	SND_PCI_QUIRK(0x1043, 0x17f3, "ROG Ally NR2301L/X", ALC294_FIXUP_ASUS_ALLY),
@@ -55567,10 +55567,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 1 insertion(+)
 
 diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
-index 976455163bff..3bcdae86e68f 100644
+index 1a45bb11e92d..79a2cf9d6fe0 100644
 --- a/sound/pci/hda/patch_realtek.c
 +++ b/sound/pci/hda/patch_realtek.c
-@@ -10719,6 +10719,7 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
+@@ -10720,6 +10720,7 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
  	SND_PCI_QUIRK(0x1043, 0x1f1f, "ASUS H7604JI/JV/J3D", ALC245_FIXUP_CS35L41_SPI_2),
  	SND_PCI_QUIRK(0x1043, 0x1f62, "ASUS UX7602ZM", ALC245_FIXUP_CS35L41_SPI_2),
  	SND_PCI_QUIRK(0x1043, 0x1f92, "ASUS ROG Flow X16", ALC289_FIXUP_ASUS_GA401),
