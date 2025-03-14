@@ -160,18 +160,18 @@ Summary: The Linux kernel
 %define debugbuildsenabled 1
 %define buildid .bazzite
 # define buildid .local
-%define specrpmversion 6.13.6
-%define specversion 6.13.6
+%define specrpmversion 6.13.7
+%define specversion 6.13.7
 %define patchversion 6.13
 %define pkgrelease 200
 %define kversion 6
-%define tarfile_release 6.13.6
+%define tarfile_release 6.13.7
 # This is needed to do merge window version magic
 %define patchlevel 13
 # This allows pkg_release to have configurable %%{?dist} tag
 %define specrelease 103%{?buildid}%{?dist}
 # This defines the kabi tarball version
-%define kabiversion 6.13.6
+%define kabiversion 6.13.7
 
 # If this variable is set to 1, a bpf selftests build failure will cause a
 # fatal kernel package build error
@@ -4156,6 +4156,14 @@ fi\
 #
 #
 %changelog
+* Thu Mar 13 2025 Augusto Caringi <acaringi@redhat.com> [6.13.7-0]
+- Set CONFIG_FW_CACHE=y for rhel to avoid config mismatch issues (Augusto Caringi)
+- media: ov08x40: Extend sleep after reset to 5 ms (Hans de Goede)
+- media: ov08x40: Log chip ID when identifying the chip (Hans de Goede)
+- media: ov08x40: Fix value of reset GPIO when requesting it (Hans de Goede)
+- ASoC: rt712-sdca: Add FU05 playback switch control (Shuming Fan) [2350689]
+- Linux v6.13.7
+
 * Fri Mar 07 2025 Augusto Caringi <acaringi@redhat.com> [6.13.6-0]
 - Fix up some debug module loading issues due to BTF mismatch (Justin M. Forbes)
 - Linux v6.13.6

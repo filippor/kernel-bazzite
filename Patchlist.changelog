@@ -1,3 +1,15 @@
+https://gitlab.com/cki-project/kernel-ark/-/commit/fa2776a85804c480dd9427a042e799849f060e2d
+ fa2776a85804c480dd9427a042e799849f060e2d media: ov08x40: Extend sleep after reset to 5 ms
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/6b680e517ceb2830d460ea67145070748f726be3
+ 6b680e517ceb2830d460ea67145070748f726be3 media: ov08x40: Log chip ID when identifying the chip
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/54b19247d77afbda6c90d7ad6204e6c757a9645b
+ 54b19247d77afbda6c90d7ad6204e6c757a9645b media: ov08x40: Fix value of reset GPIO when requesting it
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/9b79932890f97f0226f6c41b3cd05aee537d2561
+ 9b79932890f97f0226f6c41b3cd05aee537d2561 ASoC: rt712-sdca: Add FU05 playback switch control
+
 https://gitlab.com/cki-project/kernel-ark/-/commit/993f8a0404b0a8ee5b210f2d5e1b43a9236ea1a9
  993f8a0404b0a8ee5b210f2d5e1b43a9236ea1a9 fuse: revert back to __readahead_folio() for readahead
 
