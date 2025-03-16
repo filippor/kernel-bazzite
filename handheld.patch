@@ -71170,3 +71170,35 @@ index a7b559f3d6d2..16a32397d6e8 100644
 -- 
 2.48.1
 
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Thorsten Leemhuis <fedora@leemhuis.info>
+Date: Wed, 22 Jan 2025 11:05:32 +0100
+Subject: apply -Wno-error=unterminated-string-initialization temporarily
+
+Temporarily reduce impact of a warning to satisfy GCC 15, as suggested by
+Jakub Jelinek in https://bugzilla.redhat.com/show_bug.cgi?id=2338533#c7
+
+Signed-off-by: Thorsten Leemhuis <fedora@leemhuis.info>
+---
+ scripts/Makefile.extrawarn | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/scripts/Makefile.extrawarn b/scripts/Makefile.extrawarn
+index dc081cf46d21..25fe35170155 100644
+--- a/scripts/Makefile.extrawarn
++++ b/scripts/Makefile.extrawarn
+@@ -20,6 +20,10 @@ KBUILD_CFLAGS += $(call cc-disable-warning, address-of-packed-member)
+ KBUILD_CFLAGS += -Wmissing-declarations
+ KBUILD_CFLAGS += -Wmissing-prototypes
+ 
++# temporarily disable a warning to allow compiling with gcc15, as suggested by
++# Jakub Jelinek in https://bugzilla.redhat.com/show_bug.cgi?id=2338533#c7
++KBUILD_CFLAGS += $(call cc-option,-Wno-error=unterminated-string-initialization)
++
+ ifneq ($(CONFIG_FRAME_WARN),0)
+ KBUILD_CFLAGS += -Wframe-larger-than=$(CONFIG_FRAME_WARN)
+ endif
+-- 
+2.48.1
+
