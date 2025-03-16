@@ -43,6 +43,8 @@ jobs:
             sed "s/VERSION_FEDORA/${fedver}/" | \
             sed "s/VERSION_RELEASE/${relver}/" \
           > ./pkg/PKGBUILD
+      - name: Echo PKGBUILD
+        run: cat ./pkg/PKGBUILD
       - name: Publish AUR package
         uses: KSXGitHub/github-actions-deploy-aur@v4.1.1
         with:
