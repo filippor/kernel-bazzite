@@ -43,6 +43,8 @@ jobs:
             sed "s/VERSION_FEDORA/${fedver}/" | \
             sed "s/VERSION_RELEASE/${relver}/" \
           > ./pkg/PKGBUILD
+
+          echo "relver=$relver" >> $GITHUB_ENV
       - name: Echo PKGBUILD
         run: cat ./pkg/PKGBUILD
       - name: Publish AUR package
@@ -53,7 +55,7 @@ jobs:
           commit_username: ${{ secrets.AUR_USERNAME }}
           commit_email: ${{ secrets.AUR_EMAIL }}
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-          commit_message: update to release ${{ github.event.inputs.relver }}
+          commit_message: update to release ${{ env.relver }}
           allow_empty_commits: false
           ssh_keyscan_types: rsa,ecdsa,ed25519
           updpkgsums: true
