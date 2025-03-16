@@ -1,4 +1,4 @@
-name: Publish to AUR
+name: Bump kernel in AUR
 
 on:
   workflow_dispatch:
