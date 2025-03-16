@@ -26,14 +26,12 @@ Installing
 
 Fedora is TODO. Of course, you can always install Bazzite :).
 
-For Arch, you can install the kernel from releases by downloading it and
-running ``sudo pacman -U <file>``:
+For Arch, the kernel is available in the AUR.
 
 .. code:: bash
 
-   # Find linux-bazzite-X.bazzite.fc41-1-x86_64.pkg.tar.zst, right click, copy.
-   wget https://github.com/hhd-dev/kernel-bazzite/releases/download/6.11.3-303.2/linux-bazzite-6.11.3.300.bazzite.fc41-1-x86_64.pkg.tar.zst
-   sudo pacman -U linux-bazzite-6.11.3.300.bazzite.fc41-1-x86_64.pkg.tar.zst
+   # Use your favorite AUR helper (e.g., paru, pikaur, yay)
+   yay -S linux-bazzite-bin
 
 Contributing
 ------------
