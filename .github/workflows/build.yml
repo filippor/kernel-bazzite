@@ -182,7 +182,7 @@ jobs:
             https://api.github.com/repos/$repo_owner/$repo_name/dispatches \
             -d "{\"event_type\": \"$event_type\", \"client_payload\": {\"release_tag\": \"$release_tag\"}}"
   update_aur:
-    uses: /.github/workflows/publish-aur.yml
+    uses: ./.github/workflows/publish-aur.yml
     if: github.event_name == 'release' && github.event.release.prerelease == false
     with:
       relver: ${{ github.event.release.tag_name }}
