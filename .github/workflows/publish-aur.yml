@@ -13,6 +13,18 @@ on:
         type: string
         required: true
         default: '41'
+  workflow_call:
+    inputs:
+      relver:
+        description: 'Release'
+        type: string
+        required: false
+        default: ''
+      fedora_version:
+        description: 'Fedora version'
+        type: string
+        required: true
+        default: '41'
 
 permissions:
   contents: read
