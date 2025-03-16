@@ -33,8 +33,8 @@ jobs:
           else
             release="$(curl "https://api.github.com/repos/bazzite-org/kernel-bazzite/releases/latest" )"
           fi
-          fedver=$(echo -E "$latest" | jq -r '.assets[].name' | grep -E 'kernel-.*.rpm' | grep "fc${{ inputs.fedora_version }}.x86_64" | head -1 | sed "s/kernel-//g" | sed "s/.rpm//g" )
-          relver=$(echo -E $latest | jq -r '.tag_name')
+          fedver=$(echo -E "$release" | jq -r '.assets[].name' | grep -E 'kernel-.*.rpm' | grep "fc${{ inputs.fedora_version }}.x86_64" | head -1 | sed "s/kernel-//g" | sed "s/.rpm//g" )
+          relver=$(echo -E $release | jq -r '.tag_name')
           pkgver=$(echo $relver | sed 's/-/./g')
 
           mkdir -p ./pkg/
