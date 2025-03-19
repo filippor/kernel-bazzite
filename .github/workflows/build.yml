@@ -13,10 +13,6 @@ on:
 permissions:
   contents: write
 
-env:
-  # The fedora version used for arch
-  arch_fedora: 41
-
 jobs:
   build_kernel:
     environment: prod
@@ -101,7 +97,7 @@ jobs:
           compression-level: 7
       
       - name: Convert to Arch
-        if: matrix.arch == 'x86_64' && matrix.fedora_version == env.arch_fedora
+        if: matrix.arch == 'x86_64' && matrix.fedora_version == 41 #arch_fedora
         run: |
           # Grab kernel ver from the log
           KERNEL_VER=$(ls -a | grep .build | head -n 1 | sed 's/.build-//' | sed 's/.log//')
@@ -116,7 +112,7 @@ jobs:
 
       - name: Upload Kernel arch package to action
         uses: actions/upload-artifact@v4
-        if: matrix.arch == 'x86_64' && matrix.fedora_version == env.arch_fedora
+        if: matrix.arch == 'x86_64' && matrix.fedora_version == 41 #arch_fedora
         with:
           name: linux-f${{ matrix.fedora_version }}-arch
           path: |
@@ -186,4 +182,4 @@ jobs:
     if: github.event_name == 'release' && github.event.release.prerelease == false
     with:
       relver: ${{ github.event.release.tag_name }}
-      fedora_version: ${{ env.arch_fedora }}
+      fedora_version: 41 #arch_fedora
