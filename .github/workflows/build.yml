@@ -180,6 +180,7 @@ jobs:
   update_aur:
     uses: ./.github/workflows/publish-aur.yml
     needs: build_kernel
+    secrets: inherit
     if: github.event_name == 'release' && github.event.release.prerelease == false
     with:
       relver: ${{ github.event.release.tag_name }}
