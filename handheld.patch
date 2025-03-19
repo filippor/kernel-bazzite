@@ -73,7 +73,7 @@ index 0000000000000..90e71ffe344a9
 \ No newline at end of file
 diff --git a/sync-arch.sh b/sync-arch.sh
 new file mode 100755
-index 0000000000000..42cb321433dfc
+index 0000000000000..9a9c605bfee99
 --- /dev/null
 +++ b/sync-arch.sh
 @@ -0,0 +1,22 @@
@@ -88,7 +88,7 @@ index 0000000000000..42cb321433dfc
 +set -e
 +
 +rm -rf linux-*
-+time PATH="/usr/lib/ccache/bin:$PATH" CCACHE_DIR=$(pwd)/../cache CCACHE_FILECLONE=1 CCACHE_MAXSIZE=30G make pacman-pkg -j 14
++time PATH="/usr/lib/ccache/bin:$PATH" CCACHE_DIR=$(pwd)/../cache CCACHE_FILECLONE=1 CCACHE_MAXSIZE=30G make pacman-pkg -j $(expr $(nproc) - 2)
 +
 +scp linux-upstream-6*.pkg.tar.zst $HOST:/tmp
 +scp linux-upstream-headers-6*.pkg.tar.zst $HOST:/tmp
@@ -41776,7 +41776,7 @@ Subject: [BEGIN] OneXPlayer Handheld patches
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sun, 9 Mar 2025 12:21:02 +0100
+Date: Tue, 11 Mar 2025 17:53:53 +0100
 Subject: hwmon: (oxp-sensors) Distinguish the X1 variants
 
 Currently, the oxp-sensors driver fuzzy matches the X1 variants. Luckily,
@@ -41837,7 +41837,7 @@ index 83730d9318240..5a4230ad3757e 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sun, 9 Mar 2025 12:21:03 +0100
+Date: Tue, 11 Mar 2025 17:53:54 +0100
 Subject: hwmon: (oxp-sensors) Add all OneXFly variants
 
 Currently, the driver only has the F1 OneXFly variant, which was based
@@ -41916,7 +41916,7 @@ index 5a4230ad3757e..f7a64fbc8f33e 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sun, 9 Mar 2025 12:21:04 +0100
+Date: Tue, 11 Mar 2025 17:53:55 +0100
 Subject: platform/x86: oxpec: Move hwmon/oxp-sensors to platform/x86
 
 The EC of OneXPlayer devices used to only control the fan.
@@ -43705,7 +43705,7 @@ index 0000000000000..dc3a0871809cd
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sun, 9 Mar 2025 12:21:05 +0100
+Date: Tue, 11 Mar 2025 17:53:56 +0100
 Subject: ABI: testing: add tt_toggle and tt_led entries
 
 When tt_toggle was introduced, it was not added to the platform sysfs.
@@ -43755,7 +43755,7 @@ index 0000000000000..776b7dee3d595
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sun, 9 Mar 2025 12:21:06 +0100
+Date: Tue, 11 Mar 2025 17:53:57 +0100
 Subject: power: supply: add inhibit-charge-s0 to charge_behaviour
 
 OneXPlayer devices have a charge bypass feature
@@ -43840,7 +43840,7 @@ index b98106e1a90f3..834884a1e7cd3 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sun, 9 Mar 2025 12:21:07 +0100
+Date: Tue, 11 Mar 2025 17:53:58 +0100
 Subject: platform/x86: oxpec: Add charge threshold and behaviour to OneXPlayer
 
 With the X1 (AMD), OneXPlayer added a charge limit and charge bypass to
@@ -44138,7 +44138,7 @@ index dc3a0871809cd..d73a10598d8f9 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sun, 9 Mar 2025 12:21:08 +0100
+Date: Tue, 11 Mar 2025 17:53:59 +0100
 Subject: platform/x86: oxpec: Rename ec group to tt_toggle
 
 Currently, the EC group is used for the turbo button. However, the next
@@ -44185,7 +44185,7 @@ index d73a10598d8f9..95b0c946b7f85 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sun, 9 Mar 2025 12:21:09 +0100
+Date: Tue, 11 Mar 2025 17:54:00 +0100
 Subject: platform/x86: oxpec: Add turbo led support to X1 devices
 
 The X1 and X1 mini lineups feature an LED nested within their turbo
@@ -44325,7 +44325,7 @@ index 95b0c946b7f85..58a1919aec15d 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sun, 9 Mar 2025 12:21:10 +0100
+Date: Tue, 11 Mar 2025 17:54:01 +0100
 Subject: platform/x86: oxpec: Move pwm_enable read to its own function
 
 Currently, this driver breaks ABI by using auto as 0 and manual as 1.
@@ -44417,7 +44417,7 @@ index 58a1919aec15d..31c7d00414921 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sun, 9 Mar 2025 12:21:11 +0100
+Date: Tue, 11 Mar 2025 17:54:02 +0100
 Subject: platform/x86: oxpec: Move pwm value read/write to separate functions
 
 Currently, this driver breaks hwmon ABI by using auto as 0 and manual
@@ -44627,7 +44627,7 @@ index 31c7d00414921..f0e70205ad195 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sun, 9 Mar 2025 12:21:12 +0100
+Date: Tue, 11 Mar 2025 17:54:03 +0100
 Subject: platform/x86: oxpec: Move fan speed read to separate function
 
 While not necessary for fixing the ABI hwmon issue, fan speed will be
@@ -44717,7 +44717,7 @@ index f0e70205ad195..97dc7b7c70c72 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sun, 9 Mar 2025 12:21:13 +0100
+Date: Tue, 11 Mar 2025 17:54:04 +0100
 Subject: platform/x86: oxpec: Adhere to sysfs-class-hwmon and enable pwm on 2
 
 Currently, the driver does not adhere to the sysfs-class-hwmon
@@ -44813,7 +44813,7 @@ index 97dc7b7c70c72..273589f8b2fa2 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Tue, 11 Mar 2025 17:40:36 +0100
+Date: Tue, 11 Mar 2025 17:54:05 +0100
 Subject: platform/x86: oxpec: Follow reverse xmas convention for tt_toggle
 
 Since the rest of the driver follows this convention, apply it to the
@@ -44861,6 +44861,1051 @@ index 273589f8b2fa2..a3c945c73fc5b 100644
  
  	switch (board) {
  	case oxp_mini_amd_a07:
+-- 
+2.48.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Wed, 19 Mar 2025 20:35:48 +0100
+Subject: [BEGIN] HID: Asus: Z13 fixup series
+
+-- 
+2.48.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Wed, 19 Mar 2025 20:13:09 +0100
+Subject: HID: asus: refactor init sequence per spec
+
+Currently, asus_kbd_init() uses a reverse engineered init sequence
+from Windows, which contains the handshakes from multiple programs.
+Keep the main one, which is 0x5a (meant for drivers).
+
+In addition, perform a get_response and check if the response is the
+same. To avoid regressions, print an error if the response does not
+match instead of rejecting device.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/hid/hid-asus.c | 82 +++++++++++++++++++++++-------------------
+ 1 file changed, 46 insertions(+), 36 deletions(-)
+
+diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
+index 61237ec51e704..8255652c947c9 100644
+--- a/drivers/hid/hid-asus.c
++++ b/drivers/hid/hid-asus.c
+@@ -48,7 +48,7 @@ MODULE_DESCRIPTION("Asus HID Keyboard and TouchPad");
+ #define FEATURE_REPORT_ID 0x0d
+ #define INPUT_REPORT_ID 0x5d
+ #define FEATURE_KBD_REPORT_ID 0x5a
+-#define FEATURE_KBD_REPORT_SIZE 16
++#define FEATURE_KBD_REPORT_SIZE 64
+ #define FEATURE_KBD_LED_REPORT_ID1 0x5d
+ #define FEATURE_KBD_LED_REPORT_ID2 0x5e
+ 
+@@ -386,16 +386,43 @@ static int asus_kbd_set_report(struct hid_device *hdev, const u8 *buf, size_t bu
+ 	return ret;
+ }
+ 
+-static int asus_kbd_init(struct hid_device *hdev, u8 report_id)
++static int asus_kbd_init(struct hid_device *hdev)
+ {
+-	const u8 buf[] = { report_id, 0x41, 0x53, 0x55, 0x53, 0x20, 0x54,
+-		     0x65, 0x63, 0x68, 0x2e, 0x49, 0x6e, 0x63, 0x2e, 0x00 };
++	/*
++	 * Asus handshake identifying us as a driver (0x5A)
++	 * 0x5A then ASCII for "ASUS Tech.Inc."
++	 * 0x5D is for userspace Windows applications.
++	 *
++	 * The handshake is first sent as a set_report, then retrieved
++	 * from a get_report to verify the response.
++	 */
++	const u8 buf[] = { FEATURE_KBD_REPORT_ID, 0x41, 0x53, 0x55, 0x53, 0x20,
++		0x54, 0x65, 0x63, 0x68, 0x2e, 0x49, 0x6e, 0x63, 0x2e, 0x00 };
++	u8 *readbuf;
+ 	int ret;
+ 
+ 	ret = asus_kbd_set_report(hdev, buf, sizeof(buf));
+-	if (ret < 0)
+-		hid_err(hdev, "Asus failed to send init command: %d\n", ret);
++	if (ret < 0) {
++		hid_err(hdev, "Asus failed to send handshake: %d\n", ret);
++		return ret;
++	}
+ 
++	readbuf = kzalloc(FEATURE_KBD_REPORT_SIZE, GFP_KERNEL);
++	if (!readbuf)
++		return -ENOMEM;
++
++	ret = hid_hw_raw_request(hdev, FEATURE_KBD_REPORT_ID, readbuf,
++				 FEATURE_KBD_REPORT_SIZE, HID_FEATURE_REPORT,
++				 HID_REQ_GET_REPORT);
++	if (ret < 0) {
++		hid_err(hdev, "Asus failed to receive handshake ack: %d\n", ret);
++	} else if (memcmp(readbuf, buf, sizeof(buf)) != 0) {
++		hid_err(hdev, "Asus handshake returned invalid response: %*ph\n",
++			FEATURE_KBD_REPORT_SIZE, readbuf);
++		// Do not return error if handshake is wrong to avoid regressions
++	}
++
++	kfree(readbuf);
+ 	return ret;
+ }
+ 
+@@ -540,42 +567,25 @@ static int asus_kbd_register_leds(struct hid_device *hdev)
+ 	unsigned char kbd_func;
+ 	int ret;
+ 
+-	if (drvdata->quirks & QUIRK_ROG_NKEY_KEYBOARD) {
+-		/* Initialize keyboard */
+-		ret = asus_kbd_init(hdev, FEATURE_KBD_REPORT_ID);
+-		if (ret < 0)
+-			return ret;
+-
+-		/* The LED endpoint is initialised in two HID */
+-		ret = asus_kbd_init(hdev, FEATURE_KBD_LED_REPORT_ID1);
+-		if (ret < 0)
+-			return ret;
+-
+-		ret = asus_kbd_init(hdev, FEATURE_KBD_LED_REPORT_ID2);
+-		if (ret < 0)
+-			return ret;
++	ret = asus_kbd_init(hdev);
++	if (ret < 0)
++		return ret;
+ 
+-		if (dmi_match(DMI_PRODUCT_FAMILY, "ProArt P16")) {
+-			ret = asus_kbd_disable_oobe(hdev);
+-			if (ret < 0)
+-				return ret;
+-		}
+-	} else {
+-		/* Initialize keyboard */
+-		ret = asus_kbd_init(hdev, FEATURE_KBD_REPORT_ID);
+-		if (ret < 0)
+-			return ret;
++	/* Get keyboard functions */
++	ret = asus_kbd_get_functions(hdev, &kbd_func, FEATURE_KBD_REPORT_ID);
++	if (ret < 0)
++		return ret;
+ 
+-		/* Get keyboard functions */
+-		ret = asus_kbd_get_functions(hdev, &kbd_func, FEATURE_KBD_REPORT_ID);
++	if (dmi_match(DMI_PRODUCT_FAMILY, "ProArt P16")) {
++		ret = asus_kbd_disable_oobe(hdev);
+ 		if (ret < 0)
+ 			return ret;
+-
+-		/* Check for backlight support */
+-		if (!(kbd_func & SUPPORT_KBD_BACKLIGHT))
+-			return -ENODEV;
+ 	}
+ 
++	/* Check for backlight support */
++	if (!(kbd_func & SUPPORT_KBD_BACKLIGHT))
++		return -ENODEV;
++
+ 	drvdata->kbd_backlight = devm_kzalloc(&hdev->dev,
+ 					      sizeof(struct asus_kbd_leds),
+ 					      GFP_KERNEL);
+-- 
+2.48.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Wed, 19 Mar 2025 20:13:10 +0100
+Subject: HID: asus: cleanup keyboard backlight check
+
+Currently, asus_kbd_get_functions does a set_report
+to query for the keyboard backlight status using a varying
+report id. However, it then does get_report with the fixed
+id 0x5a. The ids of get_report and set_report should always
+match. Therefore, remove the calling argument and force 0x5a.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/hid/hid-asus.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
+index 8255652c947c9..44f70618bec62 100644
+--- a/drivers/hid/hid-asus.c
++++ b/drivers/hid/hid-asus.c
+@@ -427,10 +427,9 @@ static int asus_kbd_init(struct hid_device *hdev)
+ }
+ 
+ static int asus_kbd_get_functions(struct hid_device *hdev,
+-				  unsigned char *kbd_func,
+-				  u8 report_id)
++				  unsigned char *kbd_func)
+ {
+-	const u8 buf[] = { report_id, 0x05, 0x20, 0x31, 0x00, 0x08 };
++	const u8 buf[] = { FEATURE_KBD_REPORT_ID, 0x05, 0x20, 0x31, 0x00, 0x08 };
+ 	u8 *readbuf;
+ 	int ret;
+ 
+@@ -572,7 +571,7 @@ static int asus_kbd_register_leds(struct hid_device *hdev)
+ 		return ret;
+ 
+ 	/* Get keyboard functions */
+-	ret = asus_kbd_get_functions(hdev, &kbd_func, FEATURE_KBD_REPORT_ID);
++	ret = asus_kbd_get_functions(hdev, &kbd_func);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-- 
+2.48.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Wed, 19 Mar 2025 20:13:11 +0100
+Subject: HID: asus: prevent binding to all HID devices on ROG
+
+ROG keyboards are HID compliant. We only care about the endpoint that
+produces vendor events (e.g., fan mode) and has the keyboard backlight.
+If we attach to all the endpoints, we end up generating errors during
+probe for two of them because they are missing the ->input attribute
+and risk side effects during input fixups.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/hid/hid-asus.c | 52 +++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 51 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
+index 44f70618bec62..61235e5a41144 100644
+--- a/drivers/hid/hid-asus.c
++++ b/drivers/hid/hid-asus.c
+@@ -84,6 +84,7 @@ MODULE_DESCRIPTION("Asus HID Keyboard and TouchPad");
+ #define QUIRK_MEDION_E1239T		BIT(10)
+ #define QUIRK_ROG_NKEY_KEYBOARD		BIT(11)
+ #define QUIRK_ROG_CLAYMORE_II_KEYBOARD BIT(12)
++#define QUIRK_HANDLE_GENERIC		BIT(13)
+ 
+ #define I2C_KEYBOARD_QUIRKS			(QUIRK_FIX_NOTEBOOK_REPORT | \
+ 						 QUIRK_NO_INIT_REPORTS | \
+@@ -326,6 +327,10 @@ static int asus_raw_event(struct hid_device *hdev,
+ {
+ 	struct asus_drvdata *drvdata = hid_get_drvdata(hdev);
+ 
++	if (drvdata->quirks & QUIRK_HANDLE_GENERIC)
++		/* NOOP on generic HID devices to avoid side effects. */
++		return 0;
++
+ 	if (drvdata->battery && data[0] == BATTERY_REPORT_ID)
+ 		return asus_report_battery(drvdata, data, size);
+ 
+@@ -773,6 +778,10 @@ static int asus_input_configured(struct hid_device *hdev, struct hid_input *hi)
+ 	struct input_dev *input = hi->input;
+ 	struct asus_drvdata *drvdata = hid_get_drvdata(hdev);
+ 
++	if (drvdata->quirks & QUIRK_HANDLE_GENERIC)
++		/* NOOP on generic HID devices to avoid side effects. */
++		return 0;
++
+ 	/* T100CHI uses MULTI_INPUT, bind the touchpad to the mouse hid_input */
+ 	if (drvdata->quirks & QUIRK_T100CHI &&
+ 	    hi->report->id != T100CHI_MOUSE_REPORT_ID)
+@@ -850,6 +859,10 @@ static int asus_input_mapping(struct hid_device *hdev,
+ 		return -1;
+ 	}
+ 
++	if (drvdata->quirks & QUIRK_HANDLE_GENERIC)
++		/* NOOP on generic HID devices to avoid side effects. */
++		return 0;
++
+ 	/*
+ 	 * Ignore a bunch of bogus collections in the T100CHI descriptor.
+ 	 * This avoids a bunch of non-functional hid_input devices getting
+@@ -1025,8 +1038,10 @@ static int __maybe_unused asus_reset_resume(struct hid_device *hdev)
+ 
+ static int asus_probe(struct hid_device *hdev, const struct hid_device_id *id)
+ {
+-	int ret;
++	struct hid_report_enum *rep_enum;
+ 	struct asus_drvdata *drvdata;
++	struct hid_report *rep;
++	int ret, found = 0;
+ 
+ 	drvdata = devm_kzalloc(&hdev->dev, sizeof(*drvdata), GFP_KERNEL);
+ 	if (drvdata == NULL) {
+@@ -1110,6 +1125,37 @@ static int asus_probe(struct hid_device *hdev, const struct hid_device_id *id)
+ 		return ret;
+ 	}
+ 
++	if (drvdata->quirks & QUIRK_ROG_NKEY_KEYBOARD) {
++		/*
++		 * The only application we care about on ROG NKEY keyboards is
++		 * 0xff310076. This is meant Asus drivers and uses report 0x54.
++		 */
++		rep_enum = &hdev->report_enum[HID_INPUT_REPORT];
++		list_for_each_entry(rep, &rep_enum->report_list, list) {
++			if (rep->application == 0xff310076)
++				found = true;
++		}
++
++		/*
++		 * If we didn't find the application, block hid-asus fixups
++		 * to prevent side effects on generic endpoints.
++		 *
++		 * We cannot -ENODEV here, as hid-generic checked our id_table
++		 * on its match and bailed so it will not take over the device.
++		 * We have to handle it transparently as part of this driver.
++		 */
++		if (!found)
++			drvdata->quirks |= QUIRK_HANDLE_GENERIC;
++
++		/*
++		 * Start all endpoints normally. Include the RGB endpoint
++		 * as it being the only one renamed looks out of place.
++		 * The ->input bail causes regressions in endpoints without
++		 * an input dev and is a NOOP on the RGB endpoint.
++		 */
++		return hid_hw_start(hdev, HID_CONNECT_DEFAULT);
++	}
++
+ 	ret = hid_hw_start(hdev, HID_CONNECT_DEFAULT);
+ 	if (ret) {
+ 		hid_err(hdev, "Asus hw start failed: %d\n", ret);
+@@ -1166,6 +1212,10 @@ static const __u8 *asus_report_fixup(struct hid_device *hdev, __u8 *rdesc,
+ {
+ 	struct asus_drvdata *drvdata = hid_get_drvdata(hdev);
+ 
++	if (drvdata->quirks & QUIRK_HANDLE_GENERIC)
++		/* NOOP on generic HID devices to avoid side effects. */
++		return rdesc;
++
+ 	if (drvdata->quirks & QUIRK_FIX_NOTEBOOK_REPORT &&
+ 			*rsize >= 56 && rdesc[54] == 0x25 && rdesc[55] == 0x65) {
+ 		hid_info(hdev, "Fixing up Asus notebook report descriptor\n");
+-- 
+2.48.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Wed, 19 Mar 2025 20:13:12 +0100
+Subject: HID: asus: rename keyboard3 to Z13_FOLIO
+
+Rename the generic keyboard3 to Z13_FOLIO as it refers to the folio of
+the Z13. Both 2023 and 2025 variants.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/hid/hid-asus.c | 2 +-
+ drivers/hid/hid-ids.h  | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
+index 61235e5a41144..17e01699fe1bf 100644
+--- a/drivers/hid/hid-asus.c
++++ b/drivers/hid/hid-asus.c
+@@ -1332,7 +1332,7 @@ static const struct hid_device_id asus_devices[] = {
+ 	    USB_DEVICE_ID_ASUSTEK_ROG_NKEY_KEYBOARD2),
+ 	  QUIRK_USE_KBD_BACKLIGHT | QUIRK_ROG_NKEY_KEYBOARD },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_ASUSTEK,
+-	    USB_DEVICE_ID_ASUSTEK_ROG_NKEY_KEYBOARD3),
++	    USB_DEVICE_ID_ASUSTEK_ROG_Z13_FOLIO),
+ 	  QUIRK_USE_KBD_BACKLIGHT | QUIRK_ROG_NKEY_KEYBOARD },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_ASUSTEK,
+ 	    USB_DEVICE_ID_ASUSTEK_ROG_Z13_LIGHTBAR),
+diff --git a/drivers/hid/hid-ids.h b/drivers/hid/hid-ids.h
+index d1ab021e4a6a1..82254ab4f8974 100644
+--- a/drivers/hid/hid-ids.h
++++ b/drivers/hid/hid-ids.h
+@@ -208,7 +208,7 @@
+ #define USB_DEVICE_ID_ASUSTEK_ROG_KEYBOARD3 0x1822
+ #define USB_DEVICE_ID_ASUSTEK_ROG_NKEY_KEYBOARD	0x1866
+ #define USB_DEVICE_ID_ASUSTEK_ROG_NKEY_KEYBOARD2	0x19b6
+-#define USB_DEVICE_ID_ASUSTEK_ROG_NKEY_KEYBOARD3	0x1a30
++#define USB_DEVICE_ID_ASUSTEK_ROG_Z13_FOLIO		0x1a30
+ #define USB_DEVICE_ID_ASUSTEK_ROG_Z13_LIGHTBAR		0x18c6
+ #define USB_DEVICE_ID_ASUSTEK_ROG_RAIKIRI_PAD		0x1abb
+ #define USB_DEVICE_ID_ASUSTEK_ROG_NKEY_ALLY		0x1abe
+-- 
+2.48.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Wed, 19 Mar 2025 20:13:13 +0100
+Subject: HID: asus: add Asus Z13 2025 Fan key
+
+The ASUS Z13 2025 uses the vendor code 0xec for
+its Fn+F5 fan key. Add a quirk for it.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/hid/hid-asus.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
+index 17e01699fe1bf..4364f9d81f100 100644
+--- a/drivers/hid/hid-asus.c
++++ b/drivers/hid/hid-asus.c
+@@ -897,6 +897,7 @@ static int asus_input_mapping(struct hid_device *hdev,
+ 		case 0x5c: asus_map_key_clear(KEY_PROG3);	break; /* Fn+Space Power4Gear */
+ 		case 0x99: asus_map_key_clear(KEY_PROG4);	break; /* Fn+F5 "fan" symbol */
+ 		case 0xae: asus_map_key_clear(KEY_PROG4);	break; /* Fn+F5 "fan" symbol */
++		case 0xec: asus_map_key_clear(KEY_PROG4);	break; /* Fn+F5 "fan" symbol (Z13 2025) */
+ 		case 0x92: asus_map_key_clear(KEY_CALC);	break; /* Fn+Ret "Calc" symbol */
+ 		case 0xb2: asus_map_key_clear(KEY_PROG2);	break; /* Fn+Left previous aura */
+ 		case 0xb3: asus_map_key_clear(KEY_PROG3);	break; /* Fn+Left next aura */
+-- 
+2.48.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Wed, 19 Mar 2025 20:13:14 +0100
+Subject: HID: asus: introduce small delay on Asus Z13 RGB init
+
+The folio keyboard of the Z13 can get stuck in its BIOS mode, where the
+touchpad behaves like a mouse and the keyboard start button is not
+reliable if we perform the initialization too quickly. This mostly
+happens during boot, and can be verified to be caused by hid-asus
+through simple blacklisting. A small delay fixes it.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/hid/hid-asus.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
+index 4364f9d81f100..67aa6d7a2159d 100644
+--- a/drivers/hid/hid-asus.c
++++ b/drivers/hid/hid-asus.c
+@@ -571,6 +571,10 @@ static int asus_kbd_register_leds(struct hid_device *hdev)
+ 	unsigned char kbd_func;
+ 	int ret;
+ 
++	/* Wait a bit before init to prevent locking the keyboard */
++	if (dmi_match(DMI_PRODUCT_FAMILY, "ROG Flow Z13"))
++		msleep(500);
++
+ 	ret = asus_kbd_init(hdev);
+ 	if (ret < 0)
+ 		return ret;
+-- 
+2.48.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Wed, 19 Mar 2025 20:13:15 +0100
+Subject: platform/x86: asus-wmi: Add support for multiple kbd RGB handlers
+
+Some devices, such as the Z13 have multiple AURA devices connected
+to them by USB. In addition, they might have a WMI interface for
+RGB. In Windows, Armoury Crate exposes a unified brightness slider
+for all of them, with 3 brightness levels.
+
+Therefore, to be synergistic in Linux, and support existing tooling
+such as UPower, allow adding listeners to the RGB device of the WMI
+interface. If WMI does not exist, lazy initialize the interface.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/platform/x86/asus-wmi.c            | 98 +++++++++++++++++++---
+ include/linux/platform_data/x86/asus-wmi.h | 16 ++++
+ 2 files changed, 103 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/platform/x86/asus-wmi.c b/drivers/platform/x86/asus-wmi.c
+index 2f467d2f85ba1..c006d17949da2 100644
+--- a/drivers/platform/x86/asus-wmi.c
++++ b/drivers/platform/x86/asus-wmi.c
+@@ -250,6 +250,8 @@ struct asus_wmi {
+ 	int tpd_led_wk;
+ 	struct led_classdev kbd_led;
+ 	int kbd_led_wk;
++	bool kbd_led_avail;
++	bool kbd_led_registered;
+ 	struct led_classdev lightbar_led;
+ 	int lightbar_led_wk;
+ 	struct led_classdev micmute_led;
+@@ -1521,6 +1523,46 @@ static void asus_wmi_battery_exit(struct asus_wmi *asus)
+ 
+ /* LEDs ***********************************************************************/
+ 
++LIST_HEAD(asus_brt_listeners);
++DEFINE_MUTEX(asus_brt_lock);
++struct asus_wmi *asus_brt_ref;
++
++int asus_brt_register_listener(struct asus_brt_listener *bdev)
++{
++	int ret;
++
++	mutex_lock(&asus_brt_lock);
++	list_add_tail(&bdev->list, &asus_brt_listeners);
++	if (asus_brt_ref) {
++		if (asus_brt_ref->kbd_led_registered && asus_brt_ref->kbd_led_wk >= 0)
++			bdev->notify(bdev, asus_brt_ref->kbd_led_wk);
++		else {
++			asus_brt_ref->kbd_led_registered = true;
++			ret = led_classdev_register(
++				&asus_brt_ref->platform_device->dev,
++				&asus_brt_ref->kbd_led);
++		}
++	}
++	mutex_unlock(&asus_brt_lock);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(asus_brt_register_listener);
++
++void asus_brt_unregister_listener(struct asus_brt_listener *bdev)
++{
++	mutex_lock(&asus_brt_lock);
++	list_del(&bdev->list);
++
++	if (asus_brt_ref && list_empty(&asus_brt_listeners) &&
++	    !asus_brt_ref->kbd_led_avail) {
++		led_classdev_unregister(&asus_brt_ref->kbd_led);
++		asus_brt_ref->kbd_led_registered = false;
++	}
++	mutex_unlock(&asus_brt_lock);
++}
++EXPORT_SYMBOL_GPL(asus_brt_unregister_listener);
++
+ /*
+  * These functions actually update the LED's, and are called from a
+  * workqueue. By doing this as separate work rather than when the LED
+@@ -1600,6 +1642,7 @@ static int kbd_led_read(struct asus_wmi *asus, int *level, int *env)
+ 
+ static void do_kbd_led_set(struct led_classdev *led_cdev, int value)
+ {
++	struct asus_brt_listener *listener;
+ 	struct asus_wmi *asus;
+ 	int max_level;
+ 
+@@ -1607,25 +1650,37 @@ static void do_kbd_led_set(struct led_classdev *led_cdev, int value)
+ 	max_level = asus->kbd_led.max_brightness;
+ 
+ 	asus->kbd_led_wk = clamp_val(value, 0, max_level);
+-	kbd_led_update(asus);
++
++	if (asus->kbd_led_avail)
++		kbd_led_update(asus);
++
++	list_for_each_entry(listener, &asus_brt_listeners, list)
++		listener->notify(listener, asus->kbd_led_wk);
+ }
+ 
+ static void kbd_led_set(struct led_classdev *led_cdev,
+ 			enum led_brightness value)
+ {
++	mutex_lock(&asus_brt_lock);
++
+ 	/* Prevent disabling keyboard backlight on module unregister */
+ 	if (led_cdev->flags & LED_UNREGISTERING)
+ 		return;
+ 
+ 	do_kbd_led_set(led_cdev, value);
++	mutex_unlock(&asus_brt_lock);
+ }
+ 
+ static void kbd_led_set_by_kbd(struct asus_wmi *asus, enum led_brightness value)
+ {
+-	struct led_classdev *led_cdev = &asus->kbd_led;
++	struct led_classdev *led_cdev;
++
++	mutex_lock(&asus_brt_lock);
++	led_cdev = &asus->kbd_led;
+ 
+ 	do_kbd_led_set(led_cdev, value);
+ 	led_classdev_notify_brightness_hw_changed(led_cdev, asus->kbd_led_wk);
++	mutex_unlock(&asus_brt_lock);
+ }
+ 
+ static enum led_brightness kbd_led_get(struct led_classdev *led_cdev)
+@@ -1635,6 +1690,9 @@ static enum led_brightness kbd_led_get(struct led_classdev *led_cdev)
+ 
+ 	asus = container_of(led_cdev, struct asus_wmi, kbd_led);
+ 
++	if (!asus->kbd_led_avail)
++		return asus->kbd_led_wk;
++
+ 	retval = kbd_led_read(asus, &value, NULL);
+ 	if (retval < 0)
+ 		return retval;
+@@ -1750,6 +1808,10 @@ static int camera_led_set(struct led_classdev *led_cdev,
+ 
+ static void asus_wmi_led_exit(struct asus_wmi *asus)
+ {
++	mutex_lock(&asus_brt_lock);
++	asus_brt_ref = NULL;
++	mutex_unlock(&asus_brt_lock);
++
+ 	led_classdev_unregister(&asus->kbd_led);
+ 	led_classdev_unregister(&asus->tpd_led);
+ 	led_classdev_unregister(&asus->wlan_led);
+@@ -1764,6 +1826,7 @@ static void asus_wmi_led_exit(struct asus_wmi *asus)
+ static int asus_wmi_led_init(struct asus_wmi *asus)
+ {
+ 	int rv = 0, num_rgb_groups = 0, led_val;
++	bool has_listeners;
+ 
+ 	if (asus->kbd_rgb_dev)
+ 		kbd_rgb_mode_groups[num_rgb_groups++] = &kbd_rgb_mode_group;
+@@ -1788,24 +1851,37 @@ static int asus_wmi_led_init(struct asus_wmi *asus)
+ 			goto error;
+ 	}
+ 
+-	if (!kbd_led_read(asus, &led_val, NULL) && !dmi_check_system(asus_use_hid_led_dmi_ids)) {
+-		pr_info("using asus-wmi for asus::kbd_backlight\n");
++	asus->kbd_led.name = "asus::kbd_backlight";
++	asus->kbd_led.flags = LED_BRIGHT_HW_CHANGED;
++	asus->kbd_led.brightness_set = kbd_led_set;
++	asus->kbd_led.brightness_get = kbd_led_get;
++	asus->kbd_led.max_brightness = 3;
++	asus->kbd_led_avail = !kbd_led_read(asus, &led_val, NULL);
++
++	if (asus->kbd_led_avail)
+ 		asus->kbd_led_wk = led_val;
+-		asus->kbd_led.name = "asus::kbd_backlight";
+-		asus->kbd_led.flags = LED_BRIGHT_HW_CHANGED;
+-		asus->kbd_led.brightness_set = kbd_led_set;
+-		asus->kbd_led.brightness_get = kbd_led_get;
+-		asus->kbd_led.max_brightness = 3;
++	else
++		asus->kbd_led_wk = -1;
++
++	if (asus->kbd_led_avail && num_rgb_groups != 0)
++		asus->kbd_led.groups = kbd_rgb_mode_groups;
+ 
+-		if (num_rgb_groups != 0)
+-			asus->kbd_led.groups = kbd_rgb_mode_groups;
++	mutex_lock(&asus_brt_lock);
++	has_listeners = !list_empty(&asus_brt_listeners);
++	mutex_unlock(&asus_brt_lock);
+ 
++	if (asus->kbd_led_avail || has_listeners) {
++		asus->kbd_led_registered = true;
+ 		rv = led_classdev_register(&asus->platform_device->dev,
+ 					   &asus->kbd_led);
+ 		if (rv)
+ 			goto error;
+ 	}
+ 
++	mutex_lock(&asus_brt_lock);
++	asus_brt_ref = asus;
++	mutex_unlock(&asus_brt_lock);
++
+ 	if (asus_wmi_dev_is_present(asus, ASUS_WMI_DEVID_WIRELESS_LED)
+ 			&& (asus->driver->quirks->wapf > 0)) {
+ 		INIT_WORK(&asus->wlan_led_work, wlan_led_update);
+diff --git a/include/linux/platform_data/x86/asus-wmi.h b/include/linux/platform_data/x86/asus-wmi.h
+index c427b6c20d3fa..bb688fbfd029d 100644
+--- a/include/linux/platform_data/x86/asus-wmi.h
++++ b/include/linux/platform_data/x86/asus-wmi.h
+@@ -169,10 +169,18 @@
+ #define ASUS_WMI_DSTS_MAX_BRIGTH_MASK	0x0000FF00
+ #define ASUS_WMI_DSTS_LIGHTBAR_MASK	0x0000000F
+ 
++struct asus_brt_listener {
++	struct list_head list;
++	void (*notify)(struct asus_brt_listener *listener, int brightness);
++};
++
+ #if IS_REACHABLE(CONFIG_ASUS_WMI)
+ int asus_wmi_get_devstate_dsts(u32 dev_id, u32 *retval);
+ int asus_wmi_set_devstate(u32 dev_id, u32 ctrl_param, u32 *retval);
+ int asus_wmi_evaluate_method(u32 method_id, u32 arg0, u32 arg1, u32 *retval);
++
++int asus_brt_register_listener(struct asus_brt_listener *cdev);
++void asus_brt_unregister_listener(struct asus_brt_listener *cdev);
+ #else
+ static inline int asus_wmi_get_devstate_dsts(u32 dev_id, u32 *retval)
+ {
+@@ -187,6 +195,14 @@ static inline int asus_wmi_evaluate_method(u32 method_id, u32 arg0, u32 arg1,
+ {
+ 	return -ENODEV;
+ }
++
++static inline int asus_brt_register_listener(struct asus_brt_listener *bdev)
++{
++	return -ENODEV;
++}
++static inline void asus_brt_unregister_listener(struct asus_brt_listener *bdev)
++{
++}
+ #endif
+ 
+ /* To be used by both hid-asus and asus-wmi to determine which controls kbd_brightness */
+-- 
+2.48.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Wed, 19 Mar 2025 20:13:16 +0100
+Subject: HID: asus: listen to the asus-wmi brightness device instead of
+ creating one
+
+Some ROG laptops expose multiple interfaces for controlling the
+keyboard/RGB brightness. This creates a name conflict under
+asus::kbd_brightness, where the second device ends up being
+named asus::kbd_brightness_1 and they are both broken.
+
+Therefore, register a listener to the asus-wmi brightness device
+instead of creating a new one.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/hid/hid-asus.c | 65 +++++++-----------------------------------
+ 1 file changed, 11 insertions(+), 54 deletions(-)
+
+diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
+index 67aa6d7a2159d..926fbebf9675f 100644
+--- a/drivers/hid/hid-asus.c
++++ b/drivers/hid/hid-asus.c
+@@ -96,7 +96,7 @@ MODULE_DESCRIPTION("Asus HID Keyboard and TouchPad");
+ #define TRKID_SGN       ((TRKID_MAX + 1) >> 1)
+ 
+ struct asus_kbd_leds {
+-	struct led_classdev cdev;
++	struct asus_brt_listener listener;
+ 	struct hid_device *hdev;
+ 	struct work_struct work;
+ 	unsigned int brightness;
+@@ -493,11 +493,11 @@ static void asus_schedule_work(struct asus_kbd_leds *led)
+ 	spin_unlock_irqrestore(&led->lock, flags);
+ }
+ 
+-static void asus_kbd_backlight_set(struct led_classdev *led_cdev,
+-				   enum led_brightness brightness)
++static void asus_kbd_backlight_set(struct asus_brt_listener *listener,
++				   int brightness)
+ {
+-	struct asus_kbd_leds *led = container_of(led_cdev, struct asus_kbd_leds,
+-						 cdev);
++	struct asus_kbd_leds *led = container_of(listener, struct asus_kbd_leds,
++						 listener);
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&led->lock, flags);
+@@ -507,20 +507,6 @@ static void asus_kbd_backlight_set(struct led_classdev *led_cdev,
+ 	asus_schedule_work(led);
+ }
+ 
+-static enum led_brightness asus_kbd_backlight_get(struct led_classdev *led_cdev)
+-{
+-	struct asus_kbd_leds *led = container_of(led_cdev, struct asus_kbd_leds,
+-						 cdev);
+-	enum led_brightness brightness;
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&led->lock, flags);
+-	brightness = led->brightness;
+-	spin_unlock_irqrestore(&led->lock, flags);
+-
+-	return brightness;
+-}
+-
+ static void asus_kbd_backlight_work(struct work_struct *work)
+ {
+ 	struct asus_kbd_leds *led = container_of(work, struct asus_kbd_leds, work);
+@@ -537,34 +523,6 @@ static void asus_kbd_backlight_work(struct work_struct *work)
+ 		hid_err(led->hdev, "Asus failed to set keyboard backlight: %d\n", ret);
+ }
+ 
+-/* WMI-based keyboard backlight LED control (via asus-wmi driver) takes
+- * precedence. We only activate HID-based backlight control when the
+- * WMI control is not available.
+- */
+-static bool asus_kbd_wmi_led_control_present(struct hid_device *hdev)
+-{
+-	struct asus_drvdata *drvdata = hid_get_drvdata(hdev);
+-	u32 value;
+-	int ret;
+-
+-	if (!IS_ENABLED(CONFIG_ASUS_WMI))
+-		return false;
+-
+-	if (drvdata->quirks & QUIRK_ROG_NKEY_KEYBOARD &&
+-			dmi_check_system(asus_use_hid_led_dmi_ids)) {
+-		hid_info(hdev, "using HID for asus::kbd_backlight\n");
+-		return false;
+-	}
+-
+-	ret = asus_wmi_evaluate_method(ASUS_WMI_METHODID_DSTS,
+-				       ASUS_WMI_DEVID_KBD_BACKLIGHT, 0, &value);
+-	hid_dbg(hdev, "WMI backlight check: rc %d value %x", ret, value);
+-	if (ret)
+-		return false;
+-
+-	return !!(value & ASUS_WMI_DSTS_PRESENCE_BIT);
+-}
+-
+ static int asus_kbd_register_leds(struct hid_device *hdev)
+ {
+ 	struct asus_drvdata *drvdata = hid_get_drvdata(hdev);
+@@ -603,14 +561,12 @@ static int asus_kbd_register_leds(struct hid_device *hdev)
+ 	drvdata->kbd_backlight->removed = false;
+ 	drvdata->kbd_backlight->brightness = 0;
+ 	drvdata->kbd_backlight->hdev = hdev;
+-	drvdata->kbd_backlight->cdev.name = "asus::kbd_backlight";
+-	drvdata->kbd_backlight->cdev.max_brightness = 3;
+-	drvdata->kbd_backlight->cdev.brightness_set = asus_kbd_backlight_set;
+-	drvdata->kbd_backlight->cdev.brightness_get = asus_kbd_backlight_get;
++	drvdata->kbd_backlight->listener.notify = asus_kbd_backlight_set;
+ 	INIT_WORK(&drvdata->kbd_backlight->work, asus_kbd_backlight_work);
+ 	spin_lock_init(&drvdata->kbd_backlight->lock);
+ 
+-	ret = devm_led_classdev_register(&hdev->dev, &drvdata->kbd_backlight->cdev);
++	ret = asus_brt_register_listener(&drvdata->kbd_backlight->listener);
++
+ 	if (ret < 0) {
+ 		/* No need to have this still around */
+ 		devm_kfree(&hdev->dev, drvdata->kbd_backlight);
+@@ -840,7 +796,6 @@ static int asus_input_configured(struct hid_device *hdev, struct hid_input *hi)
+ 	drvdata->input = input;
+ 
+ 	if (drvdata->enable_backlight &&
+-	    !asus_kbd_wmi_led_control_present(hdev) &&
+ 	    asus_kbd_register_leds(hdev))
+ 		hid_warn(hdev, "Failed to initialize backlight.\n");
+ 
+@@ -1019,7 +974,7 @@ static int __maybe_unused asus_resume(struct hid_device *hdev) {
+ 
+ 	if (drvdata->kbd_backlight) {
+ 		const u8 buf[] = { FEATURE_KBD_REPORT_ID, 0xba, 0xc5, 0xc4,
+-				drvdata->kbd_backlight->cdev.brightness };
++				drvdata->kbd_backlight->brightness };
+ 		ret = asus_kbd_set_report(hdev, buf, sizeof(buf));
+ 		if (ret < 0) {
+ 			hid_err(hdev, "Asus failed to set keyboard backlight: %d\n", ret);
+@@ -1202,6 +1157,8 @@ static void asus_remove(struct hid_device *hdev)
+ 		spin_unlock_irqrestore(&drvdata->kbd_backlight->lock, flags);
+ 
+ 		cancel_work_sync(&drvdata->kbd_backlight->work);
++
++		asus_brt_unregister_listener(&drvdata->kbd_backlight->listener);
+ 	}
+ 
+ 	hid_hw_stop(hdev);
+-- 
+2.48.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Wed, 19 Mar 2025 20:13:17 +0100
+Subject: platform/x86: asus-wmi: remove unused keyboard backlight quirk
+
+The quirk for selecting whether keyboard backlight should be controlled
+by HID or WMI is not needed anymore, so remove it.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ include/linux/platform_data/x86/asus-wmi.h | 40 ----------------------
+ 1 file changed, 40 deletions(-)
+
+diff --git a/include/linux/platform_data/x86/asus-wmi.h b/include/linux/platform_data/x86/asus-wmi.h
+index bb688fbfd029d..17b27f9858ffc 100644
+--- a/include/linux/platform_data/x86/asus-wmi.h
++++ b/include/linux/platform_data/x86/asus-wmi.h
+@@ -205,44 +205,4 @@ static inline void asus_brt_unregister_listener(struct asus_brt_listener *bdev)
+ }
+ #endif
+ 
+-/* To be used by both hid-asus and asus-wmi to determine which controls kbd_brightness */
+-static const struct dmi_system_id asus_use_hid_led_dmi_ids[] = {
+-	{
+-		.matches = {
+-			DMI_MATCH(DMI_PRODUCT_FAMILY, "ROG Zephyrus"),
+-		},
+-	},
+-	{
+-		.matches = {
+-			DMI_MATCH(DMI_PRODUCT_FAMILY, "ROG Strix"),
+-		},
+-	},
+-	{
+-		.matches = {
+-			DMI_MATCH(DMI_PRODUCT_FAMILY, "ROG Flow"),
+-		},
+-	},
+-	{
+-		.matches = {
+-			DMI_MATCH(DMI_PRODUCT_FAMILY, "ProArt P16"),
+-		},
+-	},
+-	{
+-		.matches = {
+-			DMI_MATCH(DMI_BOARD_NAME, "GA403U"),
+-		},
+-	},
+-	{
+-		.matches = {
+-			DMI_MATCH(DMI_BOARD_NAME, "GU605M"),
+-		},
+-	},
+-	{
+-		.matches = {
+-			DMI_MATCH(DMI_BOARD_NAME, "RC71L"),
+-		},
+-	},
+-	{ },
+-};
+-
+ #endif	/* __PLATFORM_DATA_X86_ASUS_WMI_H */
+-- 
+2.48.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Wed, 19 Mar 2025 20:13:18 +0100
+Subject: platform/x86: asus-wmi: add keyboard brightness event handler
+
+Currenlty, the keyboard brightness control of Asus WMI keyboards is
+handled in the kernel, which leads to the shortcut going from
+brightness 0, to 1, to 2, and 3.
+
+However, for HID keyboards it is exposed as a key and handled by the
+user's desktop environment. For the toggle button, this means that
+brightness control becomes on/off. In addition, in the absence of a
+DE, the keyboard brightness does not work.
+
+Therefore, expose an event handler for the keyboard brightness control
+which can then be used by hid-asus.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/platform/x86/asus-wmi.c            | 39 ++++++++++++++++++++++
+ include/linux/platform_data/x86/asus-wmi.h | 10 ++++++
+ 2 files changed, 49 insertions(+)
+
+diff --git a/drivers/platform/x86/asus-wmi.c b/drivers/platform/x86/asus-wmi.c
+index c006d17949da2..d0a419276b435 100644
+--- a/drivers/platform/x86/asus-wmi.c
++++ b/drivers/platform/x86/asus-wmi.c
+@@ -1563,6 +1563,45 @@ void asus_brt_unregister_listener(struct asus_brt_listener *bdev)
+ }
+ EXPORT_SYMBOL_GPL(asus_brt_unregister_listener);
+ 
++static void do_kbd_led_set(struct led_classdev *led_cdev, int value);
++
++int asus_brt_event(enum asus_brt_event event)
++{
++	int brightness;
++
++	mutex_lock(&asus_brt_lock);
++	if (!asus_brt_ref || !asus_brt_ref->kbd_led_registered) {
++		mutex_unlock(&asus_brt_lock);
++		return -EBUSY;
++	}
++	brightness = asus_brt_ref->kbd_led_wk;
++	mutex_unlock(&asus_brt_lock);
++
++	switch (event) {
++	case ASUS_BRT_UP:
++		brightness += 1;
++		break;
++	case ASUS_BRT_DOWN:
++		brightness -= 1;
++		break;
++	case ASUS_BRT_TOGGLE:
++		if (brightness >= 3)
++			brightness = 0;
++		else
++			brightness += 1;
++		break;
++	}
++
++	do_kbd_led_set(&asus_brt_ref->kbd_led, brightness);
++	led_classdev_notify_brightness_hw_changed(&asus_brt_ref->kbd_led,
++						  asus_brt_ref->kbd_led_wk);
++
++	mutex_unlock(&asus_brt_lock);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(asus_brt_event);
++
+ /*
+  * These functions actually update the LED's, and are called from a
+  * workqueue. By doing this as separate work rather than when the LED
+diff --git a/include/linux/platform_data/x86/asus-wmi.h b/include/linux/platform_data/x86/asus-wmi.h
+index 17b27f9858ffc..9ef471b3d6e9e 100644
+--- a/include/linux/platform_data/x86/asus-wmi.h
++++ b/include/linux/platform_data/x86/asus-wmi.h
+@@ -174,6 +174,12 @@ struct asus_brt_listener {
+ 	void (*notify)(struct asus_brt_listener *listener, int brightness);
+ };
+ 
++enum asus_brt_event {
++	ASUS_BRT_UP,
++	ASUS_BRT_DOWN,
++	ASUS_BRT_TOGGLE,
++};
++
+ #if IS_REACHABLE(CONFIG_ASUS_WMI)
+ int asus_wmi_get_devstate_dsts(u32 dev_id, u32 *retval);
+ int asus_wmi_set_devstate(u32 dev_id, u32 ctrl_param, u32 *retval);
+@@ -181,6 +187,7 @@ int asus_wmi_evaluate_method(u32 method_id, u32 arg0, u32 arg1, u32 *retval);
+ 
+ int asus_brt_register_listener(struct asus_brt_listener *cdev);
+ void asus_brt_unregister_listener(struct asus_brt_listener *cdev);
++int asus_brt_event(enum asus_brt_event event);
+ #else
+ static inline int asus_wmi_get_devstate_dsts(u32 dev_id, u32 *retval)
+ {
+@@ -203,6 +210,9 @@ static inline int asus_brt_register_listener(struct asus_brt_listener *bdev)
+ static inline void asus_brt_unregister_listener(struct asus_brt_listener *bdev)
+ {
+ }
++static inline void asus_brt_event(enum asus_brt_event event)
++{
++}
+ #endif
+ 
+ #endif	/* __PLATFORM_DATA_X86_ASUS_WMI_H */
+-- 
+2.48.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Wed, 19 Mar 2025 20:13:19 +0100
+Subject: HID: asus: add support for the asus-wmi brightness handler
+
+If the asus-wmi brightness handler is available, send the
+keyboard brightness events to it instead of passing them
+to userspace. If it is not, fall back to sending them to it.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/hid/hid-asus.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
+index 926fbebf9675f..f72b8c170e7f0 100644
+--- a/drivers/hid/hid-asus.c
++++ b/drivers/hid/hid-asus.c
+@@ -319,6 +319,17 @@ static int asus_event(struct hid_device *hdev, struct hid_field *field,
+ 			 usage->hid & HID_USAGE);
+ 	}
+ 
++	if (usage->type == EV_KEY && value) {
++		switch (usage->code) {
++		case KEY_KBDILLUMUP:
++			return !asus_brt_event(ASUS_BRT_UP);
++		case KEY_KBDILLUMDOWN:
++			return !asus_brt_event(ASUS_BRT_DOWN);
++		case KEY_KBDILLUMTOGGLE:
++			return !asus_brt_event(ASUS_BRT_TOGGLE);
++		}
++	}
++
+ 	return 0;
+ }
+ 
 -- 
 2.48.1
 
@@ -45074,7 +46119,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  2 files changed, 3 insertions(+)
 
 diff --git a/drivers/hid/hid-ids.h b/drivers/hid/hid-ids.h
-index d1ab021e4a6a1..7234517d4f96a 100644
+index 82254ab4f8974..828c42e1c7c00 100644
 --- a/drivers/hid/hid-ids.h
 +++ b/drivers/hid/hid-ids.h
 @@ -1001,6 +1001,7 @@
@@ -65996,1029 +67041,6 @@ index 44699ab589097..1904f85a346a7 100644
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Mon, 17 Mar 2025 19:24:47 +0100
-Subject: HID: asus: refactor init sequence per spec
-
-Currently, asus_kbd_init() uses a reverse engineered init sequence
-from Windows, which contains the handshakes from multiple programs.
-Keep the main one, which is 0x5a (meant for drivers).
-
-In addition, perform a get_response and check if the response is the
-same. To avoid regressions, print an error if the response does not
-match instead of rejecting device.
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- drivers/hid/hid-asus.c | 82 +++++++++++++++++++++++-------------------
- 1 file changed, 46 insertions(+), 36 deletions(-)
-
-diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index 61237ec51e704..3d03087a6cae8 100644
---- a/drivers/hid/hid-asus.c
-+++ b/drivers/hid/hid-asus.c
-@@ -48,7 +48,7 @@ MODULE_DESCRIPTION("Asus HID Keyboard and TouchPad");
- #define FEATURE_REPORT_ID 0x0d
- #define INPUT_REPORT_ID 0x5d
- #define FEATURE_KBD_REPORT_ID 0x5a
--#define FEATURE_KBD_REPORT_SIZE 16
-+#define FEATURE_KBD_REPORT_SIZE 64
- #define FEATURE_KBD_LED_REPORT_ID1 0x5d
- #define FEATURE_KBD_LED_REPORT_ID2 0x5e
- 
-@@ -386,16 +386,43 @@ static int asus_kbd_set_report(struct hid_device *hdev, const u8 *buf, size_t bu
- 	return ret;
- }
- 
--static int asus_kbd_init(struct hid_device *hdev, u8 report_id)
-+static int asus_kbd_init(struct hid_device *hdev)
- {
--	const u8 buf[] = { report_id, 0x41, 0x53, 0x55, 0x53, 0x20, 0x54,
--		     0x65, 0x63, 0x68, 0x2e, 0x49, 0x6e, 0x63, 0x2e, 0x00 };
-+	/*
-+	 * Asus handshake identifying us as a driver (0x5A)
-+	 * 0x5A then ASCII for "ASUS Tech.Inc."
-+	 * 0x5D is for userspace Windows applications.
-+	 * 
-+	 * The handshake is first sent as a set_report, then retrieved
-+	 * from a get_report to verify the response.
-+	 */
-+	const u8 buf[] = { FEATURE_KBD_REPORT_ID, 0x41, 0x53, 0x55, 0x53, 0x20,
-+		0x54, 0x65, 0x63, 0x68, 0x2e, 0x49, 0x6e, 0x63, 0x2e, 0x00 };
-+	u8 *readbuf;
- 	int ret;
- 
- 	ret = asus_kbd_set_report(hdev, buf, sizeof(buf));
--	if (ret < 0)
--		hid_err(hdev, "Asus failed to send init command: %d\n", ret);
-+	if (ret < 0) {
-+		hid_err(hdev, "Asus failed to send handshake: %d\n", ret);
-+		return ret;
-+	}
- 
-+	readbuf = kzalloc(FEATURE_KBD_REPORT_SIZE, GFP_KERNEL);
-+	if (!readbuf)
-+		return -ENOMEM;
-+
-+	ret = hid_hw_raw_request(hdev, FEATURE_KBD_REPORT_ID, readbuf,
-+				 FEATURE_KBD_REPORT_SIZE, HID_FEATURE_REPORT,
-+				 HID_REQ_GET_REPORT);
-+	if (ret < 0) {
-+		hid_err(hdev, "Asus failed to receive handshake ack: %d\n", ret);
-+	} else if (memcmp(readbuf, buf, sizeof(buf)) != 0) {
-+		hid_err(hdev, "Asus handshake returned invalid response: %*ph\n",
-+			FEATURE_KBD_REPORT_SIZE, readbuf);
-+		// Do not return error if handshake is wrong to avoid regressions
-+	}
-+
-+	kfree(readbuf);
- 	return ret;
- }
- 
-@@ -540,42 +567,25 @@ static int asus_kbd_register_leds(struct hid_device *hdev)
- 	unsigned char kbd_func;
- 	int ret;
- 
--	if (drvdata->quirks & QUIRK_ROG_NKEY_KEYBOARD) {
--		/* Initialize keyboard */
--		ret = asus_kbd_init(hdev, FEATURE_KBD_REPORT_ID);
--		if (ret < 0)
--			return ret;
--
--		/* The LED endpoint is initialised in two HID */
--		ret = asus_kbd_init(hdev, FEATURE_KBD_LED_REPORT_ID1);
--		if (ret < 0)
--			return ret;
--
--		ret = asus_kbd_init(hdev, FEATURE_KBD_LED_REPORT_ID2);
--		if (ret < 0)
--			return ret;
-+	ret = asus_kbd_init(hdev);
-+	if (ret < 0)
-+		return ret;
- 
--		if (dmi_match(DMI_PRODUCT_FAMILY, "ProArt P16")) {
--			ret = asus_kbd_disable_oobe(hdev);
--			if (ret < 0)
--				return ret;
--		}
--	} else {
--		/* Initialize keyboard */
--		ret = asus_kbd_init(hdev, FEATURE_KBD_REPORT_ID);
--		if (ret < 0)
--			return ret;
-+	/* Get keyboard functions */
-+	ret = asus_kbd_get_functions(hdev, &kbd_func, FEATURE_KBD_REPORT_ID);
-+	if (ret < 0)
-+		return ret;
- 
--		/* Get keyboard functions */
--		ret = asus_kbd_get_functions(hdev, &kbd_func, FEATURE_KBD_REPORT_ID);
-+	if (dmi_match(DMI_PRODUCT_FAMILY, "ProArt P16")) {
-+		ret = asus_kbd_disable_oobe(hdev);
- 		if (ret < 0)
- 			return ret;
--
--		/* Check for backlight support */
--		if (!(kbd_func & SUPPORT_KBD_BACKLIGHT))
--			return -ENODEV;
- 	}
- 
-+	/* Check for backlight support */
-+	if (!(kbd_func & SUPPORT_KBD_BACKLIGHT))
-+		return -ENODEV;
-+
- 	drvdata->kbd_backlight = devm_kzalloc(&hdev->dev,
- 					      sizeof(struct asus_kbd_leds),
- 					      GFP_KERNEL);
--- 
-2.48.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Mon, 17 Mar 2025 19:30:44 +0100
-Subject: HID: asus: cleanup keyboard backlight check
-
-Currently, asus_kbd_get_functions does a set_report
-to query for the keyboard backlight status using a varying
-report id. However, it then does get_report with the fixed
-id 0x5a. The ids of get_report and set_report should always
-match. Therefore, remove the calling argument and force 0x5a.
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- drivers/hid/hid-asus.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index 3d03087a6cae8..41269b5fcd83f 100644
---- a/drivers/hid/hid-asus.c
-+++ b/drivers/hid/hid-asus.c
-@@ -427,10 +427,9 @@ static int asus_kbd_init(struct hid_device *hdev)
- }
- 
- static int asus_kbd_get_functions(struct hid_device *hdev,
--				  unsigned char *kbd_func,
--				  u8 report_id)
-+				  unsigned char *kbd_func)
- {
--	const u8 buf[] = { report_id, 0x05, 0x20, 0x31, 0x00, 0x08 };
-+	const u8 buf[] = { FEATURE_KBD_REPORT_ID, 0x05, 0x20, 0x31, 0x00, 0x08 };
- 	u8 *readbuf;
- 	int ret;
- 
-@@ -572,7 +571,7 @@ static int asus_kbd_register_leds(struct hid_device *hdev)
- 		return ret;
- 
- 	/* Get keyboard functions */
--	ret = asus_kbd_get_functions(hdev, &kbd_func, FEATURE_KBD_REPORT_ID);
-+	ret = asus_kbd_get_functions(hdev, &kbd_func);
- 	if (ret < 0)
- 		return ret;
- 
--- 
-2.48.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Mon, 17 Mar 2025 19:45:23 +0100
-Subject: HID: asus: rename keyboard3 to Z13_FOLIO
-
-Rename the generic keyboard3 to Z13_FOLIO as it refers to the folio of
-the Z13. Both 2023 and 2025 variants.
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- drivers/hid/hid-asus.c | 2 +-
- drivers/hid/hid-ids.h  | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index 41269b5fcd83f..152bad52dbad8 100644
---- a/drivers/hid/hid-asus.c
-+++ b/drivers/hid/hid-asus.c
-@@ -1282,7 +1282,7 @@ static const struct hid_device_id asus_devices[] = {
- 	    USB_DEVICE_ID_ASUSTEK_ROG_NKEY_KEYBOARD2),
- 	  QUIRK_USE_KBD_BACKLIGHT | QUIRK_ROG_NKEY_KEYBOARD },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_ASUSTEK,
--	    USB_DEVICE_ID_ASUSTEK_ROG_NKEY_KEYBOARD3),
-+	    USB_DEVICE_ID_ASUSTEK_ROG_Z13_FOLIO),
- 	  QUIRK_USE_KBD_BACKLIGHT | QUIRK_ROG_NKEY_KEYBOARD },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_ASUSTEK,
- 	    USB_DEVICE_ID_ASUSTEK_ROG_Z13_LIGHTBAR),
-diff --git a/drivers/hid/hid-ids.h b/drivers/hid/hid-ids.h
-index 7234517d4f96a..f4fb2559c8428 100644
---- a/drivers/hid/hid-ids.h
-+++ b/drivers/hid/hid-ids.h
-@@ -208,7 +208,7 @@
- #define USB_DEVICE_ID_ASUSTEK_ROG_KEYBOARD3 0x1822
- #define USB_DEVICE_ID_ASUSTEK_ROG_NKEY_KEYBOARD	0x1866
- #define USB_DEVICE_ID_ASUSTEK_ROG_NKEY_KEYBOARD2	0x19b6
--#define USB_DEVICE_ID_ASUSTEK_ROG_NKEY_KEYBOARD3	0x1a30
-+#define USB_DEVICE_ID_ASUSTEK_ROG_Z13_FOLIO     	0x1a30
- #define USB_DEVICE_ID_ASUSTEK_ROG_Z13_LIGHTBAR		0x18c6
- #define USB_DEVICE_ID_ASUSTEK_ROG_RAIKIRI_PAD		0x1abb
- #define USB_DEVICE_ID_ASUSTEK_ROG_NKEY_ALLY		0x1abe
--- 
-2.48.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Tue, 4 Mar 2025 22:59:25 +0100
-Subject: HID: asus: add Z13 2025 fan key
-
-The ASUS Z13 2025 uses the vendor code 0xec for
-its Fn+F5 fan key. Add a quirk for it.
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- drivers/hid/hid-asus.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index 152bad52dbad8..3b956af24a057 100644
---- a/drivers/hid/hid-asus.c
-+++ b/drivers/hid/hid-asus.c
-@@ -884,6 +884,7 @@ static int asus_input_mapping(struct hid_device *hdev,
- 		case 0x5c: asus_map_key_clear(KEY_PROG3);	break; /* Fn+Space Power4Gear */
- 		case 0x99: asus_map_key_clear(KEY_PROG4);	break; /* Fn+F5 "fan" symbol */
- 		case 0xae: asus_map_key_clear(KEY_PROG4);	break; /* Fn+F5 "fan" symbol */
-+		case 0xec: asus_map_key_clear(KEY_PROG4);	break; /* Fn+F5 "fan" symbol (Z13 2025) */
- 		case 0x92: asus_map_key_clear(KEY_CALC);	break; /* Fn+Ret "Calc" symbol */
- 		case 0xb2: asus_map_key_clear(KEY_PROG2);	break; /* Fn+Left previous aura */
- 		case 0xb3: asus_map_key_clear(KEY_PROG3);	break; /* Fn+Left next aura */
--- 
-2.48.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Mon, 17 Mar 2025 21:06:17 +0100
-Subject: HID: asus: prevent binding to all HID devices on ROG
-
-ROG keyboards are HID compliant. We only care about the endpoint that
-produces vendor events (e.g., fan mode) and has the keyboard backlight.
-If we attach to all the endpoints, we end up generating errors during
-probe for two of them because they are missing the ->input attribute
-and risk side effects during input fixups.
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- drivers/hid/hid-asus.c | 37 ++++++++++++++++++++++++++++++++++++-
- 1 file changed, 36 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index 3b956af24a057..f32475ff3651b 100644
---- a/drivers/hid/hid-asus.c
-+++ b/drivers/hid/hid-asus.c
-@@ -84,6 +84,7 @@ MODULE_DESCRIPTION("Asus HID Keyboard and TouchPad");
- #define QUIRK_MEDION_E1239T		BIT(10)
- #define QUIRK_ROG_NKEY_KEYBOARD		BIT(11)
- #define QUIRK_ROG_CLAYMORE_II_KEYBOARD BIT(12)
-+#define QUIRK_HANDLE_GENERIC		BIT(13)
- 
- #define I2C_KEYBOARD_QUIRKS			(QUIRK_FIX_NOTEBOOK_REPORT | \
- 						 QUIRK_NO_INIT_REPORTS | \
-@@ -326,6 +327,10 @@ static int asus_raw_event(struct hid_device *hdev,
- {
- 	struct asus_drvdata *drvdata = hid_get_drvdata(hdev);
- 
-+	if (drvdata->quirks & QUIRK_HANDLE_GENERIC)
-+		/* NOOP on generic HID devices to avoid side effects. */
-+		return 0;
-+
- 	if (drvdata->battery && data[0] == BATTERY_REPORT_ID)
- 		return asus_report_battery(drvdata, data, size);
- 
-@@ -773,6 +778,10 @@ static int asus_input_configured(struct hid_device *hdev, struct hid_input *hi)
- 	struct input_dev *input = hi->input;
- 	struct asus_drvdata *drvdata = hid_get_drvdata(hdev);
- 
-+	if (drvdata->quirks & QUIRK_HANDLE_GENERIC)
-+		/* NOOP on generic HID devices to avoid side effects. */
-+		return 0;
-+
- 	/* T100CHI uses MULTI_INPUT, bind the touchpad to the mouse hid_input */
- 	if (drvdata->quirks & QUIRK_T100CHI &&
- 	    hi->report->id != T100CHI_MOUSE_REPORT_ID)
-@@ -850,6 +859,10 @@ static int asus_input_mapping(struct hid_device *hdev,
- 		return -1;
- 	}
- 
-+	if (drvdata->quirks & QUIRK_HANDLE_GENERIC)
-+		/* NOOP on generic HID devices to avoid side effects. */
-+		return 0;
-+
- 	/*
- 	 * Ignore a bunch of bogus collections in the T100CHI descriptor.
- 	 * This avoids a bunch of non-functional hid_input devices getting
-@@ -1026,8 +1039,10 @@ static int __maybe_unused asus_reset_resume(struct hid_device *hdev)
- 
- static int asus_probe(struct hid_device *hdev, const struct hid_device_id *id)
- {
--	int ret;
-+	struct hid_report_enum *rep_enum;
- 	struct asus_drvdata *drvdata;
-+	struct hid_report *rep;
-+	int ret, found = 0;
- 
- 	drvdata = devm_kzalloc(&hdev->dev, sizeof(*drvdata), GFP_KERNEL);
- 	if (drvdata == NULL) {
-@@ -1117,6 +1132,22 @@ static int asus_probe(struct hid_device *hdev, const struct hid_device_id *id)
- 		return ret;
- 	}
- 
-+	if (drvdata->quirks & QUIRK_ROG_NKEY_KEYBOARD) {
-+		/*
-+		 * The only application we care about on ROG NKEY keyboards is
-+		 * 0xff310076. This is meant Asus drivers and uses the id 0x54.
-+		 */
-+		rep_enum = &hdev->report_enum[HID_INPUT_REPORT];
-+		list_for_each_entry(rep, &rep_enum->report_list, list) {
-+			if (rep->application == 0xff310076)
-+				found = true;
-+		}
-+		if (!found) {
-+			drvdata->quirks |= QUIRK_HANDLE_GENERIC;
-+			return 0;
-+		}
-+	}
-+
- 	if (!drvdata->input) {
- 		hid_err(hdev, "Asus input not registered\n");
- 		ret = -ENOMEM;
-@@ -1167,6 +1198,10 @@ static const __u8 *asus_report_fixup(struct hid_device *hdev, __u8 *rdesc,
- {
- 	struct asus_drvdata *drvdata = hid_get_drvdata(hdev);
- 
-+	if (drvdata->quirks & QUIRK_HANDLE_GENERIC)
-+		/* NOOP on generic HID devices to avoid side effects. */
-+		return rdesc;
-+
- 	if (drvdata->quirks & QUIRK_FIX_NOTEBOOK_REPORT &&
- 			*rsize >= 56 && rdesc[54] == 0x25 && rdesc[55] == 0x65) {
- 		hid_info(hdev, "Fixing up Asus notebook report descriptor\n");
--- 
-2.48.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Tue, 18 Mar 2025 22:50:29 +0100
-Subject: HID: asus: avoid renaming ROG NKEY devices
-
-Original name is fine (and looks better), keep it
-for consistency between all endpoints.
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- drivers/hid/hid-asus.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index f32475ff3651b..d2a565d82c757 100644
---- a/drivers/hid/hid-asus.c
-+++ b/drivers/hid/hid-asus.c
-@@ -1156,7 +1156,7 @@ static int asus_probe(struct hid_device *hdev, const struct hid_device_id *id)
- 
- 	if (drvdata->tp) {
- 		drvdata->input->name = "Asus TouchPad";
--	} else {
-+	} else if (!(drvdata->quirks & QUIRK_ROG_NKEY_KEYBOARD)) {
- 		drvdata->input->name = "Asus Keyboard";
- 	}
- 
--- 
-2.48.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Wed, 19 Mar 2025 00:40:27 +0100
-Subject: platform/x86: asus-wmi: Add support for multiple kbd RGB handlers
-
-Some devices, such as the Z13 have multiple AURA devices connected
-to them by USB. In addition, they might have a WMI interface for
-RGB. In Windows, Armoury Crate exposes a unified brightness slider
-for all of them, with 3 brightness levels.
-
-Therefore, to be synergistic in Linux, and support existing tooling
-such as UPower, allow adding listeners to the RGB device of the WMI
-interface. If WMI does not exist, lazy initialize the interface.
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- drivers/platform/x86/asus-wmi.c            | 91 +++++++++++++++++++---
- include/linux/platform_data/x86/asus-wmi.h | 16 ++++
- 2 files changed, 97 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/platform/x86/asus-wmi.c b/drivers/platform/x86/asus-wmi.c
-index 2f467d2f85ba1..c6a66639ae968 100644
---- a/drivers/platform/x86/asus-wmi.c
-+++ b/drivers/platform/x86/asus-wmi.c
-@@ -250,6 +250,8 @@ struct asus_wmi {
- 	int tpd_led_wk;
- 	struct led_classdev kbd_led;
- 	int kbd_led_wk;
-+	bool kbd_led_avail;
-+	bool kbd_led_registered;
- 	struct led_classdev lightbar_led;
- 	int lightbar_led_wk;
- 	struct led_classdev micmute_led;
-@@ -1521,6 +1523,46 @@ static void asus_wmi_battery_exit(struct asus_wmi *asus)
- 
- /* LEDs ***********************************************************************/
- 
-+LIST_HEAD(asus_brt_listeners);
-+DEFINE_MUTEX(asus_brt_lock);
-+struct asus_wmi *asus_brt_ref;
-+
-+int asus_brt_register_listener(struct asus_brt_listener *bdev)
-+{
-+	int ret;
-+
-+	mutex_lock(&asus_brt_lock);
-+	list_add_tail(&bdev->list, &asus_brt_listeners);
-+	if (asus_brt_ref) {
-+		if (asus_brt_ref->kbd_led_registered && asus_brt_ref->kbd_led_wk >= 0)
-+			bdev->notify(bdev, asus_brt_ref->kbd_led_wk);
-+		else {
-+			asus_brt_ref->kbd_led_registered = true;
-+			ret = led_classdev_register(
-+				&asus_brt_ref->platform_device->dev,
-+				&asus_brt_ref->kbd_led);
-+		}
-+	}
-+	mutex_unlock(&asus_brt_lock);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(asus_brt_register_listener);
-+
-+void asus_brt_unregister_listener(struct asus_brt_listener *bdev)
-+{
-+	mutex_lock(&asus_brt_lock);
-+	list_del(&bdev->list);
-+
-+	if (asus_brt_ref && list_empty(&asus_brt_listeners) &&
-+	    !asus_brt_ref->kbd_led_avail) {
-+		led_classdev_unregister(&asus_brt_ref->kbd_led);
-+		asus_brt_ref->kbd_led_registered = false;
-+	}
-+	mutex_unlock(&asus_brt_lock);
-+}
-+EXPORT_SYMBOL_GPL(asus_brt_unregister_listener);
-+
- /*
-  * These functions actually update the LED's, and are called from a
-  * workqueue. By doing this as separate work rather than when the LED
-@@ -1600,6 +1642,7 @@ static int kbd_led_read(struct asus_wmi *asus, int *level, int *env)
- 
- static void do_kbd_led_set(struct led_classdev *led_cdev, int value)
- {
-+	struct asus_brt_listener *listener;
- 	struct asus_wmi *asus;
- 	int max_level;
- 
-@@ -1607,7 +1650,14 @@ static void do_kbd_led_set(struct led_classdev *led_cdev, int value)
- 	max_level = asus->kbd_led.max_brightness;
- 
- 	asus->kbd_led_wk = clamp_val(value, 0, max_level);
--	kbd_led_update(asus);
-+
-+	if (asus->kbd_led_avail)
-+		kbd_led_update(asus);
-+	
-+	mutex_lock(&asus_brt_lock);
-+	list_for_each_entry(listener, &asus_brt_listeners, list)
-+		listener->notify(listener, asus->kbd_led_wk);
-+	mutex_unlock(&asus_brt_lock);
- }
- 
- static void kbd_led_set(struct led_classdev *led_cdev,
-@@ -1635,6 +1685,9 @@ static enum led_brightness kbd_led_get(struct led_classdev *led_cdev)
- 
- 	asus = container_of(led_cdev, struct asus_wmi, kbd_led);
- 
-+	if (!asus->kbd_led_avail)
-+		return asus->kbd_led_wk;
-+
- 	retval = kbd_led_read(asus, &value, NULL);
- 	if (retval < 0)
- 		return retval;
-@@ -1750,6 +1803,10 @@ static int camera_led_set(struct led_classdev *led_cdev,
- 
- static void asus_wmi_led_exit(struct asus_wmi *asus)
- {
-+	mutex_lock(&asus_brt_lock);
-+	asus_brt_ref = NULL;
-+	mutex_unlock(&asus_brt_lock);
-+
- 	led_classdev_unregister(&asus->kbd_led);
- 	led_classdev_unregister(&asus->tpd_led);
- 	led_classdev_unregister(&asus->wlan_led);
-@@ -1764,6 +1821,7 @@ static void asus_wmi_led_exit(struct asus_wmi *asus)
- static int asus_wmi_led_init(struct asus_wmi *asus)
- {
- 	int rv = 0, num_rgb_groups = 0, led_val;
-+	bool has_listeners;
- 
- 	if (asus->kbd_rgb_dev)
- 		kbd_rgb_mode_groups[num_rgb_groups++] = &kbd_rgb_mode_group;
-@@ -1788,24 +1846,37 @@ static int asus_wmi_led_init(struct asus_wmi *asus)
- 			goto error;
- 	}
- 
--	if (!kbd_led_read(asus, &led_val, NULL) && !dmi_check_system(asus_use_hid_led_dmi_ids)) {
--		pr_info("using asus-wmi for asus::kbd_backlight\n");
-+	asus->kbd_led.name = "asus::kbd_backlight";
-+	asus->kbd_led.flags = LED_BRIGHT_HW_CHANGED;
-+	asus->kbd_led.brightness_set = kbd_led_set;
-+	asus->kbd_led.brightness_get = kbd_led_get;
-+	asus->kbd_led.max_brightness = 3;
-+	asus->kbd_led_avail = !kbd_led_read(asus, &led_val, NULL);
-+	
-+	if (asus->kbd_led_avail)
- 		asus->kbd_led_wk = led_val;
--		asus->kbd_led.name = "asus::kbd_backlight";
--		asus->kbd_led.flags = LED_BRIGHT_HW_CHANGED;
--		asus->kbd_led.brightness_set = kbd_led_set;
--		asus->kbd_led.brightness_get = kbd_led_get;
--		asus->kbd_led.max_brightness = 3;
-+	else
-+		asus->kbd_led_wk = -1;
- 
--		if (num_rgb_groups != 0)
--			asus->kbd_led.groups = kbd_rgb_mode_groups;
-+	if (asus->kbd_led_avail && num_rgb_groups != 0)
-+		asus->kbd_led.groups = kbd_rgb_mode_groups;
- 
-+	mutex_lock(&asus_brt_lock);
-+	has_listeners = !list_empty(&asus_brt_listeners);
-+	mutex_unlock(&asus_brt_lock);
-+
-+	if (asus->kbd_led_avail || has_listeners) {
-+		asus->kbd_led_registered = true;
- 		rv = led_classdev_register(&asus->platform_device->dev,
- 					   &asus->kbd_led);
- 		if (rv)
- 			goto error;
- 	}
- 
-+	mutex_lock(&asus_brt_lock);
-+	asus_brt_ref = asus;
-+	mutex_unlock(&asus_brt_lock);
-+
- 	if (asus_wmi_dev_is_present(asus, ASUS_WMI_DEVID_WIRELESS_LED)
- 			&& (asus->driver->quirks->wapf > 0)) {
- 		INIT_WORK(&asus->wlan_led_work, wlan_led_update);
-diff --git a/include/linux/platform_data/x86/asus-wmi.h b/include/linux/platform_data/x86/asus-wmi.h
-index c427b6c20d3fa..bb688fbfd029d 100644
---- a/include/linux/platform_data/x86/asus-wmi.h
-+++ b/include/linux/platform_data/x86/asus-wmi.h
-@@ -169,10 +169,18 @@
- #define ASUS_WMI_DSTS_MAX_BRIGTH_MASK	0x0000FF00
- #define ASUS_WMI_DSTS_LIGHTBAR_MASK	0x0000000F
- 
-+struct asus_brt_listener {
-+	struct list_head list;
-+	void (*notify)(struct asus_brt_listener *listener, int brightness);
-+};
-+
- #if IS_REACHABLE(CONFIG_ASUS_WMI)
- int asus_wmi_get_devstate_dsts(u32 dev_id, u32 *retval);
- int asus_wmi_set_devstate(u32 dev_id, u32 ctrl_param, u32 *retval);
- int asus_wmi_evaluate_method(u32 method_id, u32 arg0, u32 arg1, u32 *retval);
-+
-+int asus_brt_register_listener(struct asus_brt_listener *cdev);
-+void asus_brt_unregister_listener(struct asus_brt_listener *cdev);
- #else
- static inline int asus_wmi_get_devstate_dsts(u32 dev_id, u32 *retval)
- {
-@@ -187,6 +195,14 @@ static inline int asus_wmi_evaluate_method(u32 method_id, u32 arg0, u32 arg1,
- {
- 	return -ENODEV;
- }
-+
-+static inline int asus_brt_register_listener(struct asus_brt_listener *bdev)
-+{
-+	return -ENODEV;
-+}
-+static inline void asus_brt_unregister_listener(struct asus_brt_listener *bdev)
-+{
-+}
- #endif
- 
- /* To be used by both hid-asus and asus-wmi to determine which controls kbd_brightness */
--- 
-2.48.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Wed, 19 Mar 2025 00:40:32 +0100
-Subject: HID: asus: listen to the asus-wmi brightness device instead of
- creating one
-
-Some ROG laptops expose multiple interfaces for controlling the
-keyboard/RGB brightness. This creates a name conflict under
-asus::kbd_brightness, where the second device ends up being
-named asus::kbd_brightness_1 and they are both broken.
-
-Therefore, register a listener to the asus-wmi brightness device
-instead of creating a new one.
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- drivers/hid/hid-asus.c | 65 +++++++-----------------------------------
- 1 file changed, 11 insertions(+), 54 deletions(-)
-
-diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index d2a565d82c757..aa4cdc373c0f2 100644
---- a/drivers/hid/hid-asus.c
-+++ b/drivers/hid/hid-asus.c
-@@ -96,7 +96,7 @@ MODULE_DESCRIPTION("Asus HID Keyboard and TouchPad");
- #define TRKID_SGN       ((TRKID_MAX + 1) >> 1)
- 
- struct asus_kbd_leds {
--	struct led_classdev cdev;
-+	struct asus_brt_listener listener;
- 	struct hid_device *hdev;
- 	struct work_struct work;
- 	unsigned int brightness;
-@@ -493,11 +493,11 @@ static void asus_schedule_work(struct asus_kbd_leds *led)
- 	spin_unlock_irqrestore(&led->lock, flags);
- }
- 
--static void asus_kbd_backlight_set(struct led_classdev *led_cdev,
--				   enum led_brightness brightness)
-+static void asus_kbd_backlight_set(struct asus_brt_listener *listener,
-+				   int brightness)
- {
--	struct asus_kbd_leds *led = container_of(led_cdev, struct asus_kbd_leds,
--						 cdev);
-+	struct asus_kbd_leds *led = container_of(listener, struct asus_kbd_leds,
-+						 listener);
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&led->lock, flags);
-@@ -507,20 +507,6 @@ static void asus_kbd_backlight_set(struct led_classdev *led_cdev,
- 	asus_schedule_work(led);
- }
- 
--static enum led_brightness asus_kbd_backlight_get(struct led_classdev *led_cdev)
--{
--	struct asus_kbd_leds *led = container_of(led_cdev, struct asus_kbd_leds,
--						 cdev);
--	enum led_brightness brightness;
--	unsigned long flags;
--
--	spin_lock_irqsave(&led->lock, flags);
--	brightness = led->brightness;
--	spin_unlock_irqrestore(&led->lock, flags);
--
--	return brightness;
--}
--
- static void asus_kbd_backlight_work(struct work_struct *work)
- {
- 	struct asus_kbd_leds *led = container_of(work, struct asus_kbd_leds, work);
-@@ -537,34 +523,6 @@ static void asus_kbd_backlight_work(struct work_struct *work)
- 		hid_err(led->hdev, "Asus failed to set keyboard backlight: %d\n", ret);
- }
- 
--/* WMI-based keyboard backlight LED control (via asus-wmi driver) takes
-- * precedence. We only activate HID-based backlight control when the
-- * WMI control is not available.
-- */
--static bool asus_kbd_wmi_led_control_present(struct hid_device *hdev)
--{
--	struct asus_drvdata *drvdata = hid_get_drvdata(hdev);
--	u32 value;
--	int ret;
--
--	if (!IS_ENABLED(CONFIG_ASUS_WMI))
--		return false;
--
--	if (drvdata->quirks & QUIRK_ROG_NKEY_KEYBOARD &&
--			dmi_check_system(asus_use_hid_led_dmi_ids)) {
--		hid_info(hdev, "using HID for asus::kbd_backlight\n");
--		return false;
--	}
--
--	ret = asus_wmi_evaluate_method(ASUS_WMI_METHODID_DSTS,
--				       ASUS_WMI_DEVID_KBD_BACKLIGHT, 0, &value);
--	hid_dbg(hdev, "WMI backlight check: rc %d value %x", ret, value);
--	if (ret)
--		return false;
--
--	return !!(value & ASUS_WMI_DSTS_PRESENCE_BIT);
--}
--
- static int asus_kbd_register_leds(struct hid_device *hdev)
- {
- 	struct asus_drvdata *drvdata = hid_get_drvdata(hdev);
-@@ -599,14 +557,12 @@ static int asus_kbd_register_leds(struct hid_device *hdev)
- 	drvdata->kbd_backlight->removed = false;
- 	drvdata->kbd_backlight->brightness = 0;
- 	drvdata->kbd_backlight->hdev = hdev;
--	drvdata->kbd_backlight->cdev.name = "asus::kbd_backlight";
--	drvdata->kbd_backlight->cdev.max_brightness = 3;
--	drvdata->kbd_backlight->cdev.brightness_set = asus_kbd_backlight_set;
--	drvdata->kbd_backlight->cdev.brightness_get = asus_kbd_backlight_get;
-+	drvdata->kbd_backlight->listener.notify = asus_kbd_backlight_set;
- 	INIT_WORK(&drvdata->kbd_backlight->work, asus_kbd_backlight_work);
- 	spin_lock_init(&drvdata->kbd_backlight->lock);
- 
--	ret = devm_led_classdev_register(&hdev->dev, &drvdata->kbd_backlight->cdev);
-+	ret = asus_brt_register_listener(&drvdata->kbd_backlight->listener);
-+	
- 	if (ret < 0) {
- 		/* No need to have this still around */
- 		devm_kfree(&hdev->dev, drvdata->kbd_backlight);
-@@ -836,7 +792,6 @@ static int asus_input_configured(struct hid_device *hdev, struct hid_input *hi)
- 	drvdata->input = input;
- 
- 	if (drvdata->enable_backlight &&
--	    !asus_kbd_wmi_led_control_present(hdev) &&
- 	    asus_kbd_register_leds(hdev))
- 		hid_warn(hdev, "Failed to initialize backlight.\n");
- 
-@@ -1015,7 +970,7 @@ static int __maybe_unused asus_resume(struct hid_device *hdev) {
- 
- 	if (drvdata->kbd_backlight) {
- 		const u8 buf[] = { FEATURE_KBD_REPORT_ID, 0xba, 0xc5, 0xc4,
--				drvdata->kbd_backlight->cdev.brightness };
-+				drvdata->kbd_backlight->brightness };
- 		ret = asus_kbd_set_report(hdev, buf, sizeof(buf));
- 		if (ret < 0) {
- 			hid_err(hdev, "Asus failed to set keyboard backlight: %d\n", ret);
-@@ -1183,6 +1138,8 @@ static void asus_remove(struct hid_device *hdev)
- 		spin_unlock_irqrestore(&drvdata->kbd_backlight->lock, flags);
- 
- 		cancel_work_sync(&drvdata->kbd_backlight->work);
-+
-+		asus_brt_unregister_listener(&drvdata->kbd_backlight->listener);
- 	}
- 
- 	hid_hw_stop(hdev);
--- 
-2.48.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Wed, 19 Mar 2025 00:42:54 +0100
-Subject: platform/x86: asus-wmi: Cleanup after ourselves
-
-The quirk for selecting whether keyboard backlight should be controlled
-by HID or WMI is not needed anymore, so remove it.
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- include/linux/platform_data/x86/asus-wmi.h | 40 ----------------------
- 1 file changed, 40 deletions(-)
-
-diff --git a/include/linux/platform_data/x86/asus-wmi.h b/include/linux/platform_data/x86/asus-wmi.h
-index bb688fbfd029d..17b27f9858ffc 100644
---- a/include/linux/platform_data/x86/asus-wmi.h
-+++ b/include/linux/platform_data/x86/asus-wmi.h
-@@ -205,44 +205,4 @@ static inline void asus_brt_unregister_listener(struct asus_brt_listener *bdev)
- }
- #endif
- 
--/* To be used by both hid-asus and asus-wmi to determine which controls kbd_brightness */
--static const struct dmi_system_id asus_use_hid_led_dmi_ids[] = {
--	{
--		.matches = {
--			DMI_MATCH(DMI_PRODUCT_FAMILY, "ROG Zephyrus"),
--		},
--	},
--	{
--		.matches = {
--			DMI_MATCH(DMI_PRODUCT_FAMILY, "ROG Strix"),
--		},
--	},
--	{
--		.matches = {
--			DMI_MATCH(DMI_PRODUCT_FAMILY, "ROG Flow"),
--		},
--	},
--	{
--		.matches = {
--			DMI_MATCH(DMI_PRODUCT_FAMILY, "ProArt P16"),
--		},
--	},
--	{
--		.matches = {
--			DMI_MATCH(DMI_BOARD_NAME, "GA403U"),
--		},
--	},
--	{
--		.matches = {
--			DMI_MATCH(DMI_BOARD_NAME, "GU605M"),
--		},
--	},
--	{
--		.matches = {
--			DMI_MATCH(DMI_BOARD_NAME, "RC71L"),
--		},
--	},
--	{ },
--};
--
- #endif	/* __PLATFORM_DATA_X86_ASUS_WMI_H */
--- 
-2.48.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Wed, 19 Mar 2025 00:58:30 +0100
-Subject: platform/x86: asus-wmi: handle keyboard brightness control in kernel
-
-Currenlty, the keyboard brightness control of Asus WMI keyboards is
-handled in the kernel, which leads to the shortcut going from
-brightness 0, to 1, to 2, and 3.
-
-However, for HID devices it is exposed as a key and handled by the
-user's desktop environment. For the toggle button, this means that
-brightness control becomes on/off. In addition, in the absence of a
-DE, the keyboard brightness does not work.
-
-Therefore, expose an event handler for the keyboard brightness control
-which can then be used by hid-asus.
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- drivers/platform/x86/asus-wmi.c            | 33 ++++++++++++++++++++++
- include/linux/platform_data/x86/asus-wmi.h | 10 +++++++
- 2 files changed, 43 insertions(+)
-
-diff --git a/drivers/platform/x86/asus-wmi.c b/drivers/platform/x86/asus-wmi.c
-index c6a66639ae968..cdef6be1dc8e3 100644
---- a/drivers/platform/x86/asus-wmi.c
-+++ b/drivers/platform/x86/asus-wmi.c
-@@ -1563,6 +1563,39 @@ void asus_brt_unregister_listener(struct asus_brt_listener *bdev)
- }
- EXPORT_SYMBOL_GPL(asus_brt_unregister_listener);
- 
-+static void kbd_led_set_by_kbd(struct asus_wmi *asus, enum led_brightness value);
-+
-+int asus_brt_event(enum asus_brt_event event) {
-+	int brightness;
-+
-+	mutex_lock(&asus_brt_lock);
-+	if (!asus_brt_ref || !asus_brt_ref->kbd_led_registered) {
-+		mutex_unlock(&asus_brt_lock);
-+		return -EBUSY;
-+	}
-+	brightness = asus_brt_ref->kbd_led_wk;
-+	mutex_unlock(&asus_brt_lock);
-+
-+	switch (event) {
-+	case ASUS_BRT_UP:
-+		brightness += 1;
-+		break;
-+	case ASUS_BRT_DOWN:
-+		brightness -= 1;
-+		break;
-+	case ASUS_BRT_TOGGLE:
-+		if (brightness >= 3)
-+			brightness = 0;
-+		else
-+			brightness += 1;
-+		break;
-+	}
-+
-+	kbd_led_set_by_kbd(asus_brt_ref, brightness);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(asus_brt_event);
-+
- /*
-  * These functions actually update the LED's, and are called from a
-  * workqueue. By doing this as separate work rather than when the LED
-diff --git a/include/linux/platform_data/x86/asus-wmi.h b/include/linux/platform_data/x86/asus-wmi.h
-index 17b27f9858ffc..9ef471b3d6e9e 100644
---- a/include/linux/platform_data/x86/asus-wmi.h
-+++ b/include/linux/platform_data/x86/asus-wmi.h
-@@ -174,6 +174,12 @@ struct asus_brt_listener {
- 	void (*notify)(struct asus_brt_listener *listener, int brightness);
- };
- 
-+enum asus_brt_event {
-+	ASUS_BRT_UP,
-+	ASUS_BRT_DOWN,
-+	ASUS_BRT_TOGGLE,
-+};
-+
- #if IS_REACHABLE(CONFIG_ASUS_WMI)
- int asus_wmi_get_devstate_dsts(u32 dev_id, u32 *retval);
- int asus_wmi_set_devstate(u32 dev_id, u32 ctrl_param, u32 *retval);
-@@ -181,6 +187,7 @@ int asus_wmi_evaluate_method(u32 method_id, u32 arg0, u32 arg1, u32 *retval);
- 
- int asus_brt_register_listener(struct asus_brt_listener *cdev);
- void asus_brt_unregister_listener(struct asus_brt_listener *cdev);
-+int asus_brt_event(enum asus_brt_event event);
- #else
- static inline int asus_wmi_get_devstate_dsts(u32 dev_id, u32 *retval)
- {
-@@ -203,6 +210,9 @@ static inline int asus_brt_register_listener(struct asus_brt_listener *bdev)
- static inline void asus_brt_unregister_listener(struct asus_brt_listener *bdev)
- {
- }
-+static inline void asus_brt_event(enum asus_brt_event event)
-+{
-+}
- #endif
- 
- #endif	/* __PLATFORM_DATA_X86_ASUS_WMI_H */
--- 
-2.48.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Wed, 19 Mar 2025 00:59:36 +0100
-Subject: HID: asus: add support for the asus-wmi brightness handler
-
-If the asus-wmi brightness handler is available, send the
-keyboard brightness events to it instead of passing them
-to userspace. If it is not, fall back to sending them to it.
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- drivers/hid/hid-asus.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
-
-diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index aa4cdc373c0f2..49bea0fbeb020 100644
---- a/drivers/hid/hid-asus.c
-+++ b/drivers/hid/hid-asus.c
-@@ -319,6 +319,17 @@ static int asus_event(struct hid_device *hdev, struct hid_field *field,
- 			 usage->hid & HID_USAGE);
- 	}
- 
-+	if (usage->type == EV_KEY && value) {
-+		switch (usage->code) {
-+		case KEY_KBDILLUMUP:
-+			return !asus_brt_event(ASUS_BRT_UP);;
-+		case KEY_KBDILLUMDOWN:
-+			return !asus_brt_event(ASUS_BRT_DOWN);
-+		case KEY_KBDILLUMTOGGLE:
-+			return !asus_brt_event(ASUS_BRT_TOGGLE);
-+		}
-+	}
-+
- 	return 0;
- }
- 
--- 
-2.48.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Wed, 19 Mar 2025 01:23:37 +0100
-Subject: HID: asus: introduce small delay on RGB init to avoid freezing the
- keyboard
-
-The folio keyboard of the Z13 can get stuck in its BIOS mode, where the
-touchpad behaves like a mouse and the keyboard start button is not
-reliable if we perform the initialization too quickly. This mostly
-happens during boot, and can be verified to be caused by hid-asus
-through simple blacklisting. A small delay fixes it.
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- drivers/hid/hid-asus.c | 5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index 49bea0fbeb020..0d015851e34ea 100644
---- a/drivers/hid/hid-asus.c
-+++ b/drivers/hid/hid-asus.c
-@@ -540,6 +540,11 @@ static int asus_kbd_register_leds(struct hid_device *hdev)
- 	unsigned char kbd_func;
- 	int ret;
- 
-+	/* Wait a bit before init to prevent locking the keyboard */
-+	if (dmi_match(DMI_PRODUCT_FAMILY, "ROG Flow Z13")) {
-+		msleep(500);
-+	}
-+
- 	ret = asus_kbd_init(hdev);
- 	if (ret < 0)
- 		return ret;
--- 
-2.48.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <git@antheas.dev>
 Date: Sat, 12 Oct 2024 19:33:24 +0200
 Subject: [BEGIN] Steam Deck fixes
@@ -71092,7 +71114,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 54 deletions(-)
 
 diff --git a/drivers/platform/x86/asus-wmi.c b/drivers/platform/x86/asus-wmi.c
-index cdef6be1dc8e3..3b9181dcd5e81 100644
+index d0a419276b435..215bc4407d86a 100644
 --- a/drivers/platform/x86/asus-wmi.c
 +++ b/drivers/platform/x86/asus-wmi.c
 @@ -138,29 +138,10 @@ module_param(fnlock_default, bool, 0444);
@@ -71135,7 +71157,7 @@ index cdef6be1dc8e3..3b9181dcd5e81 100644
  	enum fan_type fan_type;
  	enum fan_type gpu_fan_type;
  	enum fan_type mid_fan_type;
-@@ -4859,8 +4837,6 @@ static int asus_wmi_add(struct platform_device *pdev)
+@@ -4870,8 +4848,6 @@ static int asus_wmi_add(struct platform_device *pdev)
  	asus->egpu_enable_available = asus_wmi_dev_is_present(asus, ASUS_WMI_DEVID_EGPU);
  	asus->dgpu_disable_available = asus_wmi_dev_is_present(asus, ASUS_WMI_DEVID_DGPU);
  	asus->kbd_rgb_state_available = asus_wmi_dev_is_present(asus, ASUS_WMI_DEVID_TUF_RGB_STATE);
@@ -71144,7 +71166,7 @@ index cdef6be1dc8e3..3b9181dcd5e81 100644
  
  	if (asus_wmi_dev_is_present(asus, ASUS_WMI_DEVID_MINI_LED_MODE))
  		asus->mini_led_dev_id = ASUS_WMI_DEVID_MINI_LED_MODE;
-@@ -5051,34 +5027,6 @@ static int asus_hotk_resume(struct device *device)
+@@ -5062,34 +5038,6 @@ static int asus_hotk_resume(struct device *device)
  	return 0;
  }
  
@@ -71179,7 +71201,7 @@ index cdef6be1dc8e3..3b9181dcd5e81 100644
  static int asus_hotk_restore(struct device *device)
  {
  	struct asus_wmi *asus = dev_get_drvdata(device);
-@@ -5123,8 +5071,6 @@ static const struct dev_pm_ops asus_pm_ops = {
+@@ -5134,8 +5082,6 @@ static const struct dev_pm_ops asus_pm_ops = {
  	.thaw = asus_hotk_thaw,
  	.restore = asus_hotk_restore,
  	.resume = asus_hotk_resume,
