@@ -179,6 +179,7 @@ jobs:
             -d "{\"event_type\": \"$event_type\", \"client_payload\": {\"release_tag\": \"$release_tag\"}}"
   update_aur:
     uses: ./.github/workflows/publish-aur.yml
+    needs: build_kernel
     if: github.event_name == 'release' && github.event.release.prerelease == false
     with:
       relver: ${{ github.event.release.tag_name }}
