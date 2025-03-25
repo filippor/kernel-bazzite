@@ -291,10 +291,10 @@ index 8440defa67886..03da2c8cf6789 100644
  	priv->handler.profile_set = inspur_platform_profile_set;
  
 diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index 84dcd7da7319e..eb828379b1524 100644
+index a3c73abb00f21..b4e7320039e69 100644
 --- a/drivers/platform/x86/thinkpad_acpi.c
 +++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -10573,6 +10573,7 @@ static void dytc_profile_refresh(void)
+@@ -10589,6 +10589,7 @@ static void dytc_profile_refresh(void)
  }
  
  static struct platform_profile_handler dytc_profile = {
@@ -609,10 +609,10 @@ index 03da2c8cf6789..5a53949bbbf5f 100644
  	priv->handler.profile_set = inspur_platform_profile_set;
  
 diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index eb828379b1524..baf39ca58d6cf 100644
+index b4e7320039e69..b22a6226731e1 100644
 --- a/drivers/platform/x86/thinkpad_acpi.c
 +++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -10640,6 +10640,7 @@ static int tpacpi_dytc_profile_init(struct ibm_init_struct *iibm)
+@@ -10662,6 +10662,7 @@ static int tpacpi_dytc_profile_init(struct ibm_init_struct *iibm)
  	dbg_printk(TPACPI_DBG_INIT,
  			"DYTC version %d: thermal mode available\n", dytc_version);
  
@@ -833,10 +833,10 @@ index 5a53949bbbf5f..53af73a7fbf7b 100644
  
  static const struct wmi_device_id inspur_wmi_id_table[] = {
 diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index baf39ca58d6cf..29612fcb705ef 100644
+index b22a6226731e1..ebeb582d52162 100644
 --- a/drivers/platform/x86/thinkpad_acpi.c
 +++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -10662,7 +10662,7 @@ static int tpacpi_dytc_profile_init(struct ibm_init_struct *iibm)
+@@ -10684,7 +10684,7 @@ static int tpacpi_dytc_profile_init(struct ibm_init_struct *iibm)
  
  static void dytc_profile_exit(void)
  {
@@ -936,10 +936,10 @@ index 0a58951cb8bf5..dc98f862a06d5 100644
  }
  
 diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index 29612fcb705ef..da60491a9109b 100644
+index ebeb582d52162..e616844d8c9ea 100644
 --- a/drivers/platform/x86/thinkpad_acpi.c
 +++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -10540,6 +10540,12 @@ static int dytc_profile_set(struct platform_profile_handler *pprof,
+@@ -10556,6 +10556,12 @@ static int dytc_profile_set(struct platform_profile_handler *pprof,
  	return err;
  }
  
@@ -952,7 +952,7 @@ index 29612fcb705ef..da60491a9109b 100644
  static void dytc_profile_refresh(void)
  {
  	enum platform_profile_option profile;
-@@ -10568,16 +10574,10 @@ static void dytc_profile_refresh(void)
+@@ -10584,16 +10590,10 @@ static void dytc_profile_refresh(void)
  	err = convert_dytc_to_profile(funcmode, perfmode, &profile);
  	if (!err && profile != dytc_current_profile) {
  		dytc_current_profile = profile;
@@ -22439,10 +22439,10 @@ Patchset: ipts
  create mode 100644 drivers/hid/ipts/thread.h
 
 diff --git a/drivers/hid/Kconfig b/drivers/hid/Kconfig
-index c57927529f8a4..9aabcf4241c6e 100644
+index b7e010c384bac..d36a55e58598a 100644
 --- a/drivers/hid/Kconfig
 +++ b/drivers/hid/Kconfig
-@@ -1388,4 +1388,6 @@ source "drivers/hid/surface-hid/Kconfig"
+@@ -1389,4 +1389,6 @@ source "drivers/hid/surface-hid/Kconfig"
  
  source "drivers/hid/intel-thc-hid/Kconfig"
  
@@ -25557,10 +25557,10 @@ Patchset: ithc
  create mode 100644 drivers/hid/ithc/ithc.h
 
 diff --git a/drivers/hid/Kconfig b/drivers/hid/Kconfig
-index 9aabcf4241c6e..f7ee006bff6d8 100644
+index d36a55e58598a..ff709b2cb72bc 100644
 --- a/drivers/hid/Kconfig
 +++ b/drivers/hid/Kconfig
-@@ -1390,4 +1390,6 @@ source "drivers/hid/intel-thc-hid/Kconfig"
+@@ -1391,4 +1391,6 @@ source "drivers/hid/intel-thc-hid/Kconfig"
  
  source "drivers/hid/ipts/Kconfig"
  
@@ -29675,11 +29675,11 @@ Patchset: cameras
  1 file changed, 15 insertions(+)
 
 diff --git a/drivers/platform/x86/intel/int3472/discrete.c b/drivers/platform/x86/intel/int3472/discrete.c
-index 09fff213b0911..ce641eb45de69 100644
+index a80c981caa340..6ebc6ebaf518a 100644
 --- a/drivers/platform/x86/intel/int3472/discrete.c
 +++ b/drivers/platform/x86/intel/int3472/discrete.c
-@@ -80,12 +80,27 @@ static int skl_int3472_map_gpio_to_sensor(struct int3472_discrete_device *int347
- 					  const char *func, u32 polarity)
+@@ -81,12 +81,27 @@ static int skl_int3472_map_gpio_to_sensor(struct int3472_discrete_device *int347
+ 					  const char *func, unsigned long gpio_flags)
  {
  	int ret;
 +	const struct acpi_device_id ov7251_ids[] = {
@@ -29704,7 +29704,7 @@ index 09fff213b0911..ce641eb45de69 100644
 +	}
 +
  	ret = skl_int3472_fill_gpiod_lookup(&int3472->gpios.table[int3472->n_sensor_gpios],
- 					    agpio, func, polarity);
+ 					    agpio, func, gpio_flags);
  	if (ret)
 -- 
 2.49.0
@@ -39309,7 +39309,7 @@ index 6203bd8663b74..5d65b68f7fbf4 100644
  #define HCI_ACL_CONN_TIMEOUT	msecs_to_jiffies(20000)	/* 20 seconds */
  #define HCI_LE_CONN_TIMEOUT	msecs_to_jiffies(20000)	/* 20 seconds */
 diff --git a/include/net/bluetooth/hci_core.h b/include/net/bluetooth/hci_core.h
-index ca22ead85dbe0..9709c1c63ac84 100644
+index ea798f07c5a2d..f7bac5b82095b 100644
 --- a/include/net/bluetooth/hci_core.h
 +++ b/include/net/bluetooth/hci_core.h
 @@ -479,7 +479,7 @@ struct hci_dev {
@@ -39322,10 +39322,10 @@ index ca22ead85dbe0..9709c1c63ac84 100644
  	struct work_struct	error_reset;
  	struct work_struct	cmd_sync_work;
 diff --git a/net/bluetooth/hci_core.c b/net/bluetooth/hci_core.c
-index 18ab5628f85ad..79530fabcb4d0 100644
+index f9e19f9cb5a38..cdff7e454adce 100644
 --- a/net/bluetooth/hci_core.c
 +++ b/net/bluetooth/hci_core.c
-@@ -500,7 +500,7 @@ int hci_dev_close(__u16 dev)
+@@ -501,7 +501,7 @@ int hci_dev_close(__u16 dev)
  		goto done;
  	}
  
@@ -39334,7 +39334,7 @@ index 18ab5628f85ad..79530fabcb4d0 100644
  	if (hci_dev_test_and_clear_flag(hdev, HCI_AUTO_OFF))
  		cancel_delayed_work(&hdev->power_off);
  
-@@ -923,7 +923,7 @@ static const struct rfkill_ops hci_rfkill_ops = {
+@@ -924,7 +924,7 @@ static const struct rfkill_ops hci_rfkill_ops = {
  
  static void hci_power_on(struct work_struct *work)
  {
@@ -39343,7 +39343,7 @@ index 18ab5628f85ad..79530fabcb4d0 100644
  	int err;
  
  	BT_DBG("%s", hdev->name);
-@@ -2532,7 +2532,7 @@ struct hci_dev *hci_alloc_dev_priv(int sizeof_priv)
+@@ -2533,7 +2533,7 @@ struct hci_dev *hci_alloc_dev_priv(int sizeof_priv)
  	INIT_WORK(&hdev->rx_work, hci_rx_work);
  	INIT_WORK(&hdev->cmd_work, hci_cmd_work);
  	INIT_WORK(&hdev->tx_work, hci_tx_work);
@@ -39352,7 +39352,7 @@ index 18ab5628f85ad..79530fabcb4d0 100644
  	INIT_WORK(&hdev->error_reset, hci_error_reset);
  
  	hci_cmd_sync_init(hdev);
-@@ -2653,7 +2653,7 @@ int hci_register_dev(struct hci_dev *hdev)
+@@ -2654,7 +2654,7 @@ int hci_register_dev(struct hci_dev *hdev)
  	if (error)
  		BT_WARN("register suspend notifier failed error:%d\n", error);
  
@@ -39361,7 +39361,7 @@ index 18ab5628f85ad..79530fabcb4d0 100644
  
  	idr_init(&hdev->adv_monitors_idr);
  	msft_register(hdev);
-@@ -2687,7 +2687,7 @@ void hci_unregister_dev(struct hci_dev *hdev)
+@@ -2688,7 +2688,7 @@ void hci_unregister_dev(struct hci_dev *hdev)
  	disable_work_sync(&hdev->rx_work);
  	disable_work_sync(&hdev->cmd_work);
  	disable_work_sync(&hdev->tx_work);
@@ -39914,179 +39914,6 @@ index edb95f869a4a6..52791d270a3bf 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
-Date: Fri, 31 Jan 2025 13:26:21 +0200
-Subject: [FOR-UPSTREAM] ASoC: SOF: amd: Add post_fw_run_delay quirk
-
-Stress testing resume from suspend on Valve Steam Deck OLED (Galileo)
-revealed that the DSP firmware could enter an unrecoverable faulty
-state, where the kernel ring buffer is flooded with IPC related error
-messages:
-
-[  +0.017002] snd_sof_amd_vangogh 0000:04:00.5: acp_sof_ipc_send_msg: Failed to acquire HW lock
-[  +0.000054] snd_sof_amd_vangogh 0000:04:00.5: ipc3_tx_msg_unlocked: ipc message send for 0x30100000 failed: -22
-[  +0.000005] snd_sof_amd_vangogh 0000:04:00.5: Failed to setup widget PIPELINE.6.ACPHS1.IN
-[  +0.000004] snd_sof_amd_vangogh 0000:04:00.5: Failed to restore pipeline after resume -22
-[  +0.000003] snd_sof_amd_vangogh 0000:04:00.5: PM: dpm_run_callback(): pci_pm_resume returns -22
-[  +0.000009] snd_sof_amd_vangogh 0000:04:00.5: PM: failed to resume async: error -22
-[...]
-[  +0.002582] PM: suspend exit
-[  +0.065085] snd_sof_amd_vangogh 0000:04:00.5: ipc tx error for 0x30130000 (msg/reply size: 12/0): -22
-[  +0.000499] snd_sof_amd_vangogh 0000:04:00.5: error: failed widget list set up for pcm 1 dir 0
-[  +0.000011] snd_sof_amd_vangogh 0000:04:00.5: error: set pcm hw_params after resume
-[  +0.000006] snd_sof_amd_vangogh 0000:04:00.5: ASoC: error at snd_soc_pcm_component_prepare on 0000:04:00.5: -22
-[...]
-
-A system reboot would be necessary to restore the audio functionality.
-However, delaying a bit any host to DSP transmission right after
-firmware boot completion seems to resolve the issue.
-
-Introduce the post_fw_run_delay quirk to allow providing the
-aforementioned delay via the snd_sof_dsp_ops->post_fw_run() callback for
-the affected devices.
-
-Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
----
- sound/soc/sof/amd/acp.c     |  1 +
- sound/soc/sof/amd/acp.h     |  1 +
- sound/soc/sof/amd/vangogh.c | 18 ++++++++++++++++++
- 3 files changed, 20 insertions(+)
-
-diff --git a/sound/soc/sof/amd/acp.c b/sound/soc/sof/amd/acp.c
-index 33648ff8b8336..9e13c96528be3 100644
---- a/sound/soc/sof/amd/acp.c
-+++ b/sound/soc/sof/amd/acp.c
-@@ -27,6 +27,7 @@ MODULE_PARM_DESC(enable_fw_debug, "Enable Firmware debug");
- static struct acp_quirk_entry quirk_valve_galileo = {
- 	.signed_fw_image = true,
- 	.skip_iram_dram_size_mod = true,
-+	.post_fw_run_delay = true,
- };
- 
- const struct dmi_system_id acp_sof_quirk_table[] = {
-diff --git a/sound/soc/sof/amd/acp.h b/sound/soc/sof/amd/acp.h
-index 800594440f739..2a19d82d62002 100644
---- a/sound/soc/sof/amd/acp.h
-+++ b/sound/soc/sof/amd/acp.h
-@@ -220,6 +220,7 @@ struct sof_amd_acp_desc {
- struct acp_quirk_entry {
- 	bool signed_fw_image;
- 	bool skip_iram_dram_size_mod;
-+	bool post_fw_run_delay;
- };
- 
- /* Common device data struct for ACP devices */
-diff --git a/sound/soc/sof/amd/vangogh.c b/sound/soc/sof/amd/vangogh.c
-index 8e2672106ac60..d5f1dddd43e72 100644
---- a/sound/soc/sof/amd/vangogh.c
-+++ b/sound/soc/sof/amd/vangogh.c
-@@ -11,6 +11,7 @@
-  * Hardware interface for Audio DSP on Vangogh platform
-  */
- 
-+#include <linux/delay.h>
- #include <linux/platform_device.h>
- #include <linux/module.h>
- 
-@@ -136,6 +137,20 @@ static struct snd_soc_dai_driver vangogh_sof_dai[] = {
- 	},
- };
- 
-+static int sof_vangogh_post_fw_run_delay(struct snd_sof_dev *sdev)
-+{
-+	/*
-+	 * Resuming from suspend in some cases my cause the DSP firmware
-+	 * to enter an unrecoverable faulty state.  Delaying a bit any host
-+	 * to DSP transmission right after firmware boot completion seems
-+	 * to resolve the issue.
-+	 */
-+	if (!sdev->first_boot)
-+		usleep_range(100, 150);
-+
-+	return 0;
-+}
-+
- /* Vangogh ops */
- struct snd_sof_dsp_ops sof_vangogh_ops;
- EXPORT_SYMBOL_NS(sof_vangogh_ops, "SND_SOC_SOF_AMD_COMMON");
-@@ -157,6 +172,9 @@ int sof_vangogh_ops_init(struct snd_sof_dev *sdev)
- 
- 		if (quirks->signed_fw_image)
- 			sof_vangogh_ops.load_firmware = acp_sof_load_signed_firmware;
-+
-+		if (quirks->post_fw_run_delay)
-+			sof_vangogh_ops.post_fw_run = sof_vangogh_post_fw_run_delay;
- 	}
- 
- 	return 0;
--- 
-2.49.0
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
-Date: Tue, 28 Jan 2025 03:12:27 +0200
-Subject: [FOR-UPSTREAM] ASoC: SOF: amd: Handle IPC replies before
- FW_BOOT_COMPLETE
-
-In some cases, e.g. during resuming from suspend, there is a possibility
-that some IPC reply messages get received by the host while the DSP
-firmware has not yet reached the complete boot state.
-
-Detect when this happens and do not attempt to process the unexpected
-replies from DSP.  Instead, provide proper debugging support.
-
-Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
----
- sound/soc/sof/amd/acp-ipc.c | 23 ++++++++++++++++-------
- 1 file changed, 16 insertions(+), 7 deletions(-)
-
-diff --git a/sound/soc/sof/amd/acp-ipc.c b/sound/soc/sof/amd/acp-ipc.c
-index 5f371d9263f3b..12caefd087885 100644
---- a/sound/soc/sof/amd/acp-ipc.c
-+++ b/sound/soc/sof/amd/acp-ipc.c
-@@ -167,6 +167,7 @@ irqreturn_t acp_sof_ipc_irq_thread(int irq, void *context)
- 
- 	if (sdev->first_boot && sdev->fw_state != SOF_FW_BOOT_COMPLETE) {
- 		acp_mailbox_read(sdev, sdev->dsp_box.offset, &status, sizeof(status));
-+
- 		if ((status & SOF_IPC_PANIC_MAGIC_MASK) == SOF_IPC_PANIC_MAGIC) {
- 			snd_sof_dsp_panic(sdev, sdev->dsp_box.offset + sizeof(status),
- 					  true);
-@@ -188,13 +189,21 @@ irqreturn_t acp_sof_ipc_irq_thread(int irq, void *context)
- 
- 	dsp_ack = snd_sof_dsp_read(sdev, ACP_DSP_BAR, ACP_SCRATCH_REG_0 + dsp_ack_write);
- 	if (dsp_ack) {
--		spin_lock_irq(&sdev->ipc_lock);
--		/* handle immediate reply from DSP core */
--		acp_dsp_ipc_get_reply(sdev);
--		snd_sof_ipc_reply(sdev, 0);
--		/* set the done bit */
--		acp_dsp_ipc_dsp_done(sdev);
--		spin_unlock_irq(&sdev->ipc_lock);
-+		if (likely(sdev->fw_state == SOF_FW_BOOT_COMPLETE)) {
-+			spin_lock_irq(&sdev->ipc_lock);
-+
-+			/* handle immediate reply from DSP core */
-+			acp_dsp_ipc_get_reply(sdev);
-+			snd_sof_ipc_reply(sdev, 0);
-+			/* set the done bit */
-+			acp_dsp_ipc_dsp_done(sdev);
-+
-+			spin_unlock_irq(&sdev->ipc_lock);
-+		} else {
-+			dev_dbg_ratelimited(sdev->dev, "IPC reply before FW_BOOT_COMPLETE: %#x\n",
-+					    dsp_ack);
-+		}
-+
- 		ipc_irq = true;
- 	}
- 
--- 
-2.49.0
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
 Date: Thu, 6 Feb 2025 01:14:34 +0200
 Subject: [FOR-UPSTREAM] ASoC: SOF: amd: Use unlikely() in ACP IRQ handler
 
@@ -40554,10 +40381,10 @@ Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 old mode 100644
 new mode 100755
-index ca6b9a585aba9..1badc8b7508e4
+index 56a30c2d0abe2..c36a8191a27b9
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -6071,6 +6071,8 @@ get_output_color_space(const struct dc_crtc_timing *dc_crtc_timing,
+@@ -6081,6 +6081,8 @@ get_output_color_space(const struct dc_crtc_timing *dc_crtc_timing,
  	default:
  		if (dc_crtc_timing->pixel_encoding == PIXEL_ENCODING_RGB) {
  			color_space = COLOR_SPACE_SRGB;
@@ -40566,7 +40393,7 @@ index ca6b9a585aba9..1badc8b7508e4
  		/*
  		 * 27030khz is the separation point between HDTV and SDTV
  		 * according to HDMI spec, we use YCbCr709 and YCbCr601
-@@ -8238,6 +8240,10 @@ void amdgpu_dm_connector_init_helper(struct amdgpu_display_manager *dm,
+@@ -8248,6 +8250,10 @@ void amdgpu_dm_connector_init_helper(struct amdgpu_display_manager *dm,
  				dm->ddev->mode_config.scaling_mode_property,
  				DRM_MODE_SCALE_NONE);
  
@@ -40577,7 +40404,7 @@ index ca6b9a585aba9..1badc8b7508e4
  	drm_object_attach_property(&aconnector->base.base,
  				adev->mode_info.underscan_property,
  				UNDERSCAN_OFF);
-@@ -9973,7 +9979,7 @@ static void amdgpu_dm_atomic_commit_tail(struct drm_atomic_state *state)
+@@ -9983,7 +9989,7 @@ static void amdgpu_dm_atomic_commit_tail(struct drm_atomic_state *state)
  		struct dc_stream_update stream_update;
  		struct dc_info_packet hdr_packet;
  		struct dc_stream_status *status = NULL;
@@ -40586,7 +40413,7 @@ index ca6b9a585aba9..1badc8b7508e4
  
  		memset(&stream_update, 0, sizeof(stream_update));
  
-@@ -9992,13 +9998,17 @@ static void amdgpu_dm_atomic_commit_tail(struct drm_atomic_state *state)
+@@ -10002,13 +10008,17 @@ static void amdgpu_dm_atomic_commit_tail(struct drm_atomic_state *state)
  		scaling_changed = is_scaling_state_different(dm_new_con_state,
  							     dm_old_con_state);
  
@@ -40605,7 +40432,7 @@ index ca6b9a585aba9..1badc8b7508e4
  			continue;
  
  		stream_update.stream = dm_new_crtc_state->stream;
-@@ -10010,6 +10020,13 @@ static void amdgpu_dm_atomic_commit_tail(struct drm_atomic_state *state)
+@@ -10020,6 +10030,13 @@ static void amdgpu_dm_atomic_commit_tail(struct drm_atomic_state *state)
  			stream_update.dst = dm_new_crtc_state->stream->dst;
  		}
  
@@ -41115,62 +40942,6 @@ index e026c728042a5..effd1f22865f4 100644
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Sung Joon Kim <sungkim@amd.com>
-Date: Fri, 7 Oct 2022 13:48:56 -0400
-Subject: amd/display: fix for dmub stuttering
-
-(cherry picked from commit 505617021bba482d204bcde6e1a444ac743c77fb)
-[Fwd-ported to v6.11]
-Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
----
- drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 1badc8b7508e4..12aa6310a556e 100755
---- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-+++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4703,12 +4703,16 @@ static void amdgpu_dm_backlight_set_level(struct amdgpu_display_manager *dm,
- 	struct amdgpu_dm_backlight_caps caps;
- 	struct dc_link *link;
- 	u32 brightness;
-+	u32 prev_brightness;
- 	bool rc, reallow_idle = false;
- 
- 	amdgpu_dm_update_backlight_caps(dm, bl_idx);
- 	caps = dm->backlight_caps[bl_idx];
- 
-+	prev_brightness = dm->brightness[bl_idx];
- 	dm->brightness[bl_idx] = user_brightness;
-+	dm->actual_brightness[bl_idx] = user_brightness;
-+
- 	/* update scratch register */
- 	if (bl_idx == 0)
- 		amdgpu_atombios_scratch_regs_set_backlight_level(dm->adev, dm->brightness[bl_idx]);
-@@ -4743,8 +4747,8 @@ static void amdgpu_dm_backlight_set_level(struct amdgpu_display_manager *dm,
- 
- 	mutex_unlock(&dm->dc_lock);
- 
--	if (rc)
--		dm->actual_brightness[bl_idx] = user_brightness;
-+	if (!rc)
-+		dm->actual_brightness[bl_idx] = prev_brightness;
- }
- 
- static int amdgpu_dm_backlight_update_status(struct backlight_device *bd)
-@@ -4916,6 +4920,7 @@ static void setup_backlight_device(struct amdgpu_display_manager *dm,
- 
- 	amdgpu_dm_update_backlight_caps(dm, bl_idx);
- 	dm->brightness[bl_idx] = AMDGPU_MAX_BL_LEVEL;
-+	dm->actual_brightness[bl_idx] = AMDGPU_MAX_BL_LEVEL;
- 	dm->backlight_link[bl_idx] = link;
- 	dm->num_of_edps++;
- 
--- 
-2.49.0
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Joshua Ashton <joshua@froggi.es>
 Date: Wed, 6 Sep 2023 22:00:26 +0100
 Subject: drm/amd/display: Don't consider vblank passed if currently in
@@ -41224,10 +40995,10 @@ Should also improve latency/stutter on internal display potentially too.
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 12aa6310a556e..3f011ef427c72 100755
+index c36a8191a27b9..c626176103c87 100755
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -9042,7 +9042,7 @@ static void amdgpu_dm_commit_planes(struct drm_atomic_state *state,
+@@ -9047,7 +9047,7 @@ static void amdgpu_dm_commit_planes(struct drm_atomic_state *state,
  	int planes_count = 0, vpos, hpos;
  	unsigned long flags;
  	u32 target_vblank, last_flip_vblank;
@@ -41657,10 +41428,10 @@ Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
  1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 3f011ef427c72..3a3ae57b78be9 100755
+index c626176103c87..e891d4386db79 100755
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -6182,8 +6182,7 @@ static void fill_stream_properties_from_drm_display_mode(
+@@ -6187,8 +6187,7 @@ static void fill_stream_properties_from_drm_display_mode(
  	timing_out->v_border_top = 0;
  	timing_out->v_border_bottom = 0;
  	/* TODO: un-hardcode */
@@ -41693,10 +41464,10 @@ Signed-off-by: Gabriel Krisman Bertazi <krisman@collabora.com>
  1 file changed, 22 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 3a3ae57b78be9..b9cadb32b3c58 100755
+index e891d4386db79..4109920aa178d 100755
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4597,7 +4597,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
+@@ -4607,7 +4607,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
  	return 0;
  }
  
@@ -41705,7 +41476,7 @@ index 3a3ae57b78be9..b9cadb32b3c58 100755
  #define AMDGPU_DM_DEFAULT_MAX_BACKLIGHT 255
  #define AMDGPU_DM_MIN_SPREAD ((AMDGPU_DM_DEFAULT_MAX_BACKLIGHT - AMDGPU_DM_DEFAULT_MIN_BACKLIGHT) / 2)
  #define AUX_BL_DEFAULT_TRANSITION_TIME_MS 50
-@@ -4631,11 +4631,27 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
+@@ -4641,11 +4641,27 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
  
  	if (caps.caps_valid) {
  		dm->backlight_caps[bl_idx].caps_valid = true;
@@ -41733,7 +41504,7 @@ index 3a3ae57b78be9..b9cadb32b3c58 100755
  		dm->backlight_caps[bl_idx].min_input_signal =
  				AMDGPU_DM_DEFAULT_MIN_BACKLIGHT;
  		dm->backlight_caps[bl_idx].max_input_signal =
-@@ -4645,6 +4661,9 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
+@@ -4655,6 +4671,9 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
  	if (dm->backlight_caps[bl_idx].aux_support)
  		return;
  
@@ -41743,7 +41514,7 @@ index 3a3ae57b78be9..b9cadb32b3c58 100755
  	dm->backlight_caps[bl_idx].min_input_signal = AMDGPU_DM_DEFAULT_MIN_BACKLIGHT;
  	dm->backlight_caps[bl_idx].max_input_signal = AMDGPU_DM_DEFAULT_MAX_BACKLIGHT;
  #endif
-@@ -4676,7 +4695,7 @@ static u32 convert_brightness_from_user(const struct amdgpu_dm_backlight_caps *c
+@@ -4686,7 +4705,7 @@ static u32 convert_brightness_from_user(const struct amdgpu_dm_backlight_caps *c
  	if (!get_brightness_range(caps, &min, &max))
  		return brightness;
  
@@ -41752,7 +41523,7 @@ index 3a3ae57b78be9..b9cadb32b3c58 100755
  	return min + DIV_ROUND_CLOSEST((max - min) * brightness,
  				       AMDGPU_MAX_BL_LEVEL);
  }
-@@ -4691,7 +4710,7 @@ static u32 convert_brightness_to_user(const struct amdgpu_dm_backlight_caps *cap
+@@ -4701,7 +4720,7 @@ static u32 convert_brightness_to_user(const struct amdgpu_dm_backlight_caps *cap
  
  	if (brightness < min)
  		return 0;
@@ -41780,10 +41551,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 45 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index b9cadb32b3c58..fd4ae21819f50 100755
+index 4109920aa178d..33fb38ab7a909 100755
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4597,11 +4597,45 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
+@@ -4607,11 +4607,45 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
  	return 0;
  }
  
@@ -41830,7 +41601,7 @@ index b9cadb32b3c58..fd4ae21819f50 100755
  static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
  					    int bl_idx)
  {
-@@ -4635,10 +4669,16 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
+@@ -4645,10 +4679,16 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
  		printk(KERN_NOTICE"VLV Successfully queried backlight range over ACPI: %d %d\n",
  		       (int) caps.min_input_signal, (int) caps.max_input_signal);
  
@@ -41879,10 +41650,10 @@ Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
  1 file changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index fd4ae21819f50..b1b7800714518 100755
+index 33fb38ab7a909..516aba73ad9be 100755
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -8229,7 +8229,12 @@ static int amdgpu_dm_connector_get_modes(struct drm_connector *connector)
+@@ -8234,7 +8234,12 @@ static int amdgpu_dm_connector_get_modes(struct drm_connector *connector)
  				drm_add_modes_noedid(connector, 1920, 1080);
  	} else {
  		amdgpu_dm_connector_ddc_get_modes(connector, drm_edid);
@@ -42327,7 +42098,7 @@ Signed-off-by: Felix Hädicke <felixhaedicke@web.de>
  1 file changed, 2 insertions(+)
 
 diff --git a/drivers/hid/hid-quirks.c b/drivers/hid/hid-quirks.c
-index e0bbf0c6345d6..5d229e2781c7d 100644
+index 5d7a418ccdbec..24f271d743fe5 100644
 --- a/drivers/hid/hid-quirks.c
 +++ b/drivers/hid/hid-quirks.c
 @@ -510,6 +510,8 @@ static const struct hid_device_id hid_have_special_driver[] = {
@@ -42448,10 +42219,10 @@ index 11e3f2f3b1745..7b1bd69dc29e7 100644
 +
  endmenu
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index b1b7800714518..522b8d8e2e4e8 100755
+index 516aba73ad9be..ff6820d4c5dcd 100755
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4579,7 +4579,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
+@@ -4589,7 +4589,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
  		return r;
  	}
  
@@ -42505,10 +42276,10 @@ index 36a830a7440f1..a8fc8bd52d51e 100644
  #endif
  	return 0;
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_plane.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_plane.c
-index 83c7c8853edec..059d0ca295183 100644
+index 62e30942f735d..44c6450f6433e 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_plane.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_plane.c
-@@ -1567,7 +1567,7 @@ static void amdgpu_dm_plane_drm_plane_destroy_state(struct drm_plane *plane,
+@@ -1570,7 +1570,7 @@ static void amdgpu_dm_plane_drm_plane_destroy_state(struct drm_plane *plane,
  	drm_atomic_helper_plane_destroy_state(plane, state);
  }
  
@@ -42517,7 +42288,7 @@ index 83c7c8853edec..059d0ca295183 100644
  static void
  dm_atomic_plane_attach_color_mgmt_properties(struct amdgpu_display_manager *dm,
  					     struct drm_plane *plane)
-@@ -1758,7 +1758,7 @@ static const struct drm_plane_funcs dm_plane_funcs = {
+@@ -1761,7 +1761,7 @@ static const struct drm_plane_funcs dm_plane_funcs = {
  	.atomic_duplicate_state = amdgpu_dm_plane_drm_plane_duplicate_state,
  	.atomic_destroy_state = amdgpu_dm_plane_drm_plane_destroy_state,
  	.format_mod_supported = amdgpu_dm_plane_format_mod_supported,
@@ -42526,7 +42297,7 @@ index 83c7c8853edec..059d0ca295183 100644
  	.atomic_set_property = dm_atomic_plane_set_property,
  	.atomic_get_property = dm_atomic_plane_get_property,
  #endif
-@@ -1851,7 +1851,7 @@ int amdgpu_dm_plane_init(struct amdgpu_display_manager *dm,
+@@ -1854,7 +1854,7 @@ int amdgpu_dm_plane_init(struct amdgpu_display_manager *dm,
  
  	drm_plane_helper_add(plane, &dm_plane_helper_funcs);
  
@@ -42760,7 +42531,7 @@ index 0000000000000..a8faabc2885e7
 +#endif // CONFIG_SCHED_BORE
 +#endif // _LINUX_SCHED_BORE_H
 diff --git a/init/Kconfig b/init/Kconfig
-index a20e6efd3f0fb..0b17af19d38d7 100644
+index 4c88cb58c261c..e25fd0ad09c50 100644
 --- a/init/Kconfig
 +++ b/init/Kconfig
 @@ -1342,6 +1342,23 @@ config CHECKPOINT_RESTORE
@@ -43297,7 +43068,7 @@ index 0000000000000..23aeb5649479d
 +#endif // CONFIG_SYSCTL
 +#endif // CONFIG_SCHED_BORE
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 86cb6db081680..fb02d0da56ee8 100644
+index 4b5878b2fdd02..4243b8ddecff1 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -97,6 +97,8 @@
@@ -43309,7 +43080,7 @@ index 86cb6db081680..fb02d0da56ee8 100644
  EXPORT_TRACEPOINT_SYMBOL_GPL(ipi_send_cpu);
  EXPORT_TRACEPOINT_SYMBOL_GPL(ipi_send_cpumask);
  
-@@ -8483,6 +8485,10 @@ void __init sched_init(void)
+@@ -8484,6 +8486,10 @@ void __init sched_init(void)
  	BUG_ON(!sched_class_above(&ext_sched_class, &idle_sched_class));
  #endif
  
@@ -43321,7 +43092,7 @@ index 86cb6db081680..fb02d0da56ee8 100644
  
  #ifdef CONFIG_FAIR_GROUP_SCHED
 diff --git a/kernel/sched/debug.c b/kernel/sched/debug.c
-index a1be00a988bf6..66fcb229007d7 100644
+index 5b32d3cc393bf..998761c19b9dd 100644
 --- a/kernel/sched/debug.c
 +++ b/kernel/sched/debug.c
 @@ -167,7 +167,53 @@ static const struct file_operations sched_feat_fops = {
@@ -44459,10 +44230,10 @@ Subject: [NOT FOR UPSTREAM] remove stupid "No IRQ Handler for vector" message
  1 file changed, 1 insertion(+), 5 deletions(-)
 
 diff --git a/arch/x86/kernel/irq.c b/arch/x86/kernel/irq.c
-index 385e3a5fc3045..d5e86c30e7b70 100644
+index feca4f20b06aa..1ff9c4608d6b3 100644
 --- a/arch/x86/kernel/irq.c
 +++ b/arch/x86/kernel/irq.c
-@@ -259,11 +259,7 @@ static __always_inline int call_irq_handler(int vector, struct pt_regs *regs)
+@@ -261,11 +261,7 @@ static __always_inline int call_irq_handler(int vector, struct pt_regs *regs)
  		handle_irq(desc, regs);
  	} else {
  		ret = -EINVAL;
@@ -48771,6 +48542,48 @@ index 273589f8b2fa2..a3c945c73fc5b 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Tue, 25 Mar 2025 23:29:03 +0100
+Subject: platform/x86: oxpec: Add support for OneXPlayer G1
+
+The OneXPlayer G1 is a new clamshell formfactor by OneXPlayer.
+It has the same registers as an OneXPlayer X1.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/platform/x86/oxpec.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/drivers/platform/x86/oxpec.c b/drivers/platform/x86/oxpec.c
+index a3c945c73fc5b..a68f4c994b7b4 100644
+--- a/drivers/platform/x86/oxpec.c
++++ b/drivers/platform/x86/oxpec.c
+@@ -246,6 +246,20 @@ static const struct dmi_system_id dmi_table[] = {
+ 		},
+ 		.driver_data = (void *)oxp_fly,
+ 	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
++			DMI_EXACT_MATCH(DMI_BOARD_NAME, "ONEXPLAYER G1 A"),
++		},
++		.driver_data = (void *)oxp_x1,
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
++			DMI_EXACT_MATCH(DMI_BOARD_NAME, "ONEXPLAYER G1 i"),
++		},
++		.driver_data = (void *)oxp_x1,
++	},
+ 	{
+ 		.matches = {
+ 			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
+-- 
+2.49.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
 Date: Wed, 19 Mar 2025 20:35:48 +0100
 Subject: [BEGIN] HID: Asus: Z13 fixup series
 
@@ -49146,10 +48959,10 @@ index 87ec783d8cf58..afb21b1b0f1ab 100644
  		USB_VENDOR_ID_ASUSTEK, USB_DEVICE_ID_ASUSTEK_T101HA_KEYBOARD) },
  	{ }
 diff --git a/drivers/hid/hid-ids.h b/drivers/hid/hid-ids.h
-index d1d479ca50a21..24a9fff23b459 100644
+index c4ca7a579e3d4..c69a227fe341f 100644
 --- a/drivers/hid/hid-ids.h
 +++ b/drivers/hid/hid-ids.h
-@@ -208,7 +208,7 @@
+@@ -209,7 +209,7 @@
  #define USB_DEVICE_ID_ASUSTEK_ROG_KEYBOARD3 0x1822
  #define USB_DEVICE_ID_ASUSTEK_ROG_NKEY_KEYBOARD	0x1866
  #define USB_DEVICE_ID_ASUSTEK_ROG_NKEY_KEYBOARD2	0x19b6
@@ -50279,10 +50092,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  2 files changed, 3 insertions(+)
 
 diff --git a/drivers/hid/hid-ids.h b/drivers/hid/hid-ids.h
-index 24a9fff23b459..522cf89afa40e 100644
+index c69a227fe341f..eb31071dd06c1 100644
 --- a/drivers/hid/hid-ids.h
 +++ b/drivers/hid/hid-ids.h
-@@ -1000,6 +1000,7 @@
+@@ -1001,6 +1001,7 @@
  #define USB_VENDOR_ID_NOVATEK		0x0603
  #define USB_DEVICE_ID_NOVATEK_PCT	0x0600
  #define USB_DEVICE_ID_NOVATEK_MOUSE	0x1602
@@ -50405,6 +50218,48 @@ index cb84f3a461730..89eac792e4c6f 100644
 +		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "ONEXPLAYER F1 OLED"),
 +		},
 +		.driver_data = (void *)&lcd1080x1920_leftside_up,
+ 	}, {	/* Zotac Gaming Zone (OLED) */
+ 		.matches = {
+ 		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "ZOTAC"),
+-- 
+2.49.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Tue, 25 Mar 2025 23:42:51 +0100
+Subject: drm: panel-orientation-quirks: Add OneXPlayer G1 Amd & Intel
+
+Add quirks for the new clamshell device OneXPlayer G1 for both AMD
+and Intel. The device has a 1600x2560p 144hz LCD panel.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/gpu/drm/drm_panel_orientation_quirks.c | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/drm_panel_orientation_quirks.c b/drivers/gpu/drm/drm_panel_orientation_quirks.c
+index 89eac792e4c6f..a8fcfc80e6bc0 100644
+--- a/drivers/gpu/drm/drm_panel_orientation_quirks.c
++++ b/drivers/gpu/drm/drm_panel_orientation_quirks.c
+@@ -502,7 +502,19 @@ static const struct dmi_system_id orientation_data[] = {
+ 		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "ONE-NETBOOK"),
+ 		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "ONEXPLAYER F1 OLED"),
+ 		},
+-		.driver_data = (void *)&lcd1080x1920_leftside_up,
++		.driver_data = (void *)&lcd1080x1920_leftside_up,lcd1600x2560_leftside_up
++	}, {	/* OneXPlayer OneXFly G1 AMD */
++		.matches = {
++		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "ONE-NETBOOK"),
++		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "ONEXPLAYER G1 A"),
++		},
++		.driver_data = (void *)&lcd1600x2560_leftside_up,
++	}, {	/* OneXPlayer OneXFly G1 Intel */
++		.matches = {
++		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "ONE-NETBOOK"),
++		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "ONEXPLAYER G1 i"),
++		},
++		.driver_data = (void *)&lcd1600x2560_leftside_up,
  	}, {	/* Zotac Gaming Zone (OLED) */
  		.matches = {
  		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "ZOTAC"),
@@ -70867,7 +70722,7 @@ Co-developed-by: linh1987
  1 file changed, 10 insertions(+)
 
 diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
-index 10e9ec74104d2..66cf156c169bd 100644
+index f952918191ef2..92354409e5215 100644
 --- a/sound/pci/hda/patch_realtek.c
 +++ b/sound/pci/hda/patch_realtek.c
 @@ -7634,6 +7634,7 @@ enum {
@@ -70892,7 +70747,7 @@ index 10e9ec74104d2..66cf156c169bd 100644
  	[ALC269_FIXUP_LIMIT_INT_MIC_BOOST_MUTE_LED] = {
  		.type = HDA_FIXUP_FUNC,
  		.v.func = alc269_fixup_limit_int_mic_boost,
-@@ -11103,6 +11111,7 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
+@@ -11104,6 +11112,7 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
  	SND_PCI_QUIRK(0x2782, 0x1705, "MEDION E15433", ALC269VC_FIXUP_INFINIX_Y4_MAX),
  	SND_PCI_QUIRK(0x2782, 0x1707, "Vaio VJFE-ADL", ALC298_FIXUP_SPK_VOLUME),
  	SND_PCI_QUIRK(0x2782, 0x4900, "MEDION E15443", ALC233_FIXUP_MEDION_MTL_SPK),
@@ -70900,7 +70755,7 @@ index 10e9ec74104d2..66cf156c169bd 100644
  	SND_PCI_QUIRK(0x8086, 0x2074, "Intel NUC 8", ALC233_FIXUP_INTEL_NUC8_DMIC),
  	SND_PCI_QUIRK(0x8086, 0x2080, "Intel NUC 8 Rugged", ALC256_FIXUP_INTEL_NUC8_RUGGED),
  	SND_PCI_QUIRK(0x8086, 0x2081, "Intel NUC 10", ALC256_FIXUP_INTEL_NUC10),
-@@ -11227,6 +11236,7 @@ static const struct hda_model_fixup alc269_fixup_models[] = {
+@@ -11228,6 +11237,7 @@ static const struct hda_model_fixup alc269_fixup_models[] = {
  	{.id = ALC269VB_FIXUP_ASUS_ZENBOOK, .name = "asus-zenbook"},
  	{.id = ALC269VB_FIXUP_ASUS_ZENBOOK_UX31A, .name = "asus-zenbook-ux31a"},
  	{.id = ALC269VB_FIXUP_ORDISSIMO_EVE2, .name = "ordissimo"},
@@ -70924,7 +70779,7 @@ Co-developed-by: Bouke Sybren Haarsma <boukehaarsma23@gmail.com>
  1 file changed, 50 insertions(+), 1 deletion(-)
 
 diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
-index 66cf156c169bd..df9dfec5372b6 100644
+index 92354409e5215..87cf188788deb 100644
 --- a/sound/pci/hda/patch_realtek.c
 +++ b/sound/pci/hda/patch_realtek.c
 @@ -6806,6 +6806,20 @@ static void alc294_gx502_toggle_output(struct hda_codec *codec,
@@ -71003,7 +70858,7 @@ index 66cf156c169bd..df9dfec5372b6 100644
  	[ALC299_FIXUP_PREDATOR_SPK] = {
  		.type = HDA_FIXUP_PINS,
  		.v.pins = (const struct hda_pintbl[]) {
-@@ -11110,8 +11158,9 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
+@@ -11111,8 +11159,9 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
  	SND_PCI_QUIRK(0x2782, 0x1701, "Infinix Y4 Max", ALC269VC_FIXUP_INFINIX_Y4_MAX),
  	SND_PCI_QUIRK(0x2782, 0x1705, "MEDION E15433", ALC269VC_FIXUP_INFINIX_Y4_MAX),
  	SND_PCI_QUIRK(0x2782, 0x1707, "Vaio VJFE-ADL", ALC298_FIXUP_SPK_VOLUME),
@@ -71014,124 +70869,6 @@ index 66cf156c169bd..df9dfec5372b6 100644
  	SND_PCI_QUIRK(0x8086, 0x2074, "Intel NUC 8", ALC233_FIXUP_INTEL_NUC8_DMIC),
  	SND_PCI_QUIRK(0x8086, 0x2080, "Intel NUC 8 Rugged", ALC256_FIXUP_INTEL_NUC8_RUGGED),
  	SND_PCI_QUIRK(0x8086, 0x2081, "Intel NUC 10", ALC256_FIXUP_INTEL_NUC10),
--- 
-2.49.0
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Tue, 24 Dec 2024 23:42:07 +0100
-Subject: Input: xpad - add support for ZOTAC Gaming Zone
-
-ZOTAC Gaming Zone is ZOTAC's 2024 handheld release.
-As it is common with these handhelds, it uses a
-hybrid USB device with an xpad endpoint, a
-keyboard endpoint, and a vendor-specific
-endpoint for RGB control et al.
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- drivers/input/joystick/xpad.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/input/joystick/xpad.c b/drivers/input/joystick/xpad.c
-index 8fe2a51df649e..a67b493c77027 100644
---- a/drivers/input/joystick/xpad.c
-+++ b/drivers/input/joystick/xpad.c
-@@ -343,6 +343,7 @@ static const struct xpad_device {
- 	{ 0x1bad, 0xfa01, "MadCatz GamePad", 0, XTYPE_XBOX360 },
- 	{ 0x1bad, 0xfd00, "Razer Onza TE", 0, XTYPE_XBOX360 },
- 	{ 0x1bad, 0xfd01, "Razer Onza", 0, XTYPE_XBOX360 },
-+	{ 0x1ee9, 0x1590, "ZOTAC Gaming Zone", 0, XTYPE_XBOX360 },
- 	{ 0x20d6, 0x2001, "BDA Xbox Series X Wired Controller", 0, XTYPE_XBOXONE },
- 	{ 0x20d6, 0x2009, "PowerA Enhanced Wired Controller for Xbox Series X|S", 0, XTYPE_XBOXONE },
- 	{ 0x20d6, 0x281f, "PowerA Wired Controller For Xbox 360", 0, XTYPE_XBOX360 },
-@@ -521,6 +522,7 @@ static const struct usb_device_id xpad_table[] = {
- 	XPAD_XBOX360_VENDOR(0x1949),		/* Amazon controllers */
- 	XPAD_XBOX360_VENDOR(0x1a86),		/* QH Electronics */
- 	XPAD_XBOX360_VENDOR(0x1bad),		/* Harmonix Rock Band guitar and drums */
-+	XPAD_XBOX360_VENDOR(0x1ee9),		/* ZOTAC Technology Limited */
- 	XPAD_XBOX360_VENDOR(0x20d6),		/* PowerA controllers */
- 	XPAD_XBOXONE_VENDOR(0x20d6),		/* PowerA controllers */
- 	XPAD_XBOX360_VENDOR(0x2345),		/* Machenike Controllers */
--- 
-2.49.0
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Tue, 24 Dec 2024 23:48:01 +0100
-Subject: Input: xpad - add support for TECNO Pocket Go
-
-TECNO Pocket Go is a kickstarter handheld by
-manufacturer TECNO Mobile. It poses a unique
-feature: it does not have a display. Instead,
-the handheld is essentially a pc in a
-controller. As customary, it has an xpad
-endpoint, a keyboard endpoint, and a vendor
-endpoint for its vendor software.
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- drivers/input/joystick/xpad.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/input/joystick/xpad.c b/drivers/input/joystick/xpad.c
-index a67b493c77027..1a64cd576c668 100644
---- a/drivers/input/joystick/xpad.c
-+++ b/drivers/input/joystick/xpad.c
-@@ -375,6 +375,7 @@ static const struct xpad_device {
- 	{ 0x2563, 0x058d, "OneXPlayer Gamepad", 0, XTYPE_XBOX360 },
- 	{ 0x294b, 0x3303, "Snakebyte GAMEPAD BASE X", 0, XTYPE_XBOXONE },
- 	{ 0x294b, 0x3404, "Snakebyte GAMEPAD RGB X", 0, XTYPE_XBOXONE },
-+	{ 0x2993, 0x2001, "TECNO Pocket Go", 0, XTYPE_XBOX360 },
- 	{ 0x2dc8, 0x2000, "8BitDo Pro 2 Wired Controller fox Xbox", 0, XTYPE_XBOXONE },
- 	{ 0x2dc8, 0x3106, "8BitDo Ultimate Wireless / Pro 2 Wired Controller", 0, XTYPE_XBOX360 },
- 	{ 0x2dc8, 0x310a, "8BitDo Ultimate 2C Wireless Controller", 0, XTYPE_XBOX360 },
-@@ -531,6 +532,7 @@ static const struct usb_device_id xpad_table[] = {
- 	XPAD_XBOX360_VENDOR(0x2563),		/* OneXPlayer Gamepad */
- 	XPAD_XBOX360_VENDOR(0x260d),		/* Dareu H101 */
-        XPAD_XBOXONE_VENDOR(0x294b),            /* Snakebyte */
-+	XPAD_XBOX360_VENDOR(0x2993),		/* TECNO Mobile */
- 	XPAD_XBOX360_VENDOR(0x2c22),		/* Qanba Controllers */
- 	XPAD_XBOX360_VENDOR(0x2dc8),            /* 8BitDo Pro 2 Wired Controller */
- 	XPAD_XBOXONE_VENDOR(0x2dc8),		/* 8BitDo Pro 2 Wired Controller for Xbox */
--- 
-2.49.0
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Thu, 23 Jan 2025 21:25:19 +0100
-Subject: Input: xpad - rename QH controller to Legion Go S
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- drivers/input/joystick/xpad.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/input/joystick/xpad.c b/drivers/input/joystick/xpad.c
-index 1a64cd576c668..e1e006ade8135 100644
---- a/drivers/input/joystick/xpad.c
-+++ b/drivers/input/joystick/xpad.c
-@@ -306,7 +306,7 @@ static const struct xpad_device {
- 	{ 0x1689, 0xfe00, "Razer Sabertooth", 0, XTYPE_XBOX360 },
- 	{ 0x17ef, 0x6182, "Lenovo Legion Controller for Windows", 0, XTYPE_XBOX360 },
- 	{ 0x1949, 0x041a, "Amazon Game Controller", 0, XTYPE_XBOX360 },
--	{ 0x1a86, 0xe310, "QH Electronics Controller", 0, XTYPE_XBOX360 },
-+	{ 0x1a86, 0xe310, "Legion Go S", 0, XTYPE_XBOX360 },
- 	{ 0x1bad, 0x0002, "Harmonix Rock Band Guitar", 0, XTYPE_XBOX360 },
- 	{ 0x1bad, 0x0003, "Harmonix Rock Band Drumkit", MAP_DPAD_TO_BUTTONS, XTYPE_XBOX360 },
- 	{ 0x1bad, 0x0130, "Ion Drum Rocker", MAP_DPAD_TO_BUTTONS, XTYPE_XBOX360 },
-@@ -521,7 +521,7 @@ static const struct usb_device_id xpad_table[] = {
- 	XPAD_XBOX360_VENDOR(0x1689),		/* Razer Onza */
- 	XPAD_XBOX360_VENDOR(0x17ef),		/* Lenovo */
- 	XPAD_XBOX360_VENDOR(0x1949),		/* Amazon controllers */
--	XPAD_XBOX360_VENDOR(0x1a86),		/* QH Electronics */
-+	XPAD_XBOX360_VENDOR(0x1a86),		/* Nanjing Qinheng Microelectronics (WCH) */
- 	XPAD_XBOX360_VENDOR(0x1bad),		/* Harmonix Rock Band guitar and drums */
- 	XPAD_XBOX360_VENDOR(0x1ee9),		/* ZOTAC Technology Limited */
- 	XPAD_XBOX360_VENDOR(0x20d6),		/* PowerA controllers */
 -- 
 2.49.0
 
@@ -73660,7 +73397,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 1 insertion(+)
 
 diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
-index df9dfec5372b6..10cd944f71f1c 100644
+index 87cf188788deb..3f79a246b5aa1 100644
 --- a/sound/pci/hda/patch_realtek.c
 +++ b/sound/pci/hda/patch_realtek.c
 @@ -10803,6 +10803,7 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
@@ -73753,10 +73490,10 @@ index 9ebe23c6bca08..0fc16346b0e0e 100644
  	return amdgpu_device_resume(drm_dev, true);
  }
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 522b8d8e2e4e8..1f3cbbb2cb6d9 100755
+index ff6820d4c5dcd..0fac618b879ce 100755
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -3320,6 +3320,11 @@ static int dm_resume(struct amdgpu_ip_block *ip_block)
+@@ -3330,6 +3330,11 @@ static int dm_resume(struct amdgpu_ip_block *ip_block)
  
  		return 0;
  	}
@@ -73796,10 +73533,10 @@ Signed-off-by: Tom Chung <chiahsuan.chung@amd.com>
  1 file changed, 21 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 1f3cbbb2cb6d9..2faf995a20f57 100755
+index 0fac618b879ce..d976fa1305a63 100755
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -3045,6 +3045,21 @@ static void hpd_rx_irq_work_suspend(struct amdgpu_display_manager *dm)
+@@ -3049,6 +3049,21 @@ static void hpd_rx_irq_work_suspend(struct amdgpu_display_manager *dm)
  	}
  }
  
@@ -73821,7 +73558,7 @@ index 1f3cbbb2cb6d9..2faf995a20f57 100755
  static int dm_suspend(struct amdgpu_ip_block *ip_block)
  {
  	struct amdgpu_device *adev = ip_block->adev;
-@@ -3070,10 +3085,11 @@ static int dm_suspend(struct amdgpu_ip_block *ip_block)
+@@ -3074,10 +3089,11 @@ static int dm_suspend(struct amdgpu_ip_block *ip_block)
  		return ret;
  	}
  
@@ -73837,7 +73574,7 @@ index 1f3cbbb2cb6d9..2faf995a20f57 100755
  
  	s3_handle_mst(adev_to_drm(adev), true);
  
-@@ -3477,6 +3493,7 @@ static const struct amd_ip_funcs amdgpu_dm_funcs = {
+@@ -3487,6 +3503,7 @@ static const struct amd_ip_funcs amdgpu_dm_funcs = {
  	.early_fini = amdgpu_dm_early_fini,
  	.hw_init = dm_hw_init,
  	.hw_fini = dm_hw_fini,
