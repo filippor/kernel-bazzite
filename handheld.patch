@@ -48559,7 +48559,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 52 insertions(+), 62 deletions(-)
 
 diff --git a/drivers/platform/x86/oxpec.c b/drivers/platform/x86/oxpec.c
-index a3c945c73fc5b..f87dd1795ea76 100644
+index a3c945c73fc5b..dabf378dff6fd 100644
 --- a/drivers/platform/x86/oxpec.c
 +++ b/drivers/platform/x86/oxpec.c
 @@ -246,6 +246,20 @@ static const struct dmi_system_id dmi_table[] = {
@@ -48714,11 +48714,12 @@ index a3c945c73fc5b..f87dd1795ea76 100644
  
  	return count;
  }
-@@ -430,21 +417,24 @@ static ssize_t tt_toggle_show(struct device *dev,
+@@ -429,22 +416,25 @@ static ssize_t tt_toggle_store(struct device *dev,
+ static ssize_t tt_toggle_show(struct device *dev,
  			      struct device_attribute *attr, char *buf)
  {
- 	int retval;
 +	u8 reg, mask;
+ 	int retval;
  	long val;
 -	u8 reg;
  
