@@ -8,11 +8,13 @@ Subject: [NA] add dev tools
  README       | 18 ------------------
  README.md    | 12 ++++++++++++
  sync-arch.sh | 22 ++++++++++++++++++++++
+ sync-ko.sh   | 25 +++++++++++++++++++++++++
  sync.sh      | 30 ++++++++++++++++++++++++++++++
- 5 files changed, 68 insertions(+), 18 deletions(-)
+ 6 files changed, 93 insertions(+), 18 deletions(-)
  delete mode 100644 README
  create mode 100644 README.md
  create mode 100755 sync-arch.sh
+ create mode 100755 sync-ko.sh
  create mode 100755 sync.sh
 
 diff --git a/.gitignore b/.gitignore
@@ -99,6 +101,38 @@ index 0000000000000..9a9c605bfee99
 +    sudo reboot
 +EOF
 +
+diff --git a/sync-ko.sh b/sync-ko.sh
+new file mode 100755
+index 0000000000000..d11949f535272
+--- /dev/null
++++ b/sync-ko.sh
+@@ -0,0 +1,25 @@
++if [ -z "$1" ]; then
++    echo "Usage: $0 <module> <host>"
++    exit 1
++fi
++
++set -e
++
++DHOST=$2
++DUSER=${DUSER:-bazzite}
++
++# Get directory from module
++DIR=$(dirname "$1")
++# Get module without .ko suffix
++MODULE=$(basename "$1")
++MODULE=${MODULE%.ko}
++MPATH=$1
++
++make -C /lib/modules/$(uname -r)/build M=$(pwd)/$DIR modules -j $(expr $(nproc) - 2)
++
++scp $MPATH $DHOST:/tmp/$MODULE.ko
++
++ssh $DHOST /bin/bash << EOF
++        sudo rmmod $MODULE || true
++        sudo insmod /tmp/$MODULE.ko
++EOF
+\ No newline at end of file
 diff --git a/sync.sh b/sync.sh
 new file mode 100755
 index 0000000000000..de610a8bc34b5
@@ -48555,14 +48589,23 @@ disable and enable functions, and apply the fix to all devices.
 
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- drivers/platform/x86/oxpec.c | 114 ++++++++++++++++-------------------
- 1 file changed, 52 insertions(+), 62 deletions(-)
+ drivers/platform/x86/oxpec.c | 116 ++++++++++++++++-------------------
+ 1 file changed, 52 insertions(+), 64 deletions(-)
 
 diff --git a/drivers/platform/x86/oxpec.c b/drivers/platform/x86/oxpec.c
-index a3c945c73fc5b..dabf378dff6fd 100644
+index a3c945c73fc5b..8f26f9eb9b67a 100644
 --- a/drivers/platform/x86/oxpec.c
 +++ b/drivers/platform/x86/oxpec.c
-@@ -246,6 +246,20 @@ static const struct dmi_system_id dmi_table[] = {
+@@ -86,8 +86,6 @@ static enum oxp_board board;
+ #define OXP_MINI_TURBO_TAKE_VAL        0x01 /* Mini AO7 */
+ #define OXP_TURBO_TAKE_VAL             0x40 /* All other models */
+ 
+-#define OXP_TURBO_RETURN_VAL           0x00 /* Common return val */
+-
+ /* Battery bypass settings */
+ #define EC_CHARGE_CONTROL_BEHAVIOURS_X1	(BIT(POWER_SUPPLY_CHARGE_BEHAVIOUR_AUTO)             | \
+ 					 BIT(POWER_SUPPLY_CHARGE_BEHAVIOUR_INHIBIT_CHARGE)    | \
+@@ -246,6 +244,20 @@ static const struct dmi_system_id dmi_table[] = {
  		},
  		.driver_data = (void *)oxp_fly,
  	},
@@ -48583,7 +48626,7 @@ index a3c945c73fc5b..dabf378dff6fd 100644
  	{
  		.matches = {
  			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
-@@ -331,97 +345,70 @@ static int write_to_ec(u8 reg, u8 value)
+@@ -331,97 +343,70 @@ static int write_to_ec(u8 reg, u8 value)
  	return ret;
  }
  
@@ -48643,20 +48686,20 @@ index a3c945c73fc5b..dabf378dff6fd 100644
  	case oxp_mini_amd_a07:
  		reg = OXP_MINI_TURBO_SWITCH_REG;
 -		val = OXP_TURBO_RETURN_VAL;
-+		mask = OXP_TURBO_RETURN_VAL;
++		mask = OXP_MINI_TURBO_TAKE_VAL;
  		break;
  	case aok_zoe_a1:
  	case oxp_fly:
  	case oxp_mini_amd_pro:
  		reg = OXP_TURBO_SWITCH_REG;
 -		val = OXP_TURBO_RETURN_VAL;
-+		mask = OXP_TURBO_RETURN_VAL;
++		mask = OXP_TURBO_TAKE_VAL;
  		break;
  	case oxp_2:
  	case oxp_x1:
  		reg = OXP_2_TURBO_SWITCH_REG;
 -		val = OXP_TURBO_RETURN_VAL;
-+		mask = OXP_TURBO_RETURN_VAL;
++		mask = OXP_TURBO_TAKE_VAL;
  		break;
  	default:
  		return -EINVAL;
@@ -48714,7 +48757,7 @@ index a3c945c73fc5b..dabf378dff6fd 100644
  
  	return count;
  }
-@@ -429,22 +416,25 @@ static ssize_t tt_toggle_store(struct device *dev,
+@@ -429,22 +414,25 @@ static ssize_t tt_toggle_store(struct device *dev,
  static ssize_t tt_toggle_show(struct device *dev,
  			      struct device_attribute *attr, char *buf)
  {
@@ -48726,22 +48769,22 @@ index a3c945c73fc5b..dabf378dff6fd 100644
  	switch (board) {
  	case oxp_mini_amd_a07:
  		reg = OXP_MINI_TURBO_SWITCH_REG;
-+		mask = OXP_TURBO_RETURN_VAL;
++		mask = OXP_TURBO_TAKE_VAL;
  		break;
  	case aok_zoe_a1:
  	case oxp_fly:
  	case oxp_mini_amd_pro:
  		reg = OXP_TURBO_SWITCH_REG;
-+		mask = OXP_TURBO_RETURN_VAL;
++		mask = OXP_TURBO_TAKE_VAL;
  		break;
  	case oxp_2:
  	case oxp_x1:
  		reg = OXP_2_TURBO_SWITCH_REG;
-+		mask = OXP_TURBO_RETURN_VAL;
++		mask = OXP_TURBO_TAKE_VAL;
  		break;
  	default:
  		return -EINVAL;
-@@ -454,7 +444,7 @@ static ssize_t tt_toggle_show(struct device *dev,
+@@ -454,7 +442,7 @@ static ssize_t tt_toggle_show(struct device *dev,
  	if (retval)
  		return retval;
  
