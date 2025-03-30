@@ -48593,7 +48593,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 52 insertions(+), 64 deletions(-)
 
 diff --git a/drivers/platform/x86/oxpec.c b/drivers/platform/x86/oxpec.c
-index a3c945c73fc5b..8f26f9eb9b67a 100644
+index a3c945c73fc5b..f1c60eaa6e291 100644
 --- a/drivers/platform/x86/oxpec.c
 +++ b/drivers/platform/x86/oxpec.c
 @@ -86,8 +86,6 @@ static enum oxp_board board;
@@ -48769,7 +48769,7 @@ index a3c945c73fc5b..8f26f9eb9b67a 100644
  	switch (board) {
  	case oxp_mini_amd_a07:
  		reg = OXP_MINI_TURBO_SWITCH_REG;
-+		mask = OXP_TURBO_TAKE_VAL;
++		mask = OXP_MINI_TURBO_TAKE_VAL;
  		break;
  	case aok_zoe_a1:
  	case oxp_fly:
