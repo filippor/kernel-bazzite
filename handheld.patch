@@ -48548,13 +48548,18 @@ Subject: platform/x86: oxpec: Add support for OneXPlayer G1
 The OneXPlayer G1 is a new clamshell formfactor by OneXPlayer.
 It has the same registers as an OneXPlayer X1.
 
+However, on this one the turbo register is multiplexed and contains an
+extra bit (0x02) which controls the fan function. Therefore, we need to
+only change the 0x40 bit to not affect other behavior. Collapse the
+disable and enable functions, and apply the fix to all devices.
+
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- drivers/platform/x86/oxpec.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ drivers/platform/x86/oxpec.c | 114 ++++++++++++++++-------------------
+ 1 file changed, 52 insertions(+), 62 deletions(-)
 
 diff --git a/drivers/platform/x86/oxpec.c b/drivers/platform/x86/oxpec.c
-index a3c945c73fc5b..a68f4c994b7b4 100644
+index a3c945c73fc5b..f87dd1795ea76 100644
 --- a/drivers/platform/x86/oxpec.c
 +++ b/drivers/platform/x86/oxpec.c
 @@ -246,6 +246,20 @@ static const struct dmi_system_id dmi_table[] = {
@@ -48578,6 +48583,172 @@ index a3c945c73fc5b..a68f4c994b7b4 100644
  	{
  		.matches = {
  			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
+@@ -331,97 +345,70 @@ static int write_to_ec(u8 reg, u8 value)
+ 	return ret;
+ }
+ 
+-/* Turbo button toggle functions */
+-static int tt_toggle_enable(void)
++/* Callbacks for turbo toggle attribute */
++static umode_t tt_toggle_is_visible(struct kobject *kobj,
++				    struct attribute *attr, int n)
+ {
+-	u8 reg;
+-	u8 val;
+-
+ 	switch (board) {
+-	case oxp_mini_amd_a07:
+-		reg = OXP_MINI_TURBO_SWITCH_REG;
+-		val = OXP_MINI_TURBO_TAKE_VAL;
+-		break;
+ 	case aok_zoe_a1:
++	case oxp_2:
+ 	case oxp_fly:
++	case oxp_mini_amd_a07:
+ 	case oxp_mini_amd_pro:
+-		reg = OXP_TURBO_SWITCH_REG;
+-		val = OXP_TURBO_TAKE_VAL;
+-		break;
+-	case oxp_2:
+ 	case oxp_x1:
+-		reg = OXP_2_TURBO_SWITCH_REG;
+-		val = OXP_TURBO_TAKE_VAL;
+-		break;
++		return attr->mode;
+ 	default:
+-		return -EINVAL;
++		break;
+ 	}
+-	return write_to_ec(reg, val);
++	return 0;
+ }
+ 
+-static int tt_toggle_disable(void)
++static ssize_t tt_toggle_store(struct device *dev,
++			       struct device_attribute *attr, const char *buf,
++			       size_t count)
+ {
+-	u8 reg;
+-	u8 val;
++	u8 reg, mask, val;
++	long raw_val;
++	bool enable;
++	int ret;
++
++	ret = kstrtobool(buf, &enable);
++	if (ret)
++		return ret;
+ 
+ 	switch (board) {
+ 	case oxp_mini_amd_a07:
+ 		reg = OXP_MINI_TURBO_SWITCH_REG;
+-		val = OXP_TURBO_RETURN_VAL;
++		mask = OXP_TURBO_RETURN_VAL;
+ 		break;
+ 	case aok_zoe_a1:
+ 	case oxp_fly:
+ 	case oxp_mini_amd_pro:
+ 		reg = OXP_TURBO_SWITCH_REG;
+-		val = OXP_TURBO_RETURN_VAL;
++		mask = OXP_TURBO_RETURN_VAL;
+ 		break;
+ 	case oxp_2:
+ 	case oxp_x1:
+ 		reg = OXP_2_TURBO_SWITCH_REG;
+-		val = OXP_TURBO_RETURN_VAL;
++		mask = OXP_TURBO_RETURN_VAL;
+ 		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+-	return write_to_ec(reg, val);
+-}
+-
+-/* Callbacks for turbo toggle attribute */
+-static umode_t tt_toggle_is_visible(struct kobject *kobj,
+-				    struct attribute *attr, int n)
+-{
+-	switch (board) {
+-	case aok_zoe_a1:
+-	case oxp_2:
+-	case oxp_fly:
+-	case oxp_mini_amd_a07:
+-	case oxp_mini_amd_pro:
+-	case oxp_x1:
+-		return attr->mode;
+-	default:
+-		break;
+-	}
+-	return 0;
+-}
+ 
+-static ssize_t tt_toggle_store(struct device *dev,
+-			       struct device_attribute *attr, const char *buf,
+-			       size_t count)
+-{
+-	bool value;
+-	int rval;
++	ret = read_from_ec(reg, 1, &raw_val);
++	if (ret)
++		return ret;
+ 
+-	rval = kstrtobool(buf, &value);
+-	if (rval)
+-		return rval;
++	val = raw_val;
++	if (enable)
++		val |= mask;
++	else
++		val &= ~mask;
+ 
+-	if (value) {
+-		rval = tt_toggle_enable();
+-	} else {
+-		rval = tt_toggle_disable();
+-	}
+-	if (rval)
+-		return rval;
++	ret = write_to_ec(reg, val);
++	if (ret)
++		return ret;
+ 
+ 	return count;
+ }
+@@ -430,21 +417,24 @@ static ssize_t tt_toggle_show(struct device *dev,
+ 			      struct device_attribute *attr, char *buf)
+ {
+ 	int retval;
++	u8 reg, mask;
+ 	long val;
+-	u8 reg;
+ 
+ 	switch (board) {
+ 	case oxp_mini_amd_a07:
+ 		reg = OXP_MINI_TURBO_SWITCH_REG;
++		mask = OXP_TURBO_RETURN_VAL;
+ 		break;
+ 	case aok_zoe_a1:
+ 	case oxp_fly:
+ 	case oxp_mini_amd_pro:
+ 		reg = OXP_TURBO_SWITCH_REG;
++		mask = OXP_TURBO_RETURN_VAL;
+ 		break;
+ 	case oxp_2:
+ 	case oxp_x1:
+ 		reg = OXP_2_TURBO_SWITCH_REG;
++		mask = OXP_TURBO_RETURN_VAL;
+ 		break;
+ 	default:
+ 		return -EINVAL;
+@@ -454,7 +444,7 @@ static ssize_t tt_toggle_show(struct device *dev,
+ 	if (retval)
+ 		return retval;
+ 
+-	return sysfs_emit(buf, "%d\n", !!val);
++	return sysfs_emit(buf, "%d\n", !!(val & mask));
+ }
+ 
+ static DEVICE_ATTR_RW(tt_toggle);
 -- 
 2.49.0
 
