@@ -75321,7 +75321,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 122 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/platform/x86/msi-wmi-platform.c b/drivers/platform/x86/msi-wmi-platform.c
-index df839f3856073..d4b7b5e828f47 100644
+index df839f3856073..20466f94c7070 100644
 --- a/drivers/platform/x86/msi-wmi-platform.c
 +++ b/drivers/platform/x86/msi-wmi-platform.c
 @@ -121,15 +121,24 @@ struct msi_wmi_platform_quirk {
@@ -75471,7 +75471,7 @@ index df839f3856073..d4b7b5e828f47 100644
 +			if (ret < 0)
 +				return ret;
 +			
-+			if (val == 1 && data->quirks->restore_curves) {
++			if (val == 2 && data->quirks->restore_curves) {
 +				ret = msi_wmi_platform_curves_load(data);
 +				if (ret < 0)
 +					return ret;
