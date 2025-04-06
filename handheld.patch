@@ -76053,3 +76053,33 @@ index e857e532b35a4..45d7af00f8d17 100644
 -- 
 2.49.0
 
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sun, 6 Apr 2025 23:04:59 +0200
+Subject: HID: usbhid: Add EOVERFLOW to disconnect reasons
+
+Seems as if the claw partially switches protocol and breaks after sleep,
+causing constant prints to the console and the controller not working.
+If an error like that is caught, force it to disconnect.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/hid/usbhid/hid-core.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/hid/usbhid/hid-core.c b/drivers/hid/usbhid/hid-core.c
+index a6eb6fe6130d1..d201b875a7917 100644
+--- a/drivers/hid/usbhid/hid-core.c
++++ b/drivers/hid/usbhid/hid-core.c
+@@ -311,6 +311,7 @@ static void hid_irq_in(struct urb *urb)
+ 	case -EPROTO:		/* protocol error or unplug */
+ 	case -ETIME:		/* protocol error or unplug */
+ 	case -ETIMEDOUT:	/* Should never happen, but... */
++	case -EOVERFLOW:	/* Claw weirdness, force disconnect... */
+ 		usbhid_mark_busy(usbhid);
+ 		clear_bit(HID_IN_RUNNING, &usbhid->iofl);
+ 		hid_io_error(hid);
+-- 
+2.49.0
+
