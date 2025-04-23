@@ -1036,8 +1036,6 @@ Source478: %{name}-aarch64-rt-fedora.config
 Source479: %{name}-aarch64-rt-debug-fedora.config
 Source480: %{name}-x86_64-rt-fedora.config
 Source481: %{name}-x86_64-rt-debug-fedora.config
-Source482: %{name}-riscv64-rt-fedora.config
-Source483: %{name}-riscv64-rt-debug-fedora.config
 %endif
 %endif
 
