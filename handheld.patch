@@ -1,5 +1,334 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sat, 26 Apr 2025 11:34:26 +0200
+Subject: Revert "platform/x86: msi-wmi-platform: Workaround a ACPI firmware
+ bug"
+
+This reverts commit 608e7c0f7f3b66de96116431cb3582d3dac43d9a.
+---
+ .../wmi/devices/msi-wmi-platform.rst          |  4 -
+ drivers/platform/x86/msi-wmi-platform.c       | 91 +++++++------------
+ 2 files changed, 32 insertions(+), 63 deletions(-)
+
+diff --git a/Documentation/wmi/devices/msi-wmi-platform.rst b/Documentation/wmi/devices/msi-wmi-platform.rst
+index 73197b31926a5..31a1369428923 100644
+--- a/Documentation/wmi/devices/msi-wmi-platform.rst
++++ b/Documentation/wmi/devices/msi-wmi-platform.rst
+@@ -138,10 +138,6 @@ input data, the meaning of which depends on the subfeature being accessed.
+ The output buffer contains a single byte which signals success or failure (``0x00`` on failure)
+ and 31 bytes of output data, the meaning if which depends on the subfeature being accessed.
+ 
+-.. note::
+-   The ACPI control method responsible for handling the WMI method calls is not thread-safe.
+-   This is a firmware bug that needs to be handled inside the driver itself.
+-
+ WMI method Get_EC()
+ -------------------
+ 
+diff --git a/drivers/platform/x86/msi-wmi-platform.c b/drivers/platform/x86/msi-wmi-platform.c
+index dc5e9878cb682..e15681dfca8d7 100644
+--- a/drivers/platform/x86/msi-wmi-platform.c
++++ b/drivers/platform/x86/msi-wmi-platform.c
+@@ -10,7 +10,6 @@
+ #include <linux/acpi.h>
+ #include <linux/bits.h>
+ #include <linux/bitfield.h>
+-#include <linux/cleanup.h>
+ #include <linux/debugfs.h>
+ #include <linux/device.h>
+ #include <linux/device/driver.h>
+@@ -18,7 +17,6 @@
+ #include <linux/hwmon.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+-#include <linux/mutex.h>
+ #include <linux/printk.h>
+ #include <linux/rwsem.h>
+ #include <linux/types.h>
+@@ -78,13 +76,8 @@ enum msi_wmi_platform_method {
+ 	MSI_PLATFORM_GET_WMI		= 0x1d,
+ };
+ 
+-struct msi_wmi_platform_data {
+-	struct wmi_device *wdev;
+-	struct mutex wmi_lock;	/* Necessary when calling WMI methods */
+-};
+-
+ struct msi_wmi_platform_debugfs_data {
+-	struct msi_wmi_platform_data *data;
++	struct wmi_device *wdev;
+ 	enum msi_wmi_platform_method method;
+ 	struct rw_semaphore buffer_lock;	/* Protects debugfs buffer */
+ 	size_t length;
+@@ -139,9 +132,8 @@ static int msi_wmi_platform_parse_buffer(union acpi_object *obj, u8 *output, siz
+ 	return 0;
+ }
+ 
+-static int msi_wmi_platform_query(struct msi_wmi_platform_data *data,
+-				  enum msi_wmi_platform_method method, u8 *input,
+-				  size_t input_length, u8 *output, size_t output_length)
++static int msi_wmi_platform_query(struct wmi_device *wdev, enum msi_wmi_platform_method method,
++				  u8 *input, size_t input_length, u8 *output, size_t output_length)
+ {
+ 	struct acpi_buffer out = { ACPI_ALLOCATE_BUFFER, NULL };
+ 	struct acpi_buffer in = {
+@@ -155,15 +147,9 @@ static int msi_wmi_platform_query(struct msi_wmi_platform_data *data,
+ 	if (!input_length || !output_length)
+ 		return -EINVAL;
+ 
+-	/*
+-	 * The ACPI control method responsible for handling the WMI method calls
+-	 * is not thread-safe. Because of this we have to do the locking ourself.
+-	 */
+-	scoped_guard(mutex, &data->wmi_lock) {
+-		status = wmidev_evaluate_method(data->wdev, 0x0, method, &in, &out);
+-		if (ACPI_FAILURE(status))
+-			return -EIO;
+-	}
++	status = wmidev_evaluate_method(wdev, 0x0, method, &in, &out);
++	if (ACPI_FAILURE(status))
++		return -EIO;
+ 
+ 	obj = out.pointer;
+ 	if (!obj)
+@@ -184,13 +170,13 @@ static umode_t msi_wmi_platform_is_visible(const void *drvdata, enum hwmon_senso
+ static int msi_wmi_platform_read(struct device *dev, enum hwmon_sensor_types type, u32 attr,
+ 				 int channel, long *val)
+ {
+-	struct msi_wmi_platform_data *data = dev_get_drvdata(dev);
++	struct wmi_device *wdev = dev_get_drvdata(dev);
+ 	u8 input[32] = { 0 };
+ 	u8 output[32];
+ 	u16 value;
+ 	int ret;
+ 
+-	ret = msi_wmi_platform_query(data, MSI_PLATFORM_GET_FAN, input, sizeof(input), output,
++	ret = msi_wmi_platform_query(wdev, MSI_PLATFORM_GET_FAN, input, sizeof(input), output,
+ 				     sizeof(output));
+ 	if (ret < 0)
+ 		return ret;
+@@ -245,7 +231,7 @@ static ssize_t msi_wmi_platform_write(struct file *fp, const char __user *input,
+ 		return ret;
+ 
+ 	down_write(&data->buffer_lock);
+-	ret = msi_wmi_platform_query(data->data, data->method, payload, data->length, data->buffer,
++	ret = msi_wmi_platform_query(data->wdev, data->method, payload, data->length, data->buffer,
+ 				     data->length);
+ 	up_write(&data->buffer_lock);
+ 
+@@ -291,17 +277,17 @@ static void msi_wmi_platform_debugfs_remove(void *data)
+ 	debugfs_remove_recursive(dir);
+ }
+ 
+-static void msi_wmi_platform_debugfs_add(struct msi_wmi_platform_data *drvdata, struct dentry *dir,
++static void msi_wmi_platform_debugfs_add(struct wmi_device *wdev, struct dentry *dir,
+ 					 const char *name, enum msi_wmi_platform_method method)
+ {
+ 	struct msi_wmi_platform_debugfs_data *data;
+ 	struct dentry *entry;
+ 
+-	data = devm_kzalloc(&drvdata->wdev->dev, sizeof(*data), GFP_KERNEL);
++	data = devm_kzalloc(&wdev->dev, sizeof(*data), GFP_KERNEL);
+ 	if (!data)
+ 		return;
+ 
+-	data->data = drvdata;
++	data->wdev = wdev;
+ 	data->method = method;
+ 	init_rwsem(&data->buffer_lock);
+ 
+@@ -312,82 +298,82 @@ static void msi_wmi_platform_debugfs_add(struct msi_wmi_platform_data *drvdata,
+ 
+ 	entry = debugfs_create_file(name, 0600, dir, data, &msi_wmi_platform_debugfs_fops);
+ 	if (IS_ERR(entry))
+-		devm_kfree(&drvdata->wdev->dev, data);
++		devm_kfree(&wdev->dev, data);
+ }
+ 
+-static void msi_wmi_platform_debugfs_init(struct msi_wmi_platform_data *data)
++static void msi_wmi_platform_debugfs_init(struct wmi_device *wdev)
+ {
+ 	struct dentry *dir;
+ 	char dir_name[64];
+ 	int ret, method;
+ 
+-	scnprintf(dir_name, ARRAY_SIZE(dir_name), "%s-%s", DRIVER_NAME, dev_name(&data->wdev->dev));
++	scnprintf(dir_name, ARRAY_SIZE(dir_name), "%s-%s", DRIVER_NAME, dev_name(&wdev->dev));
+ 
+ 	dir = debugfs_create_dir(dir_name, NULL);
+ 	if (IS_ERR(dir))
+ 		return;
+ 
+-	ret = devm_add_action_or_reset(&data->wdev->dev, msi_wmi_platform_debugfs_remove, dir);
++	ret = devm_add_action_or_reset(&wdev->dev, msi_wmi_platform_debugfs_remove, dir);
+ 	if (ret < 0)
+ 		return;
+ 
+ 	for (method = MSI_PLATFORM_GET_PACKAGE; method <= MSI_PLATFORM_GET_WMI; method++)
+-		msi_wmi_platform_debugfs_add(data, dir, msi_wmi_platform_debugfs_names[method - 1],
++		msi_wmi_platform_debugfs_add(wdev, dir, msi_wmi_platform_debugfs_names[method - 1],
+ 					     method);
+ }
+ 
+-static int msi_wmi_platform_hwmon_init(struct msi_wmi_platform_data *data)
++static int msi_wmi_platform_hwmon_init(struct wmi_device *wdev)
+ {
+ 	struct device *hdev;
+ 
+-	hdev = devm_hwmon_device_register_with_info(&data->wdev->dev, "msi_wmi_platform", data,
++	hdev = devm_hwmon_device_register_with_info(&wdev->dev, "msi_wmi_platform", wdev,
+ 						    &msi_wmi_platform_chip_info, NULL);
+ 
+ 	return PTR_ERR_OR_ZERO(hdev);
+ }
+ 
+-static int msi_wmi_platform_ec_init(struct msi_wmi_platform_data *data)
++static int msi_wmi_platform_ec_init(struct wmi_device *wdev)
+ {
+ 	u8 input[32] = { 0 };
+ 	u8 output[32];
+ 	u8 flags;
+ 	int ret;
+ 
+-	ret = msi_wmi_platform_query(data, MSI_PLATFORM_GET_EC, input, sizeof(input), output,
++	ret = msi_wmi_platform_query(wdev, MSI_PLATFORM_GET_EC, input, sizeof(input), output,
+ 				     sizeof(output));
+ 	if (ret < 0)
+ 		return ret;
+ 
+ 	flags = output[MSI_PLATFORM_EC_FLAGS_OFFSET];
+ 
+-	dev_dbg(&data->wdev->dev, "EC RAM version %lu.%lu\n",
++	dev_dbg(&wdev->dev, "EC RAM version %lu.%lu\n",
+ 		FIELD_GET(MSI_PLATFORM_EC_MAJOR_MASK, flags),
+ 		FIELD_GET(MSI_PLATFORM_EC_MINOR_MASK, flags));
+-	dev_dbg(&data->wdev->dev, "EC firmware version %.28s\n",
++	dev_dbg(&wdev->dev, "EC firmware version %.28s\n",
+ 		&output[MSI_PLATFORM_EC_VERSION_OFFSET]);
+ 
+ 	if (!(flags & MSI_PLATFORM_EC_IS_TIGERLAKE)) {
+ 		if (!force)
+ 			return -ENODEV;
+ 
+-		dev_warn(&data->wdev->dev, "Loading on a non-Tigerlake platform\n");
++		dev_warn(&wdev->dev, "Loading on a non-Tigerlake platform\n");
+ 	}
+ 
+ 	return 0;
+ }
+ 
+-static int msi_wmi_platform_init(struct msi_wmi_platform_data *data)
++static int msi_wmi_platform_init(struct wmi_device *wdev)
+ {
+ 	u8 input[32] = { 0 };
+ 	u8 output[32];
+ 	int ret;
+ 
+-	ret = msi_wmi_platform_query(data, MSI_PLATFORM_GET_WMI, input, sizeof(input), output,
++	ret = msi_wmi_platform_query(wdev, MSI_PLATFORM_GET_WMI, input, sizeof(input), output,
+ 				     sizeof(output));
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	dev_dbg(&data->wdev->dev, "WMI interface version %u.%u\n",
++	dev_dbg(&wdev->dev, "WMI interface version %u.%u\n",
+ 		output[MSI_PLATFORM_WMI_MAJOR_OFFSET],
+ 		output[MSI_PLATFORM_WMI_MINOR_OFFSET]);
+ 
+@@ -395,8 +381,7 @@ static int msi_wmi_platform_init(struct msi_wmi_platform_data *data)
+ 		if (!force)
+ 			return -ENODEV;
+ 
+-		dev_warn(&data->wdev->dev,
+-			 "Loading despite unsupported WMI interface version (%u.%u)\n",
++		dev_warn(&wdev->dev, "Loading despite unsupported WMI interface version (%u.%u)\n",
+ 			 output[MSI_PLATFORM_WMI_MAJOR_OFFSET],
+ 			 output[MSI_PLATFORM_WMI_MINOR_OFFSET]);
+ 	}
+@@ -406,31 +391,19 @@ static int msi_wmi_platform_init(struct msi_wmi_platform_data *data)
+ 
+ static int msi_wmi_platform_probe(struct wmi_device *wdev, const void *context)
+ {
+-	struct msi_wmi_platform_data *data;
+ 	int ret;
+ 
+-	data = devm_kzalloc(&wdev->dev, sizeof(*data), GFP_KERNEL);
+-	if (!data)
+-		return -ENOMEM;
+-
+-	data->wdev = wdev;
+-	dev_set_drvdata(&wdev->dev, data);
+-
+-	ret = devm_mutex_init(&wdev->dev, &data->wmi_lock);
+-	if (ret < 0)
+-		return ret;
+-
+-	ret = msi_wmi_platform_init(data);
++	ret = msi_wmi_platform_init(wdev);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = msi_wmi_platform_ec_init(data);
++	ret = msi_wmi_platform_ec_init(wdev);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	msi_wmi_platform_debugfs_init(data);
++	msi_wmi_platform_debugfs_init(wdev);
+ 
+-	return msi_wmi_platform_hwmon_init(data);
++	return msi_wmi_platform_hwmon_init(wdev);
+ }
+ 
+ static const struct wmi_device_id msi_wmi_platform_id_table[] = {
+-- 
+2.49.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sat, 26 Apr 2025 11:34:38 +0200
+Subject: Revert "platform/x86: msi-wmi-platform: Rename "data" variable"
+
+This reverts commit 284efa5bc3dae7c8bc136191e44bff66e706c4e0.
+---
+ drivers/platform/x86/msi-wmi-platform.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/platform/x86/msi-wmi-platform.c b/drivers/platform/x86/msi-wmi-platform.c
+index e15681dfca8d7..9b5c7f8c79b0d 100644
+--- a/drivers/platform/x86/msi-wmi-platform.c
++++ b/drivers/platform/x86/msi-wmi-platform.c
+@@ -173,7 +173,7 @@ static int msi_wmi_platform_read(struct device *dev, enum hwmon_sensor_types typ
+ 	struct wmi_device *wdev = dev_get_drvdata(dev);
+ 	u8 input[32] = { 0 };
+ 	u8 output[32];
+-	u16 value;
++	u16 data;
+ 	int ret;
+ 
+ 	ret = msi_wmi_platform_query(wdev, MSI_PLATFORM_GET_FAN, input, sizeof(input), output,
+@@ -181,11 +181,11 @@ static int msi_wmi_platform_read(struct device *dev, enum hwmon_sensor_types typ
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	value = get_unaligned_be16(&output[channel * 2 + 1]);
+-	if (!value)
++	data = get_unaligned_be16(&output[channel * 2 + 1]);
++	if (!data)
+ 		*val = 0;
+ 	else
+-		*val = 480000 / value;
++		*val = 480000 / data;
+ 
+ 	return 0;
+ }
+-- 
+2.49.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
 Date: Fri, 15 Nov 2024 20:54:57 +0100
 Subject: [NA] add dev tools
 
@@ -18249,7 +18578,7 @@ Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
  3 files changed, 173 insertions(+)
 
 diff --git a/drivers/bluetooth/btrtl.c b/drivers/bluetooth/btrtl.c
-index d3eba0d4a57d3..1a631236fa966 100644
+index 7838c89e529e0..8717bfafa7c31 100644
 --- a/drivers/bluetooth/btrtl.c
 +++ b/drivers/bluetooth/btrtl.c
 @@ -9,6 +9,7 @@
@@ -18329,7 +18658,7 @@ index d3eba0d4a57d3..1a631236fa966 100644
  static void *rtl_iov_pull_data(struct rtl_iovec *iov, u32 len)
  {
  	void *data = iov->data;
-@@ -1280,8 +1336,44 @@ int btrtl_download_firmware(struct hci_dev *hdev,
+@@ -1282,8 +1338,44 @@ int btrtl_download_firmware(struct hci_dev *hdev,
  }
  EXPORT_SYMBOL_GPL(btrtl_download_firmware);
  
@@ -18374,7 +18703,7 @@ index d3eba0d4a57d3..1a631236fa966 100644
  	/* Enable controller to do both LE scan and BR/EDR inquiry
  	 * simultaneously.
  	 */
-@@ -1493,6 +1585,58 @@ int btrtl_get_uart_settings(struct hci_dev *hdev,
+@@ -1495,6 +1587,58 @@ int btrtl_get_uart_settings(struct hci_dev *hdev,
  }
  EXPORT_SYMBOL_GPL(btrtl_get_uart_settings);
  
@@ -18643,7 +18972,7 @@ Signed-off-by: Robert Beckett <bob.beckett@collabora.com>
  3 files changed, 24 insertions(+), 112 deletions(-)
 
 diff --git a/drivers/bluetooth/btrtl.c b/drivers/bluetooth/btrtl.c
-index 1a631236fa966..924871d0e6f56 100644
+index 8717bfafa7c31..3755acecfa750 100644
 --- a/drivers/bluetooth/btrtl.c
 +++ b/drivers/bluetooth/btrtl.c
 @@ -443,18 +443,6 @@ static int btrtl_vendor_read_reg16(struct hci_dev *hdev,
@@ -18684,7 +19013,7 @@ index 1a631236fa966..924871d0e6f56 100644
  static void *rtl_iov_pull_data(struct rtl_iovec *iov, u32 len)
  {
  	void *data = iov->data;
-@@ -1346,33 +1322,49 @@ static const struct dmi_system_id btrtl_can_ignore_bt_dis_table[] = {
+@@ -1348,33 +1324,49 @@ static const struct dmi_system_id btrtl_can_ignore_bt_dis_table[] = {
  	{}
  };
  
@@ -18742,7 +19071,7 @@ index 1a631236fa966..924871d0e6f56 100644
  
  	/* Enable controller to do both LE scan and BR/EDR inquiry
  	 * simultaneously.
-@@ -1585,57 +1577,6 @@ int btrtl_get_uart_settings(struct hci_dev *hdev,
+@@ -1587,57 +1579,6 @@ int btrtl_get_uart_settings(struct hci_dev *hdev,
  }
  EXPORT_SYMBOL_GPL(btrtl_get_uart_settings);
  
@@ -18971,10 +19300,10 @@ Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 old mode 100644
 new mode 100755
-index 39df45f652b32..4580d37455300
+index 80a3cbd2cbe5d..686ad14263ac3
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -6145,6 +6145,8 @@ get_output_color_space(const struct dc_crtc_timing *dc_crtc_timing,
+@@ -6166,6 +6166,8 @@ get_output_color_space(const struct dc_crtc_timing *dc_crtc_timing,
  	default:
  		if (dc_crtc_timing->pixel_encoding == PIXEL_ENCODING_RGB) {
  			color_space = COLOR_SPACE_SRGB;
@@ -18983,7 +19312,7 @@ index 39df45f652b32..4580d37455300
  		/*
  		 * 27030khz is the separation point between HDTV and SDTV
  		 * according to HDMI spec, we use YCbCr709 and YCbCr601
-@@ -8313,6 +8315,10 @@ void amdgpu_dm_connector_init_helper(struct amdgpu_display_manager *dm,
+@@ -8334,6 +8336,10 @@ void amdgpu_dm_connector_init_helper(struct amdgpu_display_manager *dm,
  				dm->ddev->mode_config.scaling_mode_property,
  				DRM_MODE_SCALE_NONE);
  
@@ -18994,7 +19323,7 @@ index 39df45f652b32..4580d37455300
  	drm_object_attach_property(&aconnector->base.base,
  				adev->mode_info.underscan_property,
  				UNDERSCAN_OFF);
-@@ -10073,7 +10079,7 @@ static void amdgpu_dm_atomic_commit_tail(struct drm_atomic_state *state)
+@@ -10121,7 +10127,7 @@ static void amdgpu_dm_atomic_commit_tail(struct drm_atomic_state *state)
  		struct dc_stream_update stream_update;
  		struct dc_info_packet hdr_packet;
  		struct dc_stream_status *status = NULL;
@@ -19003,7 +19332,7 @@ index 39df45f652b32..4580d37455300
  
  		memset(&stream_update, 0, sizeof(stream_update));
  
-@@ -10092,13 +10098,17 @@ static void amdgpu_dm_atomic_commit_tail(struct drm_atomic_state *state)
+@@ -10140,13 +10146,17 @@ static void amdgpu_dm_atomic_commit_tail(struct drm_atomic_state *state)
  		scaling_changed = is_scaling_state_different(dm_new_con_state,
  							     dm_old_con_state);
  
@@ -19022,7 +19351,7 @@ index 39df45f652b32..4580d37455300
  			continue;
  
  		stream_update.stream = dm_new_crtc_state->stream;
-@@ -10110,6 +10120,13 @@ static void amdgpu_dm_atomic_commit_tail(struct drm_atomic_state *state)
+@@ -10158,6 +10168,13 @@ static void amdgpu_dm_atomic_commit_tail(struct drm_atomic_state *state)
  			stream_update.dst = dm_new_crtc_state->stream->dst;
  		}
  
@@ -19148,7 +19477,7 @@ index 69895fccb474a..c5b5de2a92ddc 100644
  
  	bool				ram_is_direct_mapped;
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
-index 9a8f6cb2b8360..419dec6daf77a 100644
+index 71e8a76180ad6..19e78963ee8e2 100644
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
 @@ -82,6 +82,7 @@
@@ -19159,7 +19488,7 @@ index 9a8f6cb2b8360..419dec6daf77a 100644
  
  #if IS_ENABLED(CONFIG_X86)
  #include <asm/intel-family.h>
-@@ -3970,6 +3971,17 @@ bool amdgpu_device_has_dc_support(struct amdgpu_device *adev)
+@@ -3971,6 +3972,17 @@ bool amdgpu_device_has_dc_support(struct amdgpu_device *adev)
  	return amdgpu_device_asic_has_dc_support(adev->asic_type);
  }
  
@@ -19177,7 +19506,7 @@ index 9a8f6cb2b8360..419dec6daf77a 100644
  static void amdgpu_device_xgmi_reset_func(struct work_struct *__work)
  {
  	struct amdgpu_device *adev =
-@@ -4278,6 +4290,7 @@ int amdgpu_device_init(struct amdgpu_device *adev,
+@@ -4279,6 +4291,7 @@ int amdgpu_device_init(struct amdgpu_device *adev,
  	}
  
  	INIT_WORK(&adev->xgmi_reset_work, amdgpu_device_xgmi_reset_func);
@@ -19948,10 +20277,10 @@ Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
  1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 4580d37455300..8d8f02e7f322b 100755
+index 686ad14263ac3..c51ac0d7a3b3a 100755
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -6251,8 +6251,7 @@ static void fill_stream_properties_from_drm_display_mode(
+@@ -6272,8 +6272,7 @@ static void fill_stream_properties_from_drm_display_mode(
  	timing_out->v_border_top = 0;
  	timing_out->v_border_bottom = 0;
  	/* TODO: un-hardcode */
@@ -19984,10 +20313,10 @@ Signed-off-by: Gabriel Krisman Bertazi <krisman@collabora.com>
  1 file changed, 22 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 8d8f02e7f322b..b043f6d3e936c 100755
+index c51ac0d7a3b3a..8a86561474d6b 100755
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4670,7 +4670,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
+@@ -4691,7 +4691,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
  	return 0;
  }
  
@@ -19996,7 +20325,7 @@ index 8d8f02e7f322b..b043f6d3e936c 100755
  #define AMDGPU_DM_DEFAULT_MAX_BACKLIGHT 255
  #define AMDGPU_DM_MIN_SPREAD ((AMDGPU_DM_DEFAULT_MAX_BACKLIGHT - AMDGPU_DM_DEFAULT_MIN_BACKLIGHT) / 2)
  #define AUX_BL_DEFAULT_TRANSITION_TIME_MS 50
-@@ -4704,11 +4704,27 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
+@@ -4725,11 +4725,27 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
  
  	if (caps.caps_valid) {
  		dm->backlight_caps[bl_idx].caps_valid = true;
@@ -20024,7 +20353,7 @@ index 8d8f02e7f322b..b043f6d3e936c 100755
  		dm->backlight_caps[bl_idx].min_input_signal =
  				AMDGPU_DM_DEFAULT_MIN_BACKLIGHT;
  		dm->backlight_caps[bl_idx].max_input_signal =
-@@ -4718,6 +4734,9 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
+@@ -4739,6 +4755,9 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
  	if (dm->backlight_caps[bl_idx].aux_support)
  		return;
  
@@ -20034,7 +20363,7 @@ index 8d8f02e7f322b..b043f6d3e936c 100755
  	dm->backlight_caps[bl_idx].min_input_signal = AMDGPU_DM_DEFAULT_MIN_BACKLIGHT;
  	dm->backlight_caps[bl_idx].max_input_signal = AMDGPU_DM_DEFAULT_MAX_BACKLIGHT;
  #endif
-@@ -4749,7 +4768,7 @@ static u32 convert_brightness_from_user(const struct amdgpu_dm_backlight_caps *c
+@@ -4770,7 +4789,7 @@ static u32 convert_brightness_from_user(const struct amdgpu_dm_backlight_caps *c
  	if (!get_brightness_range(caps, &min, &max))
  		return brightness;
  
@@ -20043,7 +20372,7 @@ index 8d8f02e7f322b..b043f6d3e936c 100755
  	return min + DIV_ROUND_CLOSEST((max - min) * brightness,
  				       AMDGPU_MAX_BL_LEVEL);
  }
-@@ -4764,7 +4783,7 @@ static u32 convert_brightness_to_user(const struct amdgpu_dm_backlight_caps *cap
+@@ -4785,7 +4804,7 @@ static u32 convert_brightness_to_user(const struct amdgpu_dm_backlight_caps *cap
  
  	if (brightness < min)
  		return 0;
@@ -20071,10 +20400,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 45 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index b043f6d3e936c..45a5290767b7e 100755
+index 8a86561474d6b..6d99c164a9496 100755
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4670,11 +4670,45 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
+@@ -4691,11 +4691,45 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
  	return 0;
  }
  
@@ -20121,7 +20450,7 @@ index b043f6d3e936c..45a5290767b7e 100755
  static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
  					    int bl_idx)
  {
-@@ -4708,10 +4742,16 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
+@@ -4729,10 +4763,16 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
  		printk(KERN_NOTICE"VLV Successfully queried backlight range over ACPI: %d %d\n",
  		       (int) caps.min_input_signal, (int) caps.max_input_signal);
  
@@ -20170,10 +20499,10 @@ Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
  1 file changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 45a5290767b7e..c956a0bfe7cc4 100755
+index 6d99c164a9496..30bec2b87cc94 100755
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -8299,7 +8299,12 @@ static int amdgpu_dm_connector_get_modes(struct drm_connector *connector)
+@@ -8320,7 +8320,12 @@ static int amdgpu_dm_connector_get_modes(struct drm_connector *connector)
  				drm_add_modes_noedid(connector, 1920, 1080);
  	} else {
  		amdgpu_dm_connector_ddc_get_modes(connector, drm_edid);
@@ -20643,10 +20972,10 @@ index abd3b6564373a..46937e6fa78d4 100644
 +
  endmenu
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index c956a0bfe7cc4..aaeefe6136a97 100755
+index 30bec2b87cc94..96538dd7c0dde 100755
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4652,7 +4652,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
+@@ -4673,7 +4673,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
  		return r;
  	}
  
@@ -20669,10 +20998,10 @@ index ebabfe3a512f4..4d3ebcaacca1b 100644
   *
   * AMD driver supports pre-defined mathematical functions for transferring
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.c
-index 36a830a7440f1..a8fc8bd52d51e 100644
+index 87058271b00cc..454545775eae8 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.c
-@@ -470,7 +470,7 @@ static int amdgpu_dm_crtc_late_register(struct drm_crtc *crtc)
+@@ -472,7 +472,7 @@ static int amdgpu_dm_crtc_late_register(struct drm_crtc *crtc)
  }
  #endif
  
@@ -20681,7 +21010,7 @@ index 36a830a7440f1..a8fc8bd52d51e 100644
  /**
   * dm_crtc_additional_color_mgmt - enable additional color properties
   * @crtc: DRM CRTC
-@@ -552,7 +552,7 @@ static const struct drm_crtc_funcs amdgpu_dm_crtc_funcs = {
+@@ -554,7 +554,7 @@ static const struct drm_crtc_funcs amdgpu_dm_crtc_funcs = {
  #if defined(CONFIG_DEBUG_FS)
  	.late_register = amdgpu_dm_crtc_late_register,
  #endif
@@ -20690,7 +21019,7 @@ index 36a830a7440f1..a8fc8bd52d51e 100644
  	.atomic_set_property = amdgpu_dm_atomic_crtc_set_property,
  	.atomic_get_property = amdgpu_dm_atomic_crtc_get_property,
  #endif
-@@ -731,7 +731,7 @@ int amdgpu_dm_crtc_init(struct amdgpu_display_manager *dm,
+@@ -733,7 +733,7 @@ int amdgpu_dm_crtc_init(struct amdgpu_display_manager *dm,
  
  	drm_mode_crtc_set_gamma_size(&acrtc->base, MAX_COLOR_LEGACY_LUT_ENTRIES);
  
@@ -23093,7 +23422,7 @@ This reverts commit 907830b0fc9e374d00f3c83de5e426157b482c01.
  1 file changed, 1 insertion(+), 7 deletions(-)
 
 diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index 3152750aab2fc..029faf1bcfa90 100644
+index f489256cd9ded..26adb30ce00ae 100644
 --- a/drivers/pci/pci.c
 +++ b/drivers/pci/pci.c
 @@ -3777,14 +3777,8 @@ u32 pci_rebar_get_possible_sizes(struct pci_dev *pdev, int bar)
@@ -23278,7 +23607,7 @@ index c5b5de2a92ddc..51eb98848e0ca 100644
  extern int amdgpu_gart_size;
  extern int amdgpu_gtt_size;
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-index c0ddbe7d6f0bc..f4c27766d860f 100644
+index 24c255e05079e..5177d55c7a10a 100644
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
 @@ -139,6 +139,7 @@ enum AMDGPU_DEBUG_MASK {
@@ -23656,7 +23985,7 @@ Signed-off-by: Jan200101 <sentrycraft123@gmail.com>
  2 files changed, 10 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-index f4c27766d860f..c136ffb9333f3 100644
+index 5177d55c7a10a..ca9102c06185b 100644
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
 @@ -626,13 +626,8 @@ module_param_named(timeout_period, amdgpu_watchdog_timer.period, uint, 0644);
@@ -49525,7 +49854,7 @@ Co-developed-by: linh1987
  1 file changed, 10 insertions(+)
 
 diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
-index 8e482f6ecafea..c6a9189865a6f 100644
+index 356df48c97309..9282d8bd1f129 100644
 --- a/sound/pci/hda/patch_realtek.c
 +++ b/sound/pci/hda/patch_realtek.c
 @@ -7679,6 +7679,7 @@ enum {
@@ -49536,7 +49865,7 @@ index 8e482f6ecafea..c6a9189865a6f 100644
  	ALC269_FIXUP_LIMIT_INT_MIC_BOOST_MUTE_LED,
  	ALC269VB_FIXUP_ORDISSIMO_EVE2,
  	ALC283_FIXUP_CHROME_BOOK,
-@@ -8393,6 +8394,13 @@ static const struct hda_fixup alc269_fixups[] = {
+@@ -8394,6 +8395,13 @@ static const struct hda_fixup alc269_fixups[] = {
  		.chained = true,
  		.chain_id = ALC269_FIXUP_HEADSET_MIC
  	},
@@ -49550,7 +49879,7 @@ index 8e482f6ecafea..c6a9189865a6f 100644
  	[ALC269_FIXUP_LIMIT_INT_MIC_BOOST_MUTE_LED] = {
  		.type = HDA_FIXUP_FUNC,
  		.v.func = alc269_fixup_limit_int_mic_boost,
-@@ -11222,6 +11230,7 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
+@@ -11229,6 +11237,7 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
  	SND_PCI_QUIRK(0x2782, 0x1705, "MEDION E15433", ALC269VC_FIXUP_INFINIX_Y4_MAX),
  	SND_PCI_QUIRK(0x2782, 0x1707, "Vaio VJFE-ADL", ALC298_FIXUP_SPK_VOLUME),
  	SND_PCI_QUIRK(0x2782, 0x4900, "MEDION E15443", ALC233_FIXUP_MEDION_MTL_SPK),
@@ -49558,7 +49887,7 @@ index 8e482f6ecafea..c6a9189865a6f 100644
  	SND_PCI_QUIRK(0x8086, 0x2074, "Intel NUC 8", ALC233_FIXUP_INTEL_NUC8_DMIC),
  	SND_PCI_QUIRK(0x8086, 0x2080, "Intel NUC 8 Rugged", ALC256_FIXUP_INTEL_NUC8_RUGGED),
  	SND_PCI_QUIRK(0x8086, 0x2081, "Intel NUC 10", ALC256_FIXUP_INTEL_NUC10),
-@@ -11346,6 +11355,7 @@ static const struct hda_model_fixup alc269_fixup_models[] = {
+@@ -11353,6 +11362,7 @@ static const struct hda_model_fixup alc269_fixup_models[] = {
  	{.id = ALC269VB_FIXUP_ASUS_ZENBOOK, .name = "asus-zenbook"},
  	{.id = ALC269VB_FIXUP_ASUS_ZENBOOK_UX31A, .name = "asus-zenbook-ux31a"},
  	{.id = ALC269VB_FIXUP_ORDISSIMO_EVE2, .name = "ordissimo"},
@@ -49582,7 +49911,7 @@ Co-developed-by: Bouke Sybren Haarsma <boukehaarsma23@gmail.com>
  1 file changed, 50 insertions(+), 1 deletion(-)
 
 diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
-index c6a9189865a6f..d82906f2bf6e8 100644
+index 9282d8bd1f129..5511833a60b61 100644
 --- a/sound/pci/hda/patch_realtek.c
 +++ b/sound/pci/hda/patch_realtek.c
 @@ -6837,6 +6837,20 @@ static void alc294_gx502_toggle_output(struct hda_codec *codec,
@@ -49615,8 +49944,8 @@ index c6a9189865a6f..d82906f2bf6e8 100644
  	ALC269_FIXUP_HEADSET_MODE_NO_HP_MIC,
  	ALC269_FIXUP_ASPIRE_HEADSET_MIC,
  	ALC269_FIXUP_ASUS_X101_FUNC,
-@@ -7927,6 +7943,30 @@ enum {
- 	ALC283_FIXUP_DELL_HP_RESUME,
+@@ -7928,6 +7944,30 @@ enum {
+ 	ALC294_FIXUP_ASUS_CS35L41_SPI_2,
  };
  
 +/* A special fixup for AYN and AYANEO handhelds as both
@@ -49646,7 +49975,7 @@ index c6a9189865a6f..d82906f2bf6e8 100644
  /* A special fixup for Lenovo C940 and Yoga Duet 7;
   * both have the very same PCI SSID, and we need to apply different fixups
   * depending on the codec ID
-@@ -9197,6 +9237,14 @@ static const struct hda_fixup alc269_fixups[] = {
+@@ -9198,6 +9238,14 @@ static const struct hda_fixup alc269_fixups[] = {
  			{ 0x1b, 0x90170152 } /* use as internal speaker (back) */
  		}
  	},
@@ -49661,7 +49990,7 @@ index c6a9189865a6f..d82906f2bf6e8 100644
  	[ALC299_FIXUP_PREDATOR_SPK] = {
  		.type = HDA_FIXUP_PINS,
  		.v.pins = (const struct hda_pintbl[]) {
-@@ -11229,8 +11277,9 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
+@@ -11236,8 +11284,9 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
  	SND_PCI_QUIRK(0x2782, 0x1701, "Infinix Y4 Max", ALC269VC_FIXUP_INFINIX_Y4_MAX),
  	SND_PCI_QUIRK(0x2782, 0x1705, "MEDION E15433", ALC269VC_FIXUP_INFINIX_Y4_MAX),
  	SND_PCI_QUIRK(0x2782, 0x1707, "Vaio VJFE-ADL", ALC298_FIXUP_SPK_VOLUME),
@@ -54016,10 +54345,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-index c136ffb9333f3..980aa81aadaae 100644
+index ca9102c06185b..d7405c71d9389 100644
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-@@ -3001,7 +3001,7 @@ static int __init amdgpu_init(void)
+@@ -3005,7 +3005,7 @@ static int __init amdgpu_init(void)
  
  	if (amdgpu_pp_feature_mask & PP_OVERDRIVE_MASK) {
  		add_taint(TAINT_CPU_OUT_OF_SPEC, LOCKDEP_STILL_OK);
@@ -54056,10 +54385,10 @@ Signed-off-by: Tom Chung <chiahsuan.chung@amd.com>
  1 file changed, 21 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index aaeefe6136a97..5c719cc7b5868 100755
+index 96538dd7c0dde..0eb3d6a486185 100755
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -3100,6 +3100,21 @@ static void hpd_rx_irq_work_suspend(struct amdgpu_display_manager *dm)
+@@ -3121,6 +3121,21 @@ static void hpd_rx_irq_work_suspend(struct amdgpu_display_manager *dm)
  	}
  }
  
@@ -54081,7 +54410,7 @@ index aaeefe6136a97..5c719cc7b5868 100755
  static int dm_suspend(struct amdgpu_ip_block *ip_block)
  {
  	struct amdgpu_device *adev = ip_block->adev;
-@@ -3125,10 +3140,11 @@ static int dm_suspend(struct amdgpu_ip_block *ip_block)
+@@ -3146,10 +3161,11 @@ static int dm_suspend(struct amdgpu_ip_block *ip_block)
  		return ret;
  	}
  
@@ -54097,7 +54426,7 @@ index aaeefe6136a97..5c719cc7b5868 100755
  
  	s3_handle_hdmi_cec(adev_to_drm(adev), true);
  
-@@ -3542,6 +3558,7 @@ static const struct amd_ip_funcs amdgpu_dm_funcs = {
+@@ -3563,6 +3579,7 @@ static const struct amd_ip_funcs amdgpu_dm_funcs = {
  	.early_fini = amdgpu_dm_early_fini,
  	.hw_init = dm_hw_init,
  	.hw_fini = dm_hw_fini,
@@ -54140,49 +54469,6 @@ index f54198171b6a3..073314512566e 100644
  	}
  }
  
--- 
-2.49.0
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>
-Date: Thu, 20 Mar 2025 14:46:18 +0100
-Subject: drm/amdgpu: immediately use GTT for new allocations
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-
-Only use GTT as a fallback if we already have a backing store. This
-prevents evictions when an application constantly allocates and frees new
-memory.
-
-Partially fixes
-https://gitlab.freedesktop.org/drm/amd/-/issues/3844#note_2833985.
-
-Signed-off-by: Christian König <christian.koenig@amd.com>
-Fixes: 216c1282dde3 ("drm/amdgpu: use GTT only as fallback for VRAM|GTT")
-Acked-by: Alex Deucher <alexander.deucher@amd.com>
-Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
-Cc: stable@vger.kernel.org
----
- drivers/gpu/drm/amd/amdgpu/amdgpu_object.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_object.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_object.c
-index 96f4b8904e9a6..00752e3f9d8ab 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_object.c
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_object.c
-@@ -163,8 +163,8 @@ void amdgpu_bo_placement_from_domain(struct amdgpu_bo *abo, u32 domain)
- 		 * When GTT is just an alternative to VRAM make sure that we
- 		 * only use it as fallback and still try to fill up VRAM first.
- 		 */
--		if (domain & abo->preferred_domains & AMDGPU_GEM_DOMAIN_VRAM &&
--		    !(adev->flags & AMD_IS_APU))
-+		if (abo->tbo.resource && !(adev->flags & AMD_IS_APU) &&
-+		    domain & abo->preferred_domains & AMDGPU_GEM_DOMAIN_VRAM)
- 			places[c].flags |= TTM_PL_FLAG_FALLBACK;
- 		c++;
- 	}
 -- 
 2.49.0
 
@@ -54235,10 +54521,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 31 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 5c719cc7b5868..8ed9cd2ffe8a1 100755
+index 0eb3d6a486185..dce7b4b8aef61 100755
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4687,6 +4687,36 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
+@@ -4708,6 +4708,36 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
  	return 0;
  }
  
@@ -54275,7 +54561,7 @@ index 5c719cc7b5868..8ed9cd2ffe8a1 100755
  #define AMDGPU_DM_DEFAULT_MIN_BACKLIGHT 12
  #define AMDGPU_DM_DEFAULT_MAX_BACKLIGHT 255
  #define AMDGPU_DM_MIN_SPREAD ((AMDGPU_DM_DEFAULT_MAX_BACKLIGHT - AMDGPU_DM_DEFAULT_MIN_BACKLIGHT) / 2)
-@@ -9414,7 +9444,7 @@ static void amdgpu_dm_commit_planes(struct drm_atomic_state *state,
+@@ -9462,7 +9492,7 @@ static void amdgpu_dm_commit_planes(struct drm_atomic_state *state,
  	}
  
  	if (pflip_present) {
