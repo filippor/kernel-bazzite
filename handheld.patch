@@ -24207,7 +24207,7 @@ Subject: [BEGIN] OneXPlayer Handheld patches
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sat, 22 Mar 2025 11:35:53 +0100
+Date: Fri, 25 Apr 2025 13:18:06 +0200
 Subject: hwmon: (oxp-sensors) Distinguish the X1 variants
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -24229,6 +24229,8 @@ Acked-by: Guenter Roeck <linux@roeck-us.net>
 Reviewed-by: Thomas Weißschuh <linux@weissschuh.net>
 Reviewed-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+Link: https://lore.kernel.org/r/20250425111821.88746-2-lkml@antheas.dev
+Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
 ---
  drivers/hwmon/oxp-sensors.c | 23 ++++++++++++++++++++++-
  1 file changed, 22 insertions(+), 1 deletion(-)
@@ -24273,7 +24275,7 @@ index 83730d9318240..5a4230ad3757e 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sat, 22 Mar 2025 11:35:54 +0100
+Date: Fri, 25 Apr 2025 13:18:07 +0200
 Subject: hwmon: (oxp-sensors) Add all OneXFly variants
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -24302,6 +24304,8 @@ Reviewed-by: Thomas Weißschuh <linux@weissschuh.net>
 Reviewed-by: Derek J. Clark <derekjohn.clark@gmail.com>
 Reviewed-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+Link: https://lore.kernel.org/r/20250425111821.88746-3-lkml@antheas.dev
+Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
 ---
  drivers/hwmon/oxp-sensors.c | 35 +++++++++++++++++++++++++++++++++++
  1 file changed, 35 insertions(+)
@@ -24358,20 +24362,19 @@ index 5a4230ad3757e..f7a64fbc8f33e 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sat, 22 Mar 2025 11:35:55 +0100
+Date: Fri, 25 Apr 2025 13:18:08 +0200
 Subject: platform/x86: oxpec: Move hwmon/oxp-sensors to platform/x86
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-The EC of OneXPlayer devices used to only control the fan.
-This is no longer the case, with the EC of OneXPlayer gaining
-additional functionality (turbo button, turbo led, battery controls).
+The EC of OneXPlayer devices used to only control the fan. This is no
+longer the case, with the EC of OneXPlayer gaining additional
+functionality (turbo button, turbo led, battery controls).
 
-As it will be beneficial from a complexity perspective
-to retain this driver as a single unit, move it out
-of hwmon, and into platform/x86. Also, remove the
-hwmon documentation to prepare moving it to
+As it will be beneficial from a complexity perspective to retain this
+driver as a single unit, move it out of hwmon, and into platform/x86.
+Also, remove the hwmon documentation to prepare moving it to
 Documentation/ABI/.
 
 While at it, add myself to the maintainer's file.
@@ -24380,6 +24383,9 @@ Acked-by: Guenter Roeck <linux@roeck-us.net>
 Reviewed-by: Thomas Weißschuh <linux@weissschuh.net>
 Reviewed-by: Derek J. Clark <derekjohn.clark@gmail.com>
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+Link: https://lore.kernel.org/r/20250425111821.88746-4-lkml@antheas.dev
+Reviewed-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
+Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
 ---
  Documentation/hwmon/index.rst       |   2 +-
  Documentation/hwmon/oxp-sensors.rst |  89 ----
@@ -26152,19 +26158,22 @@ index 0000000000000..dc3a0871809cd
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sat, 22 Mar 2025 11:35:56 +0100
+Date: Fri, 25 Apr 2025 13:18:09 +0200
 Subject: ABI: testing: sysfs-class-oxp: add missing documentation
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Add missing documentation about the tt_toggle attribute that was
-added in kernel 6.5.
+Add missing documentation about the tt_toggle attribute that was added
+in kernel 6.5.
 
 Fixes: be144ee491272 ("hwmon: (oxp-sensors) Add tt_toggle attribute on supported boards")
 Reviewed-by: Thomas Weißschuh <linux@weissschuh.net>
 Reviewed-by: Derek J. Clark <derekjohn.clark@gmail.com>
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+Link: https://lore.kernel.org/r/20250425111821.88746-5-lkml@antheas.dev
+Reviewed-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
+Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
 ---
  Documentation/ABI/testing/sysfs-platform-oxp | 13 +++++++++++++
  1 file changed, 13 insertions(+)
@@ -26195,18 +26204,21 @@ index 0000000000000..091269ab2c8c4
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sat, 22 Mar 2025 11:35:57 +0100
+Date: Fri, 25 Apr 2025 13:18:10 +0200
 Subject: ABI: testing: sysfs-class-oxp: add tt_led attribute documentation
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Adds documentation about the tt_led attribute of OneXPlayer devices
-to the sysfs-class-oxp ABI documentation.
+Adds documentation about the tt_led attribute of OneXPlayer devices to
+the sysfs-class-oxp ABI documentation.
 
 Reviewed-by: Thomas Weißschuh <linux@weissschuh.net>
 Reviewed-by: Derek J. Clark <derekjohn.clark@gmail.com>
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+Link: https://lore.kernel.org/r/20250425111821.88746-6-lkml@antheas.dev
+Reviewed-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
+Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
 ---
  Documentation/ABI/testing/sysfs-platform-oxp | 12 ++++++++++++
  1 file changed, 12 insertions(+)
@@ -26237,7 +26249,7 @@ index 091269ab2c8c4..b3f39fc21dfa8 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sat, 22 Mar 2025 11:35:58 +0100
+Date: Fri, 25 Apr 2025 13:18:11 +0200
 Subject: platform/x86: oxpec: Rename ec group to tt_toggle
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -26252,6 +26264,8 @@ Reviewed-by: Derek J. Clark <derekjohn.clark@gmail.com>
 Reviewed-by: Thomas Weißschuh <linux@weissschuh.net>
 Reviewed-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+Link: https://lore.kernel.org/r/20250425111821.88746-7-lkml@antheas.dev
+Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
 ---
  drivers/platform/x86/oxpec.c | 8 ++++----
  1 file changed, 4 insertions(+), 4 deletions(-)
@@ -26289,7 +26303,7 @@ index dc3a0871809cd..ee37070ec54fc 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sat, 22 Mar 2025 11:35:59 +0100
+Date: Fri, 25 Apr 2025 13:18:12 +0200
 Subject: platform/x86: oxpec: Add turbo led support to X1 devices
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -26303,8 +26317,8 @@ the device to switch from 18W to 25W TDP. When the device is in the
 However, when we engage turbo takeover, the turbo led remains on its
 last state, which might be illuminated and cannot be currently
 controlled. Therefore, add the register that controls it under sysfs,
-to allow userspace to turn it off once engaging turbo takeover and
-then control it as they wish.
+to allow userspace to turn it off once engaging turbo takeover and then
+control it as they wish.
 
 2024 OneXPlayer devices, other than the X1s, do not have a turbo LED.
 However, earlier models do, so this can be extended to them as well
@@ -26313,12 +26327,15 @@ when the register for it is found.
 Reviewed-by: Thomas Weißschuh <linux@weissschuh.net>
 Reviewed-by: Derek J. Clark <derekjohn.clark@gmail.com>
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+Link: https://lore.kernel.org/r/20250425111821.88746-8-lkml@antheas.dev
+Reviewed-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
+Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
 ---
  drivers/platform/x86/oxpec.c | 84 ++++++++++++++++++++++++++++++++++++
  1 file changed, 84 insertions(+)
 
 diff --git a/drivers/platform/x86/oxpec.c b/drivers/platform/x86/oxpec.c
-index ee37070ec54fc..e8f27441fa31f 100644
+index ee37070ec54fc..97594fe614896 100644
 --- a/drivers/platform/x86/oxpec.c
 +++ b/drivers/platform/x86/oxpec.c
 @@ -87,6 +87,12 @@ static enum oxp_board board;
@@ -26340,7 +26357,7 @@ index ee37070ec54fc..e8f27441fa31f 100644
  
 +/* Callbacks for turbo LED attribute */
 +static umode_t tt_led_is_visible(struct kobject *kobj,
-+				    struct attribute *attr, int n)
++				 struct attribute *attr, int n)
 +{
 +	switch (board) {
 +	case oxp_x1:
@@ -26352,8 +26369,8 @@ index ee37070ec54fc..e8f27441fa31f 100644
 +}
 +
 +static ssize_t tt_led_store(struct device *dev,
-+			       struct device_attribute *attr, const char *buf,
-+			       size_t count)
++			    struct device_attribute *attr, const char *buf,
++			    size_t count)
 +{
 +	u8 reg, val;
 +	bool value;
@@ -26380,7 +26397,7 @@ index ee37070ec54fc..e8f27441fa31f 100644
 +}
 +
 +static ssize_t tt_led_show(struct device *dev,
-+			      struct device_attribute *attr, char *buf)
++			   struct device_attribute *attr, char *buf)
 +{
 +	long enval;
 +	long val;
@@ -26434,7 +26451,7 @@ index ee37070ec54fc..e8f27441fa31f 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sat, 22 Mar 2025 11:36:00 +0100
+Date: Fri, 25 Apr 2025 13:18:13 +0200
 Subject: platform/x86: oxpec: Move pwm_enable read to its own function
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -26443,8 +26460,8 @@ Content-Transfer-Encoding: 8bit
 Currently, this driver breaks ABI by using auto as 0 and manual as 1.
 However, for pwm_enable, 0 is full speed, 1 is manual, and 2 is auto.
 For the correction to be possible, this means that the pwm_enable
-endpoint will need access to both pwm enable and value (as for
-the 0th value, the fan needs to be set to full power).
+endpoint will need access to both pwm enable and value (as for the 0th
+value, the fan needs to be set to full power).
 
 Therefore, begin by moving the current pwm_enable read to its own
 function, oxp_pwm_enable.
@@ -26453,12 +26470,14 @@ Reviewed-by: Derek J. Clark <derekjohn.clark@gmail.com>
 Reviewed-by: Thomas Weißschuh <linux@weissschuh.net>
 Reviewed-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+Link: https://lore.kernel.org/r/20250425111821.88746-9-lkml@antheas.dev
+Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
 ---
  drivers/platform/x86/oxpec.c | 50 +++++++++++++++++++-----------------
  1 file changed, 27 insertions(+), 23 deletions(-)
 
 diff --git a/drivers/platform/x86/oxpec.c b/drivers/platform/x86/oxpec.c
-index e8f27441fa31f..2f9624323c4b1 100644
+index 97594fe614896..f5f3fbbca5552 100644
 --- a/drivers/platform/x86/oxpec.c
 +++ b/drivers/platform/x86/oxpec.c
 @@ -559,6 +559,32 @@ static int oxp_pwm_disable(void)
@@ -26531,7 +26550,7 @@ index e8f27441fa31f..2f9624323c4b1 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sat, 22 Mar 2025 11:36:01 +0100
+Date: Fri, 25 Apr 2025 13:18:14 +0200
 Subject: platform/x86: oxpec: Move pwm value read/write to separate functions
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -26540,8 +26559,8 @@ Content-Transfer-Encoding: 8bit
 Currently, this driver breaks hwmon ABI by using auto as 0 and manual
 as 1. However, for pwm_enable, 0 is full speed, 1 is manual, and 2 is
 auto. For the correction to be possible, this means that the pwm_enable
-endpoint will need access to both pwm enable and value (as for
-the 0th value, the fan needs to be set to full power).
+endpoint will need access to both pwm enable and value (as for the 0th
+value, the fan needs to be set to full power).
 
 Therefore, move the pwm value read/write to separate functions.
 
@@ -26549,12 +26568,14 @@ Reviewed-by: Derek J. Clark <derekjohn.clark@gmail.com>
 Reviewed-by: Thomas Weißschuh <linux@weissschuh.net>
 Reviewed-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+Link: https://lore.kernel.org/r/20250425111821.88746-10-lkml@antheas.dev
+Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
 ---
  drivers/platform/x86/oxpec.c | 163 +++++++++++++++++++----------------
  1 file changed, 88 insertions(+), 75 deletions(-)
 
 diff --git a/drivers/platform/x86/oxpec.c b/drivers/platform/x86/oxpec.c
-index 2f9624323c4b1..e670f7d6682a3 100644
+index f5f3fbbca5552..5da8e1d6073d5 100644
 --- a/drivers/platform/x86/oxpec.c
 +++ b/drivers/platform/x86/oxpec.c
 @@ -599,6 +599,92 @@ static umode_t oxp_ec_hwmon_is_visible(const void *drvdata,
@@ -26747,7 +26768,7 @@ index 2f9624323c4b1..e670f7d6682a3 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sat, 22 Mar 2025 11:36:02 +0100
+Date: Fri, 25 Apr 2025 13:18:15 +0200
 Subject: platform/x86: oxpec: Move fan speed read to separate function
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -26761,12 +26782,14 @@ Reviewed-by: Derek J. Clark <derekjohn.clark@gmail.com>
 Reviewed-by: Thomas Weißschuh <linux@weissschuh.net>
 Reviewed-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+Link: https://lore.kernel.org/r/20250425111821.88746-11-lkml@antheas.dev
+Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
 ---
  drivers/platform/x86/oxpec.c | 53 ++++++++++++++++++++----------------
  1 file changed, 29 insertions(+), 24 deletions(-)
 
 diff --git a/drivers/platform/x86/oxpec.c b/drivers/platform/x86/oxpec.c
-index e670f7d6682a3..34d03525302bb 100644
+index 5da8e1d6073d5..918a553bd8969 100644
 --- a/drivers/platform/x86/oxpec.c
 +++ b/drivers/platform/x86/oxpec.c
 @@ -599,6 +599,34 @@ static umode_t oxp_ec_hwmon_is_visible(const void *drvdata,
@@ -26842,7 +26865,7 @@ index e670f7d6682a3..34d03525302bb 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sat, 22 Mar 2025 11:36:03 +0100
+Date: Fri, 25 Apr 2025 13:18:16 +0200
 Subject: platform/x86: oxpec: Adhere to sysfs-class-hwmon and enable pwm on 2
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -26863,12 +26886,14 @@ Closes: https://lore.kernel.org/linux-hwmon/20241027174836.8588-1-derekjohn.clar
 Reviewed-by: Derek J. Clark <derekjohn.clark@gmail.com>
 Reviewed-by: Thomas Weißschuh <linux@weissschuh.net>
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+Link: https://lore.kernel.org/r/20250425111821.88746-12-lkml@antheas.dev
+Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
 ---
  drivers/platform/x86/oxpec.c | 37 ++++++++++++++++++++++++++++++++----
  1 file changed, 33 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/platform/x86/oxpec.c b/drivers/platform/x86/oxpec.c
-index 34d03525302bb..52da8eae1f6ab 100644
+index 918a553bd8969..45dfe0a7578b7 100644
 --- a/drivers/platform/x86/oxpec.c
 +++ b/drivers/platform/x86/oxpec.c
 @@ -732,7 +732,27 @@ static int oxp_platform_read(struct device *dev, enum hwmon_sensor_types type,
@@ -26942,7 +26967,7 @@ index 34d03525302bb..52da8eae1f6ab 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sat, 22 Mar 2025 11:36:04 +0100
+Date: Fri, 25 Apr 2025 13:18:17 +0200
 Subject: platform/x86: oxpec: Follow reverse xmas convention for tt_toggle
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -26956,12 +26981,14 @@ Reviewed-by: Thomas Weißschuh <linux@weissschuh.net>
 Reviewed-by: Derek J. Clark <derekjohn.clark@gmail.com>
 Reviewed-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+Link: https://lore.kernel.org/r/20250425111821.88746-13-lkml@antheas.dev
+Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
 ---
  drivers/platform/x86/oxpec.c | 8 ++++----
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/platform/x86/oxpec.c b/drivers/platform/x86/oxpec.c
-index 52da8eae1f6ab..f0b9fff704de2 100644
+index 45dfe0a7578b7..96e9b7205be42 100644
 --- a/drivers/platform/x86/oxpec.c
 +++ b/drivers/platform/x86/oxpec.c
 @@ -275,9 +275,9 @@ static const struct dmi_system_id dmi_table[] = {
@@ -27002,25 +27029,26 @@ index 52da8eae1f6ab..f0b9fff704de2 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sat, 22 Mar 2025 11:36:05 +0100
+Date: Fri, 25 Apr 2025 13:18:18 +0200
 Subject: power: supply: add inhibit-charge-awake to charge_behaviour
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-OneXPlayer devices have a charge inhibit feature
-that allows the user to select between it being
-active always or only when the device is on.
+OneXPlayer devices have a charge inhibit feature that allows the user
+to select between it being active always or only when the device is on.
 
-Therefore, add attribute inhibit-charge-awake to
-charge_behaviour to allow the user to select
-that charge should be paused only when the device
-is awake.
+Therefore, add attribute inhibit-charge-awake to charge_behaviour to
+allow the user to select that charge should be paused only when the
+device is awake.
 
 Reviewed-by: Hans de Goede <hdegoede@redhat.com>
 Reviewed-by: Thomas Weißschuh <linux@weissschuh.net>
 Reviewed-by: Derek J. Clark <derekjohn.clark@gmail.com>
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+Link: https://lore.kernel.org/r/20250425111821.88746-14-lkml@antheas.dev
+Reviewed-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
+Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
 ---
  Documentation/ABI/testing/sysfs-class-power | 11 ++++++-----
  drivers/power/supply/power_supply_sysfs.c   |  7 ++++---
@@ -27098,7 +27126,7 @@ index 6ed53b2921624..bb8e9e62ce834 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sat, 22 Mar 2025 11:36:06 +0100
+Date: Fri, 25 Apr 2025 13:18:19 +0200
 Subject: platform/x86: oxpec: Add charge threshold and behaviour to OneXPlayer
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -27117,10 +27145,13 @@ X1 devices.
 Reviewed-by: Thomas Weißschuh <linux@weissschuh.net>
 Reviewed-by: Derek J. Clark <derekjohn.clark@gmail.com>
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+Link: https://lore.kernel.org/r/20250425111821.88746-15-lkml@antheas.dev
+Reviewed-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
+Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
 ---
  drivers/platform/x86/Kconfig |   1 +
- drivers/platform/x86/oxpec.c | 160 ++++++++++++++++++++++++++++++++++-
- 2 files changed, 157 insertions(+), 4 deletions(-)
+ drivers/platform/x86/oxpec.c | 152 ++++++++++++++++++++++++++++++++++-
+ 2 files changed, 152 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
 index 47d3c7ba1a9fb..bee98251b8f0b 100644
@@ -27135,7 +27166,7 @@ index 47d3c7ba1a9fb..bee98251b8f0b 100644
  	depends on X86
  	help
 diff --git a/drivers/platform/x86/oxpec.c b/drivers/platform/x86/oxpec.c
-index f0b9fff704de2..8eba1a9c0a762 100644
+index 96e9b7205be42..b8fe0bd60f851 100644
 --- a/drivers/platform/x86/oxpec.c
 +++ b/drivers/platform/x86/oxpec.c
 @@ -24,6 +24,7 @@
@@ -27154,31 +27185,28 @@ index f0b9fff704de2..8eba1a9c0a762 100644
  
  /* Fan reading and PWM */
  #define OXP_SENSOR_FAN_REG             0x76 /* Fan reading is 2 registers long */
-@@ -93,6 +95,23 @@ static enum oxp_board board;
+@@ -93,6 +95,20 @@ static enum oxp_board board;
  #define OXP_X1_TURBO_LED_OFF           0x01
  #define OXP_X1_TURBO_LED_ON            0x02
  
 +/* Battery extension settings */
-+#define EC_CHARGE_CONTROL_BEHAVIOURS	(BIT(POWER_SUPPLY_CHARGE_BEHAVIOUR_AUTO)             | \
-+					 BIT(POWER_SUPPLY_CHARGE_BEHAVIOUR_INHIBIT_CHARGE)    | \
++#define EC_CHARGE_CONTROL_BEHAVIOURS	(BIT(POWER_SUPPLY_CHARGE_BEHAVIOUR_AUTO) |		\
++					 BIT(POWER_SUPPLY_CHARGE_BEHAVIOUR_INHIBIT_CHARGE) |	\
 +					 BIT(POWER_SUPPLY_CHARGE_BEHAVIOUR_INHIBIT_CHARGE_AWAKE))
 +
-+#define OXP_X1_CHARGE_LIMIT_REG      0xA3 /* X1 charge limit (%) */
-+#define OXP_X1_CHARGE_INHIBIT_REG     0xA4 /* X1 bypass charging */
++#define OXP_X1_CHARGE_LIMIT_REG		0xA3 /* X1 charge limit (%) */
++#define OXP_X1_CHARGE_INHIBIT_REG	0xA4 /* X1 bypass charging */
 +
-+#define OXP_X1_CHARGE_INHIBIT_MASK_AWAKE 0x01
-+/*
-+ * X1 Mask is 0x0A, OneXFly F1Pro is just 0x02
-+ * but the extra bit on the X1 does nothing.
-+ */
-+#define OXP_X1_CHARGE_INHIBIT_MASK_OFF 0x02
-+#define OXP_X1_CHARGE_INHIBIT_MASK_ALWAYS (OXP_X1_CHARGE_INHIBIT_MASK_AWAKE | \
-+	OXP_X1_CHARGE_INHIBIT_MASK_OFF)
++#define OXP_X1_CHARGE_INHIBIT_MASK_AWAKE	0x01
++/* X1 Mask is 0x0A, F1Pro is 0x02 but the extra bit on the X1 does nothing. */
++#define OXP_X1_CHARGE_INHIBIT_MASK_OFF		0x02
++#define OXP_X1_CHARGE_INHIBIT_MASK_ALWAYS	(OXP_X1_CHARGE_INHIBIT_MASK_AWAKE | \
++						 OXP_X1_CHARGE_INHIBIT_MASK_OFF)
 +
  static const struct dmi_system_id dmi_table[] = {
  	{
  		.matches = {
-@@ -507,6 +526,129 @@ static ssize_t tt_led_show(struct device *dev,
+@@ -507,6 +523,129 @@ static ssize_t tt_led_show(struct device *dev,
  
  static DEVICE_ATTR_RW(tt_led);
  
@@ -27196,10 +27224,10 @@ index f0b9fff704de2..8eba1a9c0a762 100644
 +}
 +
 +static int oxp_psy_ext_get_prop(struct power_supply *psy,
-+				       const struct power_supply_ext *ext,
-+				       void *data,
-+				       enum power_supply_property psp,
-+				       union power_supply_propval *val)
++				const struct power_supply_ext *ext,
++				void *data,
++				enum power_supply_property psp,
++				union power_supply_propval *val)
 +{
 +	long raw_val;
 +	int ret;
@@ -27232,10 +27260,10 @@ index f0b9fff704de2..8eba1a9c0a762 100644
 +}
 +
 +static int oxp_psy_ext_set_prop(struct power_supply *psy,
-+				       const struct power_supply_ext *ext,
-+				       void *data,
-+				       enum power_supply_property psp,
-+				       const union power_supply_propval *val)
++				const struct power_supply_ext *ext,
++				void *data,
++				enum power_supply_property psp,
++				const union power_supply_propval *val)
 +{
 +	long raw_val;
 +
@@ -27266,9 +27294,9 @@ index f0b9fff704de2..8eba1a9c0a762 100644
 +}
 +
 +static int oxp_psy_prop_is_writeable(struct power_supply *psy,
-+					    const struct power_supply_ext *ext,
-+					    void *data,
-+					    enum power_supply_property psp)
++				     const struct power_supply_ext *ext,
++				     void *data,
++				     enum power_supply_property psp)
 +{
 +	return true;
 +}
@@ -27308,22 +27336,19 @@ index f0b9fff704de2..8eba1a9c0a762 100644
  /* PWM enable/disable functions */
  static int oxp_pwm_enable(void)
  {
-@@ -846,12 +988,22 @@ static const struct hwmon_chip_info oxp_ec_chip_info = {
- static int oxp_platform_probe(struct platform_device *pdev)
+@@ -847,11 +986,22 @@ static int oxp_platform_probe(struct platform_device *pdev)
  {
  	struct device *dev = &pdev->dev;
--	struct device *hwdev;
+ 	struct device *hwdev;
 +	int ret;
  
--	hwdev = devm_hwmon_device_register_with_info(dev, "oxp_ec", NULL,
--						     &oxp_ec_chip_info, NULL);
 +	oxp_dev = dev;
-+	ret = PTR_ERR_OR_ZERO(devm_hwmon_device_register_with_info(
-+		dev, "oxp_ec", NULL, &oxp_ec_chip_info, NULL));
+ 	hwdev = devm_hwmon_device_register_with_info(dev, "oxp_ec", NULL,
+ 						     &oxp_ec_chip_info, NULL);
  
 -	return PTR_ERR_OR_ZERO(hwdev);
-+	if (ret)
-+		return ret;
++	if (IS_ERR(hwdev))
++		return PTR_ERR(hwdev);
 +
 +	if (oxp_psy_ext_supported()) {
 +		ret = devm_battery_hook_register(dev, &battery_hook);
@@ -27341,22 +27366,27 @@ index f0b9fff704de2..8eba1a9c0a762 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Thu, 17 Apr 2025 11:08:52 +0200
+Date: Fri, 25 Apr 2025 13:18:20 +0200
 Subject: platform/x86: oxpec: Rename rval to ret in tt_toggle
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-Rename the variable `rval` to `ret` in the function
-to follow conventions.
+Rename the variable `rval` to `ret` in the function for consistency.
 
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+Link: https://lore.kernel.org/r/20250425111821.88746-16-lkml@antheas.dev
+Reviewed-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
+Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
 ---
  drivers/platform/x86/oxpec.c | 16 ++++++++--------
  1 file changed, 8 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/platform/x86/oxpec.c b/drivers/platform/x86/oxpec.c
-index 8eba1a9c0a762..b9d8ffd251100 100644
+index b8fe0bd60f851..389be064d2451 100644
 --- a/drivers/platform/x86/oxpec.c
 +++ b/drivers/platform/x86/oxpec.c
-@@ -409,19 +409,19 @@ static ssize_t tt_toggle_store(struct device *dev,
+@@ -406,19 +406,19 @@ static ssize_t tt_toggle_store(struct device *dev,
  			       size_t count)
  {
  	bool value;
@@ -27390,34 +27420,117 @@ index 8eba1a9c0a762..b9d8ffd251100 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Fri, 25 Apr 2025 13:18:21 +0200
+Subject: platform/x86: oxpec: Convert defines to using tabs
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The defines used spaces previously. Convert all of them to use tabs.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+Link: https://lore.kernel.org/r/20250425111821.88746-17-lkml@antheas.dev
+Reviewed-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
+Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
+---
+ drivers/platform/x86/oxpec.c | 36 ++++++++++++++++++------------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/platform/x86/oxpec.c b/drivers/platform/x86/oxpec.c
+index 389be064d2451..4b48f4571b09b 100644
+--- a/drivers/platform/x86/oxpec.c
++++ b/drivers/platform/x86/oxpec.c
+@@ -64,36 +64,36 @@ static enum oxp_board board;
+ static struct device *oxp_dev;
+ 
+ /* Fan reading and PWM */
+-#define OXP_SENSOR_FAN_REG             0x76 /* Fan reading is 2 registers long */
+-#define OXP_2_SENSOR_FAN_REG           0x58 /* Fan reading is 2 registers long */
+-#define OXP_SENSOR_PWM_ENABLE_REG      0x4A /* PWM enable is 1 register long */
+-#define OXP_SENSOR_PWM_REG             0x4B /* PWM reading is 1 register long */
+-#define PWM_MODE_AUTO                  0x00
+-#define PWM_MODE_MANUAL                0x01
++#define OXP_SENSOR_FAN_REG		0x76 /* Fan reading is 2 registers long */
++#define OXP_2_SENSOR_FAN_REG		0x58 /* Fan reading is 2 registers long */
++#define OXP_SENSOR_PWM_ENABLE_REG	0x4A /* PWM enable is 1 register long */
++#define OXP_SENSOR_PWM_REG		0x4B /* PWM reading is 1 register long */
++#define PWM_MODE_AUTO			0x00
++#define PWM_MODE_MANUAL			0x01
+ 
+ /* OrangePi fan reading and PWM */
+-#define ORANGEPI_SENSOR_FAN_REG        0x78 /* Fan reading is 2 registers long */
+-#define ORANGEPI_SENSOR_PWM_ENABLE_REG 0x40 /* PWM enable is 1 register long */
+-#define ORANGEPI_SENSOR_PWM_REG        0x38 /* PWM reading is 1 register long */
++#define ORANGEPI_SENSOR_FAN_REG		0x78 /* Fan reading is 2 registers long */
++#define ORANGEPI_SENSOR_PWM_ENABLE_REG	0x40 /* PWM enable is 1 register long */
++#define ORANGEPI_SENSOR_PWM_REG		0x38 /* PWM reading is 1 register long */
+ 
+ /* Turbo button takeover function
+  * Different boards have different values and EC registers
+  * for the same function
+  */
+-#define OXP_TURBO_SWITCH_REG           0xF1 /* Mini Pro, OneXFly, AOKZOE */
+-#define OXP_2_TURBO_SWITCH_REG         0xEB /* OXP2 and X1 */
+-#define OXP_MINI_TURBO_SWITCH_REG      0x1E /* Mini AO7 */
++#define OXP_TURBO_SWITCH_REG		0xF1 /* Mini Pro, OneXFly, AOKZOE */
++#define OXP_2_TURBO_SWITCH_REG		0xEB /* OXP2 and X1 */
++#define OXP_MINI_TURBO_SWITCH_REG	0x1E /* Mini AO7 */
+ 
+-#define OXP_MINI_TURBO_TAKE_VAL        0x01 /* Mini AO7 */
+-#define OXP_TURBO_TAKE_VAL             0x40 /* All other models */
++#define OXP_MINI_TURBO_TAKE_VAL		0x01 /* Mini AO7 */
++#define OXP_TURBO_TAKE_VAL		0x40 /* All other models */
+ 
+-#define OXP_TURBO_RETURN_VAL           0x00 /* Common return val */
++#define OXP_TURBO_RETURN_VAL		0x00 /* Common return val */
+ 
+ /* X1 Turbo LED */
+-#define OXP_X1_TURBO_LED_REG           0x57
++#define OXP_X1_TURBO_LED_REG		0x57
+ 
+-#define OXP_X1_TURBO_LED_OFF           0x01
+-#define OXP_X1_TURBO_LED_ON            0x02
++#define OXP_X1_TURBO_LED_OFF		0x01
++#define OXP_X1_TURBO_LED_ON		0x02
+ 
+ /* Battery extension settings */
+ #define EC_CHARGE_CONTROL_BEHAVIOURS	(BIT(POWER_SUPPLY_CHARGE_BEHAVIOUR_AUTO) |		\
+-- 
+2.49.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
 Date: Tue, 25 Mar 2025 23:29:03 +0100
 Subject: platform/x86: oxpec: Make turbo val apply a bitmask
 
 On the OneXPlayer G1, the turbo register is multiplexed and contains an
-extra bit (0x02) which controls the fan function (always 0x02 on boot).
-Therefore, we need to only change the 0x40 bit to not affect other
-behavior. Collapse the disable and enable functions, and apply the fix
-to all devices.
+extra bit (0x02) which is set on boot. Therefore, we should only change
+the 0x40 bit to not affect other behavior. Collapse the disable and
+enable functions, and apply a mask for the turbo bit instead.
 
+Tested-by: Joshua Tam <csinaction@pm.me>
+Suggested-by: Joshua Tam <csinaction@pm.me>
+Signed-off-by: Joshua Tam <csinaction@pm.me>
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
  drivers/platform/x86/oxpec.c | 96 +++++++++++++-----------------------
  1 file changed, 35 insertions(+), 61 deletions(-)
 
 diff --git a/drivers/platform/x86/oxpec.c b/drivers/platform/x86/oxpec.c
-index b9d8ffd251100..50dd70ae3a6cd 100644
+index 4b48f4571b09b..86ac32eadd6ef 100644
 --- a/drivers/platform/x86/oxpec.c
 +++ b/drivers/platform/x86/oxpec.c
 @@ -87,8 +87,6 @@ static struct device *oxp_dev;
- #define OXP_MINI_TURBO_TAKE_VAL        0x01 /* Mini AO7 */
- #define OXP_TURBO_TAKE_VAL             0x40 /* All other models */
+ #define OXP_MINI_TURBO_TAKE_VAL		0x01 /* Mini AO7 */
+ #define OXP_TURBO_TAKE_VAL		0x40 /* All other models */
  
--#define OXP_TURBO_RETURN_VAL           0x00 /* Common return val */
+-#define OXP_TURBO_RETURN_VAL		0x00 /* Common return val */
 -
  /* X1 Turbo LED */
- #define OXP_X1_TURBO_LED_REG           0x57
+ #define OXP_X1_TURBO_LED_REG		0x57
  
-@@ -331,95 +329,68 @@ static int write_to_ec(u8 reg, u8 value)
+@@ -328,95 +326,68 @@ static int write_to_ec(u8 reg, u8 value)
  	return ret;
  }
  
@@ -27543,7 +27656,7 @@ index b9d8ffd251100..50dd70ae3a6cd 100644
  	if (ret)
  		return ret;
  
-@@ -429,22 +400,25 @@ static ssize_t tt_toggle_store(struct device *dev,
+@@ -426,22 +397,25 @@ static ssize_t tt_toggle_store(struct device *dev,
  static ssize_t tt_toggle_show(struct device *dev,
  			      struct device_attribute *attr, char *buf)
  {
@@ -27570,12 +27683,12 @@ index b9d8ffd251100..50dd70ae3a6cd 100644
  		break;
  	default:
  		return -EINVAL;
-@@ -454,7 +428,7 @@ static ssize_t tt_toggle_show(struct device *dev,
+@@ -451,7 +425,7 @@ static ssize_t tt_toggle_show(struct device *dev,
  	if (retval)
  		return retval;
  
 -	return sysfs_emit(buf, "%d\n", !!val);
-+	return sysfs_emit(buf, "%d\n", !!(val & mask));
++	return sysfs_emit(buf, "%d\n", (val & mask) == mask);
  }
  
  static DEVICE_ATTR_RW(tt_toggle);
@@ -27592,13 +27705,16 @@ The OneXPlayer G1 is a new clamshell formfactor by OneXPlayer.
 It has the same registers as an OneXPlayer X1, with the only
 difference being the lack of a turbo led.
 
+Tested-by: Joshua Tam <csinaction@pm.me>
+Suggested-by: Joshua Tam <csinaction@pm.me>
+Signed-off-by: Joshua Tam <csinaction@pm.me>
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
  drivers/platform/x86/oxpec.c | 25 +++++++++++++++++++++++++
  1 file changed, 25 insertions(+)
 
 diff --git a/drivers/platform/x86/oxpec.c b/drivers/platform/x86/oxpec.c
-index 50dd70ae3a6cd..4b7edfd468467 100644
+index 86ac32eadd6ef..93e923b24feb6 100644
 --- a/drivers/platform/x86/oxpec.c
 +++ b/drivers/platform/x86/oxpec.c
 @@ -58,6 +58,7 @@ enum oxp_board {
@@ -27609,7 +27725,7 @@ index 50dd70ae3a6cd..4b7edfd468467 100644
  };
  
  static enum oxp_board board;
-@@ -244,6 +245,20 @@ static const struct dmi_system_id dmi_table[] = {
+@@ -241,6 +242,20 @@ static const struct dmi_system_id dmi_table[] = {
  		},
  		.driver_data = (void *)oxp_fly,
  	},
@@ -27630,7 +27746,7 @@ index 50dd70ae3a6cd..4b7edfd468467 100644
  	{
  		.matches = {
  			DMI_MATCH(DMI_BOARD_VENDOR, "ONE-NETBOOK"),
-@@ -340,6 +355,7 @@ static umode_t tt_toggle_is_visible(struct kobject *kobj,
+@@ -337,6 +352,7 @@ static umode_t tt_toggle_is_visible(struct kobject *kobj,
  	case oxp_mini_amd_a07:
  	case oxp_mini_amd_pro:
  	case oxp_x1:
@@ -27638,7 +27754,7 @@ index 50dd70ae3a6cd..4b7edfd468467 100644
  		return attr->mode;
  	default:
  		break;
-@@ -373,6 +389,7 @@ static ssize_t tt_toggle_store(struct device *dev,
+@@ -370,6 +386,7 @@ static ssize_t tt_toggle_store(struct device *dev,
  		break;
  	case oxp_2:
  	case oxp_x1:
@@ -27646,7 +27762,7 @@ index 50dd70ae3a6cd..4b7edfd468467 100644
  		reg = OXP_2_TURBO_SWITCH_REG;
  		mask = OXP_TURBO_TAKE_VAL;
  		break;
-@@ -417,6 +434,7 @@ static ssize_t tt_toggle_show(struct device *dev,
+@@ -414,6 +431,7 @@ static ssize_t tt_toggle_show(struct device *dev,
  		break;
  	case oxp_2:
  	case oxp_x1:
@@ -27654,7 +27770,7 @@ index 50dd70ae3a6cd..4b7edfd468467 100644
  		reg = OXP_2_TURBO_SWITCH_REG;
  		mask = OXP_TURBO_TAKE_VAL;
  		break;
-@@ -505,6 +523,7 @@ static bool oxp_psy_ext_supported(void)
+@@ -502,6 +520,7 @@ static bool oxp_psy_ext_supported(void)
  {
  	switch (board) {
  	case oxp_x1:
@@ -27662,7 +27778,7 @@ index 50dd70ae3a6cd..4b7edfd468467 100644
  	case oxp_fly:
  		return true;
  	default:
-@@ -643,6 +662,7 @@ static int oxp_pwm_enable(void)
+@@ -640,6 +659,7 @@ static int oxp_pwm_enable(void)
  	case oxp_mini_amd_a07:
  	case oxp_mini_amd_pro:
  	case oxp_x1:
@@ -27670,7 +27786,7 @@ index 50dd70ae3a6cd..4b7edfd468467 100644
  		return write_to_ec(OXP_SENSOR_PWM_ENABLE_REG, PWM_MODE_MANUAL);
  	default:
  		return -EINVAL;
-@@ -669,6 +689,7 @@ static int oxp_pwm_disable(void)
+@@ -666,6 +686,7 @@ static int oxp_pwm_disable(void)
  	case oxp_mini_amd_a07:
  	case oxp_mini_amd_pro:
  	case oxp_x1:
@@ -27678,7 +27794,7 @@ index 50dd70ae3a6cd..4b7edfd468467 100644
  		return write_to_ec(OXP_SENSOR_PWM_ENABLE_REG, PWM_MODE_AUTO);
  	default:
  		return -EINVAL;
-@@ -695,6 +716,7 @@ static int oxp_pwm_read(long *val)
+@@ -692,6 +713,7 @@ static int oxp_pwm_read(long *val)
  	case oxp_mini_amd_a07:
  	case oxp_mini_amd_pro:
  	case oxp_x1:
@@ -27686,7 +27802,7 @@ index 50dd70ae3a6cd..4b7edfd468467 100644
  		return read_from_ec(OXP_SENSOR_PWM_ENABLE_REG, 1, val);
  	default:
  		return -EOPNOTSUPP;
-@@ -723,6 +745,7 @@ static int oxp_pwm_fan_speed(long *val)
+@@ -720,6 +742,7 @@ static int oxp_pwm_fan_speed(long *val)
  		return read_from_ec(ORANGEPI_SENSOR_FAN_REG, 2, val);
  	case oxp_2:
  	case oxp_x1:
@@ -27694,7 +27810,7 @@ index 50dd70ae3a6cd..4b7edfd468467 100644
  		return read_from_ec(OXP_2_SENSOR_FAN_REG, 2, val);
  	case aok_zoe_a1:
  	case aya_neo_2:
-@@ -756,6 +779,7 @@ static int oxp_pwm_input_write(long val)
+@@ -753,6 +776,7 @@ static int oxp_pwm_input_write(long val)
  		return write_to_ec(ORANGEPI_SENSOR_PWM_REG, val);
  	case oxp_2:
  	case oxp_x1:
@@ -27702,7 +27818,7 @@ index 50dd70ae3a6cd..4b7edfd468467 100644
  		/* scale to range [0-184] */
  		val = (val * 184) / 255;
  		return write_to_ec(OXP_SENSOR_PWM_REG, val);
-@@ -795,6 +819,7 @@ static int oxp_pwm_input_read(long *val)
+@@ -792,6 +816,7 @@ static int oxp_pwm_input_read(long *val)
  		break;
  	case oxp_2:
  	case oxp_x1:
@@ -54362,83 +54478,6 @@ index ca9102c06185b..d7405c71d9389 100644
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Mario Limonciello <mario.limonciello@amd.com>
-Date: Wed, 5 Mar 2025 13:13:46 +0800
-Subject: drm/amd/display: Add and use new dm_prepare_suspend() callback
-
-[Why]
-The displays currently don't get turned off until after other IP blocks
-have been suspended.  However turning off the displays first gives a
-very visible response that the system is on it's way down.
-
-[How]
-Turn off displays in a prepare_suspend() callback instead when possible.
-This will help for suspend and hibernate sequences.
-The shutdown sequence however will not call prepare() so check whether
-the state has been already saved to decide what to do.
-
-Acked-by: Wayne Lin <Wayne.Lin@amd.com>
-Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
-Signed-off-by: Tom Chung <chiahsuan.chung@amd.com>
----
- .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 25 ++++++++++++++++---
- 1 file changed, 21 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 96538dd7c0dde..0eb3d6a486185 100755
---- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-+++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -3121,6 +3121,21 @@ static void hpd_rx_irq_work_suspend(struct amdgpu_display_manager *dm)
- 	}
- }
- 
-+static int dm_prepare_suspend(struct amdgpu_ip_block *ip_block)
-+{
-+	struct amdgpu_device *adev = ip_block->adev;
-+
-+	if (amdgpu_in_reset(adev))
-+		return 0;
-+
-+	WARN_ON(adev->dm.cached_state);
-+	adev->dm.cached_state = drm_atomic_helper_suspend(adev_to_drm(adev));
-+	if (IS_ERR(adev->dm.cached_state))
-+		return PTR_ERR(adev->dm.cached_state);
-+
-+	return 0;
-+}
-+
- static int dm_suspend(struct amdgpu_ip_block *ip_block)
- {
- 	struct amdgpu_device *adev = ip_block->adev;
-@@ -3146,10 +3161,11 @@ static int dm_suspend(struct amdgpu_ip_block *ip_block)
- 		return ret;
- 	}
- 
--	WARN_ON(adev->dm.cached_state);
--	adev->dm.cached_state = drm_atomic_helper_suspend(adev_to_drm(adev));
--	if (IS_ERR(adev->dm.cached_state))
--		return PTR_ERR(adev->dm.cached_state);
-+	if (!adev->dm.cached_state) {
-+		adev->dm.cached_state = drm_atomic_helper_suspend(adev_to_drm(adev));
-+		if (IS_ERR(adev->dm.cached_state))
-+			return PTR_ERR(adev->dm.cached_state);
-+	}
- 
- 	s3_handle_hdmi_cec(adev_to_drm(adev), true);
- 
-@@ -3563,6 +3579,7 @@ static const struct amd_ip_funcs amdgpu_dm_funcs = {
- 	.early_fini = amdgpu_dm_early_fini,
- 	.hw_init = dm_hw_init,
- 	.hw_fini = dm_hw_fini,
-+	.prepare_suspend = dm_prepare_suspend,
- 	.suspend = dm_suspend,
- 	.resume = dm_resume,
- 	.is_idle = dm_is_idle,
--- 
-2.49.0
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
 Date: Fri, 28 Mar 2025 13:54:23 +0100
 Subject: Revert "USB: core: Disable LPM only for non-suspended ports"
@@ -54469,107 +54508,6 @@ index f54198171b6a3..073314512566e 100644
  	}
  }
  
--- 
-2.49.0
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Wed, 23 Apr 2025 19:35:29 +0200
-Subject: [HACK] drm/amd/display: Don't consider vblank passed if currently in
- vertical front porch time
-
-Use VRR logic on SD OLED for hacky frame limitter to work.
-Causes missed flips on other devices potentially (e.g., Z13),
-in KDE and crashes.
-
-Previous commit reasoning:
-
-Changing refresh rates on OLED displays works differently to typical
-LCD panels in that instead of changing the clock, the vertical porch
-is extended significantly for lower rates.
-
-This can mean that the vertical porch can be incredibly large for
-non-base refresh rates eg. 60Hz on a 90Hz display.
-
-This isn't an issue for X11/typical compositors as their present slop
-is 1/2th of the refresh interval so the issue never manifests.
-
-However in Gamescope, the present slop very small and tuned to be
-optimal in real-time to try and reduce display latency significantly.
-This results in us queueing up the atomic commit inside the vertical
-porch region which, due to legacy X11/sync control reasons, means that
-AMDGPU must target the next vblank.
-
-This patch changes that behaviour to make FRR displays match what occurs
-on VRR/Freesync displays where the vertical porch time is not included
-in determining what vblank to target and solves the issue.
-
-This means that smarter compositors can get large input latency
-reductions when using OLED displays at lower than base refresh rates.
-
-For upstreaming this patch, it will need to be considered what the best
-solution is to enable this behaviour from the userspace side.
-Obviously the X11/legacy stuff probably cannot change here -- so we
-either need to enable this new behaviour globally for all DRM atomic
-clients (ie. basically Wayland compositors) or have a
-new DRM_MODE_ATOMIC flag.
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 32 ++++++++++++++++++-
- 1 file changed, 31 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 0eb3d6a486185..dce7b4b8aef61 100755
---- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-+++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4708,6 +4708,36 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
- 	return 0;
- }
- 
-+static const struct dmi_system_id vrr_funny_quirks[] = {
-+	{	/* Valve Steam Deck (Galileo) */
-+		.matches = {
-+		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "Valve"),
-+		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Galileo"),
-+		  DMI_EXACT_MATCH(DMI_PRODUCT_VERSION, "1"),
-+		},
-+	},
-+	{	/* F1 Pro OLED */
-+		.matches = {
-+		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "ONE-NETBOOK"),
-+		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "ONEXPLAYER F1Pro"),
-+		},
-+	},
-+	{	/* F1 Pro Limited Edition */
-+		.matches = {
-+		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "ONE-NETBOOK"),
-+		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "ONEXPLAYER F1 EVA-02"),
-+		},
-+	
-+	},
-+	{	/* Lenovo Legion Go 8APU1 */
-+		.matches = {
-+		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		  DMI_EXACT_MATCH(DMI_PRODUCT_VERSION, "Legion Go 8APU1"),
-+		},
-+	},
-+	{}
-+};
-+
- #define AMDGPU_DM_DEFAULT_MIN_BACKLIGHT 12
- #define AMDGPU_DM_DEFAULT_MAX_BACKLIGHT 255
- #define AMDGPU_DM_MIN_SPREAD ((AMDGPU_DM_DEFAULT_MAX_BACKLIGHT - AMDGPU_DM_DEFAULT_MIN_BACKLIGHT) / 2)
-@@ -9462,7 +9492,7 @@ static void amdgpu_dm_commit_planes(struct drm_atomic_state *state,
- 	}
- 
- 	if (pflip_present) {
--		if (!vrr_active) {
-+		if (!vrr_active && !dmi_check_system(vrr_funny_quirks)) {
- 			/* Use old throttling in non-vrr fixed refresh rate mode
- 			 * to keep flip scheduling based on target vblank counts
- 			 * working in a backwards compatible way, e.g., for
 -- 
 2.49.0
 
