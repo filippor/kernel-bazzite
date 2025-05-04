@@ -161,3 +161,6 @@ CONFIG_OXP_EC=m
 
 # Add AMDXDNA options
 CONFIG_DRM_ACCEL_AMDXDNA=m
+
+# Used for MControlCenter if msi-ec support is missing
+CONFIG_ACPI_EC_DEBUGFS=m
