@@ -53983,14 +53983,14 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 2 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/platform/x86/msi-wmi-platform.c b/drivers/platform/x86/msi-wmi-platform.c
-index a917db0300c06..5018edf345fd6 100644
+index a917db0300c06..b00b2b52e0f2b 100644
 --- a/drivers/platform/x86/msi-wmi-platform.c
 +++ b/drivers/platform/x86/msi-wmi-platform.c
 @@ -675,12 +675,12 @@ static int msi_wmi_platform_write(struct device *dev, enum hwmon_sensor_types ty
  	u8 buffer[32] = { };
  	int ret;
  
-+	guard(mutex)(&data->write_lock);
++	guard(mutex)(&data->wmi_lock);
 +
  	switch (type) {
  	case hwmon_pwm:
