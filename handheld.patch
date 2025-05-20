@@ -1,334 +1,5 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sat, 26 Apr 2025 11:34:26 +0200
-Subject: Revert "platform/x86: msi-wmi-platform: Workaround a ACPI firmware
- bug"
-
-This reverts commit 608e7c0f7f3b66de96116431cb3582d3dac43d9a.
----
- .../wmi/devices/msi-wmi-platform.rst          |  4 -
- drivers/platform/x86/msi-wmi-platform.c       | 91 +++++++------------
- 2 files changed, 32 insertions(+), 63 deletions(-)
-
-diff --git a/Documentation/wmi/devices/msi-wmi-platform.rst b/Documentation/wmi/devices/msi-wmi-platform.rst
-index 73197b31926a5..31a1369428923 100644
---- a/Documentation/wmi/devices/msi-wmi-platform.rst
-+++ b/Documentation/wmi/devices/msi-wmi-platform.rst
-@@ -138,10 +138,6 @@ input data, the meaning of which depends on the subfeature being accessed.
- The output buffer contains a single byte which signals success or failure (``0x00`` on failure)
- and 31 bytes of output data, the meaning if which depends on the subfeature being accessed.
- 
--.. note::
--   The ACPI control method responsible for handling the WMI method calls is not thread-safe.
--   This is a firmware bug that needs to be handled inside the driver itself.
--
- WMI method Get_EC()
- -------------------
- 
-diff --git a/drivers/platform/x86/msi-wmi-platform.c b/drivers/platform/x86/msi-wmi-platform.c
-index dc5e9878cb682..e15681dfca8d7 100644
---- a/drivers/platform/x86/msi-wmi-platform.c
-+++ b/drivers/platform/x86/msi-wmi-platform.c
-@@ -10,7 +10,6 @@
- #include <linux/acpi.h>
- #include <linux/bits.h>
- #include <linux/bitfield.h>
--#include <linux/cleanup.h>
- #include <linux/debugfs.h>
- #include <linux/device.h>
- #include <linux/device/driver.h>
-@@ -18,7 +17,6 @@
- #include <linux/hwmon.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
--#include <linux/mutex.h>
- #include <linux/printk.h>
- #include <linux/rwsem.h>
- #include <linux/types.h>
-@@ -78,13 +76,8 @@ enum msi_wmi_platform_method {
- 	MSI_PLATFORM_GET_WMI		= 0x1d,
- };
- 
--struct msi_wmi_platform_data {
--	struct wmi_device *wdev;
--	struct mutex wmi_lock;	/* Necessary when calling WMI methods */
--};
--
- struct msi_wmi_platform_debugfs_data {
--	struct msi_wmi_platform_data *data;
-+	struct wmi_device *wdev;
- 	enum msi_wmi_platform_method method;
- 	struct rw_semaphore buffer_lock;	/* Protects debugfs buffer */
- 	size_t length;
-@@ -139,9 +132,8 @@ static int msi_wmi_platform_parse_buffer(union acpi_object *obj, u8 *output, siz
- 	return 0;
- }
- 
--static int msi_wmi_platform_query(struct msi_wmi_platform_data *data,
--				  enum msi_wmi_platform_method method, u8 *input,
--				  size_t input_length, u8 *output, size_t output_length)
-+static int msi_wmi_platform_query(struct wmi_device *wdev, enum msi_wmi_platform_method method,
-+				  u8 *input, size_t input_length, u8 *output, size_t output_length)
- {
- 	struct acpi_buffer out = { ACPI_ALLOCATE_BUFFER, NULL };
- 	struct acpi_buffer in = {
-@@ -155,15 +147,9 @@ static int msi_wmi_platform_query(struct msi_wmi_platform_data *data,
- 	if (!input_length || !output_length)
- 		return -EINVAL;
- 
--	/*
--	 * The ACPI control method responsible for handling the WMI method calls
--	 * is not thread-safe. Because of this we have to do the locking ourself.
--	 */
--	scoped_guard(mutex, &data->wmi_lock) {
--		status = wmidev_evaluate_method(data->wdev, 0x0, method, &in, &out);
--		if (ACPI_FAILURE(status))
--			return -EIO;
--	}
-+	status = wmidev_evaluate_method(wdev, 0x0, method, &in, &out);
-+	if (ACPI_FAILURE(status))
-+		return -EIO;
- 
- 	obj = out.pointer;
- 	if (!obj)
-@@ -184,13 +170,13 @@ static umode_t msi_wmi_platform_is_visible(const void *drvdata, enum hwmon_senso
- static int msi_wmi_platform_read(struct device *dev, enum hwmon_sensor_types type, u32 attr,
- 				 int channel, long *val)
- {
--	struct msi_wmi_platform_data *data = dev_get_drvdata(dev);
-+	struct wmi_device *wdev = dev_get_drvdata(dev);
- 	u8 input[32] = { 0 };
- 	u8 output[32];
- 	u16 value;
- 	int ret;
- 
--	ret = msi_wmi_platform_query(data, MSI_PLATFORM_GET_FAN, input, sizeof(input), output,
-+	ret = msi_wmi_platform_query(wdev, MSI_PLATFORM_GET_FAN, input, sizeof(input), output,
- 				     sizeof(output));
- 	if (ret < 0)
- 		return ret;
-@@ -245,7 +231,7 @@ static ssize_t msi_wmi_platform_write(struct file *fp, const char __user *input,
- 		return ret;
- 
- 	down_write(&data->buffer_lock);
--	ret = msi_wmi_platform_query(data->data, data->method, payload, data->length, data->buffer,
-+	ret = msi_wmi_platform_query(data->wdev, data->method, payload, data->length, data->buffer,
- 				     data->length);
- 	up_write(&data->buffer_lock);
- 
-@@ -291,17 +277,17 @@ static void msi_wmi_platform_debugfs_remove(void *data)
- 	debugfs_remove_recursive(dir);
- }
- 
--static void msi_wmi_platform_debugfs_add(struct msi_wmi_platform_data *drvdata, struct dentry *dir,
-+static void msi_wmi_platform_debugfs_add(struct wmi_device *wdev, struct dentry *dir,
- 					 const char *name, enum msi_wmi_platform_method method)
- {
- 	struct msi_wmi_platform_debugfs_data *data;
- 	struct dentry *entry;
- 
--	data = devm_kzalloc(&drvdata->wdev->dev, sizeof(*data), GFP_KERNEL);
-+	data = devm_kzalloc(&wdev->dev, sizeof(*data), GFP_KERNEL);
- 	if (!data)
- 		return;
- 
--	data->data = drvdata;
-+	data->wdev = wdev;
- 	data->method = method;
- 	init_rwsem(&data->buffer_lock);
- 
-@@ -312,82 +298,82 @@ static void msi_wmi_platform_debugfs_add(struct msi_wmi_platform_data *drvdata,
- 
- 	entry = debugfs_create_file(name, 0600, dir, data, &msi_wmi_platform_debugfs_fops);
- 	if (IS_ERR(entry))
--		devm_kfree(&drvdata->wdev->dev, data);
-+		devm_kfree(&wdev->dev, data);
- }
- 
--static void msi_wmi_platform_debugfs_init(struct msi_wmi_platform_data *data)
-+static void msi_wmi_platform_debugfs_init(struct wmi_device *wdev)
- {
- 	struct dentry *dir;
- 	char dir_name[64];
- 	int ret, method;
- 
--	scnprintf(dir_name, ARRAY_SIZE(dir_name), "%s-%s", DRIVER_NAME, dev_name(&data->wdev->dev));
-+	scnprintf(dir_name, ARRAY_SIZE(dir_name), "%s-%s", DRIVER_NAME, dev_name(&wdev->dev));
- 
- 	dir = debugfs_create_dir(dir_name, NULL);
- 	if (IS_ERR(dir))
- 		return;
- 
--	ret = devm_add_action_or_reset(&data->wdev->dev, msi_wmi_platform_debugfs_remove, dir);
-+	ret = devm_add_action_or_reset(&wdev->dev, msi_wmi_platform_debugfs_remove, dir);
- 	if (ret < 0)
- 		return;
- 
- 	for (method = MSI_PLATFORM_GET_PACKAGE; method <= MSI_PLATFORM_GET_WMI; method++)
--		msi_wmi_platform_debugfs_add(data, dir, msi_wmi_platform_debugfs_names[method - 1],
-+		msi_wmi_platform_debugfs_add(wdev, dir, msi_wmi_platform_debugfs_names[method - 1],
- 					     method);
- }
- 
--static int msi_wmi_platform_hwmon_init(struct msi_wmi_platform_data *data)
-+static int msi_wmi_platform_hwmon_init(struct wmi_device *wdev)
- {
- 	struct device *hdev;
- 
--	hdev = devm_hwmon_device_register_with_info(&data->wdev->dev, "msi_wmi_platform", data,
-+	hdev = devm_hwmon_device_register_with_info(&wdev->dev, "msi_wmi_platform", wdev,
- 						    &msi_wmi_platform_chip_info, NULL);
- 
- 	return PTR_ERR_OR_ZERO(hdev);
- }
- 
--static int msi_wmi_platform_ec_init(struct msi_wmi_platform_data *data)
-+static int msi_wmi_platform_ec_init(struct wmi_device *wdev)
- {
- 	u8 input[32] = { 0 };
- 	u8 output[32];
- 	u8 flags;
- 	int ret;
- 
--	ret = msi_wmi_platform_query(data, MSI_PLATFORM_GET_EC, input, sizeof(input), output,
-+	ret = msi_wmi_platform_query(wdev, MSI_PLATFORM_GET_EC, input, sizeof(input), output,
- 				     sizeof(output));
- 	if (ret < 0)
- 		return ret;
- 
- 	flags = output[MSI_PLATFORM_EC_FLAGS_OFFSET];
- 
--	dev_dbg(&data->wdev->dev, "EC RAM version %lu.%lu\n",
-+	dev_dbg(&wdev->dev, "EC RAM version %lu.%lu\n",
- 		FIELD_GET(MSI_PLATFORM_EC_MAJOR_MASK, flags),
- 		FIELD_GET(MSI_PLATFORM_EC_MINOR_MASK, flags));
--	dev_dbg(&data->wdev->dev, "EC firmware version %.28s\n",
-+	dev_dbg(&wdev->dev, "EC firmware version %.28s\n",
- 		&output[MSI_PLATFORM_EC_VERSION_OFFSET]);
- 
- 	if (!(flags & MSI_PLATFORM_EC_IS_TIGERLAKE)) {
- 		if (!force)
- 			return -ENODEV;
- 
--		dev_warn(&data->wdev->dev, "Loading on a non-Tigerlake platform\n");
-+		dev_warn(&wdev->dev, "Loading on a non-Tigerlake platform\n");
- 	}
- 
- 	return 0;
- }
- 
--static int msi_wmi_platform_init(struct msi_wmi_platform_data *data)
-+static int msi_wmi_platform_init(struct wmi_device *wdev)
- {
- 	u8 input[32] = { 0 };
- 	u8 output[32];
- 	int ret;
- 
--	ret = msi_wmi_platform_query(data, MSI_PLATFORM_GET_WMI, input, sizeof(input), output,
-+	ret = msi_wmi_platform_query(wdev, MSI_PLATFORM_GET_WMI, input, sizeof(input), output,
- 				     sizeof(output));
- 	if (ret < 0)
- 		return ret;
- 
--	dev_dbg(&data->wdev->dev, "WMI interface version %u.%u\n",
-+	dev_dbg(&wdev->dev, "WMI interface version %u.%u\n",
- 		output[MSI_PLATFORM_WMI_MAJOR_OFFSET],
- 		output[MSI_PLATFORM_WMI_MINOR_OFFSET]);
- 
-@@ -395,8 +381,7 @@ static int msi_wmi_platform_init(struct msi_wmi_platform_data *data)
- 		if (!force)
- 			return -ENODEV;
- 
--		dev_warn(&data->wdev->dev,
--			 "Loading despite unsupported WMI interface version (%u.%u)\n",
-+		dev_warn(&wdev->dev, "Loading despite unsupported WMI interface version (%u.%u)\n",
- 			 output[MSI_PLATFORM_WMI_MAJOR_OFFSET],
- 			 output[MSI_PLATFORM_WMI_MINOR_OFFSET]);
- 	}
-@@ -406,31 +391,19 @@ static int msi_wmi_platform_init(struct msi_wmi_platform_data *data)
- 
- static int msi_wmi_platform_probe(struct wmi_device *wdev, const void *context)
- {
--	struct msi_wmi_platform_data *data;
- 	int ret;
- 
--	data = devm_kzalloc(&wdev->dev, sizeof(*data), GFP_KERNEL);
--	if (!data)
--		return -ENOMEM;
--
--	data->wdev = wdev;
--	dev_set_drvdata(&wdev->dev, data);
--
--	ret = devm_mutex_init(&wdev->dev, &data->wmi_lock);
--	if (ret < 0)
--		return ret;
--
--	ret = msi_wmi_platform_init(data);
-+	ret = msi_wmi_platform_init(wdev);
- 	if (ret < 0)
- 		return ret;
- 
--	ret = msi_wmi_platform_ec_init(data);
-+	ret = msi_wmi_platform_ec_init(wdev);
- 	if (ret < 0)
- 		return ret;
- 
--	msi_wmi_platform_debugfs_init(data);
-+	msi_wmi_platform_debugfs_init(wdev);
- 
--	return msi_wmi_platform_hwmon_init(data);
-+	return msi_wmi_platform_hwmon_init(wdev);
- }
- 
- static const struct wmi_device_id msi_wmi_platform_id_table[] = {
--- 
-2.49.0
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sat, 26 Apr 2025 11:34:38 +0200
-Subject: Revert "platform/x86: msi-wmi-platform: Rename "data" variable"
-
-This reverts commit 284efa5bc3dae7c8bc136191e44bff66e706c4e0.
----
- drivers/platform/x86/msi-wmi-platform.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/platform/x86/msi-wmi-platform.c b/drivers/platform/x86/msi-wmi-platform.c
-index e15681dfca8d7..9b5c7f8c79b0d 100644
---- a/drivers/platform/x86/msi-wmi-platform.c
-+++ b/drivers/platform/x86/msi-wmi-platform.c
-@@ -173,7 +173,7 @@ static int msi_wmi_platform_read(struct device *dev, enum hwmon_sensor_types typ
- 	struct wmi_device *wdev = dev_get_drvdata(dev);
- 	u8 input[32] = { 0 };
- 	u8 output[32];
--	u16 value;
-+	u16 data;
- 	int ret;
- 
- 	ret = msi_wmi_platform_query(wdev, MSI_PLATFORM_GET_FAN, input, sizeof(input), output,
-@@ -181,11 +181,11 @@ static int msi_wmi_platform_read(struct device *dev, enum hwmon_sensor_types typ
- 	if (ret < 0)
- 		return ret;
- 
--	value = get_unaligned_be16(&output[channel * 2 + 1]);
--	if (!value)
-+	data = get_unaligned_be16(&output[channel * 2 + 1]);
-+	if (!data)
- 		*val = 0;
- 	else
--		*val = 480000 / value;
-+		*val = 480000 / data;
- 
- 	return 0;
- }
--- 
-2.49.0
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
 Date: Fri, 15 Nov 2024 20:54:57 +0100
 Subject: [NA] add dev tools
 
@@ -52254,7 +51925,7 @@ Subject: [BEGIN] MSI Claw TDP controls
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Armin Wolf <W_Armin@gmx.de>
-Date: Mon, 31 Mar 2025 17:42:17 +0200
+Date: Sun, 11 May 2025 22:44:18 +0200
 Subject: platform/x86: msi-wmi-platform: Use input buffer for returning result
 
 Modify msi_wmi_platform_query() to reuse the input buffer for
@@ -52262,36 +51933,40 @@ returning the result of a WMI method call. Using a separate output
 buffer to return the result is unnecessary because the WMI interface
 requires both buffers to have the same length anyway.
 
+Co-developed-by: Antheas Kapenekakis <lkml@antheas.dev>
 Signed-off-by: Armin Wolf <W_Armin@gmx.de>
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- drivers/platform/x86/msi-wmi-platform.c | 61 ++++++++++++-------------
- 1 file changed, 28 insertions(+), 33 deletions(-)
+ drivers/platform/x86/msi-wmi-platform.c | 53 ++++++++++++-------------
+ 1 file changed, 26 insertions(+), 27 deletions(-)
 
 diff --git a/drivers/platform/x86/msi-wmi-platform.c b/drivers/platform/x86/msi-wmi-platform.c
-index 9b5c7f8c79b0d..30f5b63b1edbe 100644
+index dc5e9878cb682..41218a9d6e35d 100644
 --- a/drivers/platform/x86/msi-wmi-platform.c
 +++ b/drivers/platform/x86/msi-wmi-platform.c
-@@ -19,6 +19,7 @@
- #include <linux/module.h>
+@@ -21,6 +21,7 @@
+ #include <linux/mutex.h>
  #include <linux/printk.h>
  #include <linux/rwsem.h>
 +#include <linux/string.h>
  #include <linux/types.h>
  #include <linux/wmi.h>
  
-@@ -133,18 +134,18 @@ static int msi_wmi_platform_parse_buffer(union acpi_object *obj, u8 *output, siz
+@@ -140,19 +141,19 @@ static int msi_wmi_platform_parse_buffer(union acpi_object *obj, u8 *output, siz
  }
  
- static int msi_wmi_platform_query(struct wmi_device *wdev, enum msi_wmi_platform_method method,
--				  u8 *input, size_t input_length, u8 *output, size_t output_length)
-+				  u8 *data, size_t length)
+ static int msi_wmi_platform_query(struct msi_wmi_platform_data *data,
+-				  enum msi_wmi_platform_method method, u8 *input,
+-				  size_t input_length, u8 *output, size_t output_length)
++				  enum msi_wmi_platform_method method, u8 *buffer,
++				  size_t length)
  {
  	struct acpi_buffer out = { ACPI_ALLOCATE_BUFFER, NULL };
  	struct acpi_buffer in = {
 -		.length = input_length,
 -		.pointer = input
 +		.length = length,
-+		.pointer = data
++		.pointer = buffer
  	};
  	union acpi_object *obj;
  	acpi_status status;
@@ -52301,54 +51976,46 @@ index 9b5c7f8c79b0d..30f5b63b1edbe 100644
 +	if (!length)
  		return -EINVAL;
  
- 	status = wmidev_evaluate_method(wdev, 0x0, method, &in, &out);
-@@ -155,7 +156,7 @@ static int msi_wmi_platform_query(struct wmi_device *wdev, enum msi_wmi_platform
+ 	/*
+@@ -169,7 +170,7 @@ static int msi_wmi_platform_query(struct msi_wmi_platform_data *data,
  	if (!obj)
  		return -ENODATA;
  
 -	ret = msi_wmi_platform_parse_buffer(obj, output, output_length);
-+	ret = msi_wmi_platform_parse_buffer(obj, data, length);
++	ret = msi_wmi_platform_parse_buffer(obj, buffer, length);
  	kfree(obj);
  
  	return ret;
-@@ -171,21 +172,19 @@ static int msi_wmi_platform_read(struct device *dev, enum hwmon_sensor_types typ
+@@ -185,17 +186,15 @@ static int msi_wmi_platform_read(struct device *dev, enum hwmon_sensor_types typ
  				 int channel, long *val)
  {
- 	struct wmi_device *wdev = dev_get_drvdata(dev);
+ 	struct msi_wmi_platform_data *data = dev_get_drvdata(dev);
 -	u8 input[32] = { 0 };
 -	u8 output[32];
--	u16 data;
-+	u8 data[32] = { 0 };
-+	u16 value;
++	u8 buffer[32] = { 0 };
+ 	u16 value;
  	int ret;
  
--	ret = msi_wmi_platform_query(wdev, MSI_PLATFORM_GET_FAN, input, sizeof(input), output,
+-	ret = msi_wmi_platform_query(data, MSI_PLATFORM_GET_FAN, input, sizeof(input), output,
 -				     sizeof(output));
-+	ret = msi_wmi_platform_query(wdev, MSI_PLATFORM_GET_FAN, data, sizeof(data));
++	ret = msi_wmi_platform_query(data, MSI_PLATFORM_GET_FAN, buf, sizeof(buf));
  	if (ret < 0)
  		return ret;
  
--	data = get_unaligned_be16(&output[channel * 2 + 1]);
--	if (!data)
-+	value = get_unaligned_be16(&data[channel * 2 + 1]);
-+	if (!value)
+-	value = get_unaligned_be16(&output[channel * 2 + 1]);
++	value = get_unaligned_be16(&buffer[channel * 2 + 1]);
+ 	if (!value)
  		*val = 0;
  	else
--		*val = 480000 / data;
-+		*val = 480000 / value;
- 
- 	return 0;
- }
-@@ -230,14 +229,14 @@ static ssize_t msi_wmi_platform_write(struct file *fp, const char __user *input,
- 	if (ret < 0)
+@@ -245,13 +244,17 @@ static ssize_t msi_wmi_platform_write(struct file *fp, const char __user *input,
  		return ret;
  
--	down_write(&data->buffer_lock);
--	ret = msi_wmi_platform_query(data->wdev, data->method, payload, data->length, data->buffer,
--				     data->length);
--	up_write(&data->buffer_lock);
--
-+	ret = msi_wmi_platform_query(data->wdev, data->method, payload, data->length);
+ 	down_write(&data->buffer_lock);
+-	ret = msi_wmi_platform_query(data->data, data->method, payload, data->length, data->buffer,
++	ret = msi_wmi_platform_query(data->data, data->method, data->buffer,
+ 				     data->length);
+ 	up_write(&data->buffer_lock);
+ 
  	if (ret < 0)
  		return ret;
  
@@ -52359,65 +52026,66 @@ index 9b5c7f8c79b0d..30f5b63b1edbe 100644
  	return length;
  }
  
-@@ -334,23 +333,21 @@ static int msi_wmi_platform_hwmon_init(struct wmi_device *wdev)
+@@ -348,23 +351,21 @@ static int msi_wmi_platform_hwmon_init(struct msi_wmi_platform_data *data)
  
- static int msi_wmi_platform_ec_init(struct wmi_device *wdev)
+ static int msi_wmi_platform_ec_init(struct msi_wmi_platform_data *data)
  {
 -	u8 input[32] = { 0 };
 -	u8 output[32];
-+	u8 data[32] = { 0 };
++	u8 buffer[32] = { 0 };
  	u8 flags;
  	int ret;
  
--	ret = msi_wmi_platform_query(wdev, MSI_PLATFORM_GET_EC, input, sizeof(input), output,
+-	ret = msi_wmi_platform_query(data, MSI_PLATFORM_GET_EC, input, sizeof(input), output,
 -				     sizeof(output));
-+	ret = msi_wmi_platform_query(wdev, MSI_PLATFORM_GET_EC, data, sizeof(data));
++	ret = msi_wmi_platform_query(data, MSI_PLATFORM_GET_EC, buffer, sizeof(buffer));
  	if (ret < 0)
  		return ret;
  
 -	flags = output[MSI_PLATFORM_EC_FLAGS_OFFSET];
-+	flags = data[MSI_PLATFORM_EC_FLAGS_OFFSET];
++	flags = buffer[MSI_PLATFORM_EC_FLAGS_OFFSET];
  
- 	dev_dbg(&wdev->dev, "EC RAM version %lu.%lu\n",
+ 	dev_dbg(&data->wdev->dev, "EC RAM version %lu.%lu\n",
  		FIELD_GET(MSI_PLATFORM_EC_MAJOR_MASK, flags),
  		FIELD_GET(MSI_PLATFORM_EC_MINOR_MASK, flags));
- 	dev_dbg(&wdev->dev, "EC firmware version %.28s\n",
+ 	dev_dbg(&data->wdev->dev, "EC firmware version %.28s\n",
 -		&output[MSI_PLATFORM_EC_VERSION_OFFSET]);
-+		&data[MSI_PLATFORM_EC_VERSION_OFFSET]);
++		&buffer[MSI_PLATFORM_EC_VERSION_OFFSET]);
  
  	if (!(flags & MSI_PLATFORM_EC_IS_TIGERLAKE)) {
  		if (!force)
-@@ -364,26 +361,24 @@ static int msi_wmi_platform_ec_init(struct wmi_device *wdev)
+@@ -378,27 +379,25 @@ static int msi_wmi_platform_ec_init(struct msi_wmi_platform_data *data)
  
- static int msi_wmi_platform_init(struct wmi_device *wdev)
+ static int msi_wmi_platform_init(struct msi_wmi_platform_data *data)
  {
 -	u8 input[32] = { 0 };
 -	u8 output[32];
-+	u8 data[32] = { 0 };
++	u8 buffer[32] = { 0 };
  	int ret;
  
--	ret = msi_wmi_platform_query(wdev, MSI_PLATFORM_GET_WMI, input, sizeof(input), output,
+-	ret = msi_wmi_platform_query(data, MSI_PLATFORM_GET_WMI, input, sizeof(input), output,
 -				     sizeof(output));
-+	ret = msi_wmi_platform_query(wdev, MSI_PLATFORM_GET_WMI, data, sizeof(data));
++	ret = msi_wmi_platform_query(data, MSI_PLATFORM_GET_WMI, buffer, sizeof(buffer));
  	if (ret < 0)
  		return ret;
  
- 	dev_dbg(&wdev->dev, "WMI interface version %u.%u\n",
+ 	dev_dbg(&data->wdev->dev, "WMI interface version %u.%u\n",
 -		output[MSI_PLATFORM_WMI_MAJOR_OFFSET],
 -		output[MSI_PLATFORM_WMI_MINOR_OFFSET]);
-+		data[MSI_PLATFORM_WMI_MAJOR_OFFSET],
-+		data[MSI_PLATFORM_WMI_MINOR_OFFSET]);
++		buffer[MSI_PLATFORM_WMI_MAJOR_OFFSET],
++		buffer[MSI_PLATFORM_WMI_MINOR_OFFSET]);
  
 -	if (output[MSI_PLATFORM_WMI_MAJOR_OFFSET] != MSI_WMI_PLATFORM_INTERFACE_VERSION) {
-+	if (data[MSI_PLATFORM_WMI_MAJOR_OFFSET] != MSI_WMI_PLATFORM_INTERFACE_VERSION) {
++	if (buffer[MSI_PLATFORM_WMI_MAJOR_OFFSET] != MSI_WMI_PLATFORM_INTERFACE_VERSION) {
  		if (!force)
  			return -ENODEV;
  
- 		dev_warn(&wdev->dev, "Loading despite unsupported WMI interface version (%u.%u)\n",
+ 		dev_warn(&data->wdev->dev,
+ 			 "Loading despite unsupported WMI interface version (%u.%u)\n",
 -			 output[MSI_PLATFORM_WMI_MAJOR_OFFSET],
 -			 output[MSI_PLATFORM_WMI_MINOR_OFFSET]);
-+			 data[MSI_PLATFORM_WMI_MAJOR_OFFSET],
-+			 data[MSI_PLATFORM_WMI_MINOR_OFFSET]);
++			 buffer[MSI_PLATFORM_WMI_MAJOR_OFFSET],
++			 buffer[MSI_PLATFORM_WMI_MINOR_OFFSET]);
  	}
  
  	return 0;
@@ -52426,8 +52094,190 @@ index 9b5c7f8c79b0d..30f5b63b1edbe 100644
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sun, 11 May 2025 22:44:19 +0200
+Subject: platform/x86: msi-wmi-platform: Add unlocked msi_wmi_platform_query
+
+This driver requires to be able to handle transactions that perform
+multiple WMI actions at a time. Therefore, it needs to be able to
+lock the wmi_lock mutex for multiple operations.
+
+Add msi_wmi_platform_query_unlocked() to allow the caller to
+perform the WMI query without locking the wmi_lock mutex, by
+renaming the existing function and adding a new one that only
+locks the mutex.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/platform/x86/msi-wmi-platform.c | 27 ++++++++++++++++---------
+ 1 file changed, 17 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/platform/x86/msi-wmi-platform.c b/drivers/platform/x86/msi-wmi-platform.c
+index 41218a9d6e35d..f0d1b8e1a2fec 100644
+--- a/drivers/platform/x86/msi-wmi-platform.c
++++ b/drivers/platform/x86/msi-wmi-platform.c
+@@ -140,7 +140,7 @@ static int msi_wmi_platform_parse_buffer(union acpi_object *obj, u8 *output, siz
+ 	return 0;
+ }
+ 
+-static int msi_wmi_platform_query(struct msi_wmi_platform_data *data,
++static int msi_wmi_platform_query_unlocked(struct msi_wmi_platform_data *data,
+ 				  enum msi_wmi_platform_method method, u8 *buffer,
+ 				  size_t length)
+ {
+@@ -156,15 +156,9 @@ static int msi_wmi_platform_query(struct msi_wmi_platform_data *data,
+ 	if (!length)
+ 		return -EINVAL;
+ 
+-	/*
+-	 * The ACPI control method responsible for handling the WMI method calls
+-	 * is not thread-safe. Because of this we have to do the locking ourself.
+-	 */
+-	scoped_guard(mutex, &data->wmi_lock) {
+-		status = wmidev_evaluate_method(data->wdev, 0x0, method, &in, &out);
+-		if (ACPI_FAILURE(status))
+-			return -EIO;
+-	}
++	status = wmidev_evaluate_method(data->wdev, 0x0, method, &in, &out);
++	if (ACPI_FAILURE(status))
++		return -EIO;
+ 
+ 	obj = out.pointer;
+ 	if (!obj)
+@@ -176,6 +170,19 @@ static int msi_wmi_platform_query(struct msi_wmi_platform_data *data,
+ 	return ret;
+ }
+ 
++static int msi_wmi_platform_query(struct msi_wmi_platform_data *data,
++				  enum msi_wmi_platform_method method, u8 *buffer,
++				  size_t length)
++{
++	/*
++	 * The ACPI control method responsible for handling the WMI method calls
++	 * is not thread-safe. Because of this we have to do the locking ourself.
++	 */
++	scoped_guard(mutex, &data->wmi_lock) {
++		return msi_wmi_platform_query_unlocked(data, method, buffer, length);
++	}
++}
++
+ static umode_t msi_wmi_platform_is_visible(const void *drvdata, enum hwmon_sensor_types type,
+ 					   u32 attr, int channel)
+ {
+-- 
+2.49.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sun, 11 May 2025 22:44:20 +0200
+Subject: platform/x86: msi-wmi-platform: Add quirk system
+
+MSI uses the WMI interface as a passthrough for writes to the EC
+and uses a board name match and a quirk table from userspace on
+Windows. Therefore, there is no auto-detection functionality and
+we have to fallback to a quirk table.
+
+Introduce it here, prior to starting to add features to it.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/platform/x86/msi-wmi-platform.c | 45 +++++++++++++++++++++++++
+ 1 file changed, 45 insertions(+)
+
+diff --git a/drivers/platform/x86/msi-wmi-platform.c b/drivers/platform/x86/msi-wmi-platform.c
+index f0d1b8e1a2fec..408d42ab19e20 100644
+--- a/drivers/platform/x86/msi-wmi-platform.c
++++ b/drivers/platform/x86/msi-wmi-platform.c
+@@ -14,6 +14,7 @@
+ #include <linux/debugfs.h>
+ #include <linux/device.h>
+ #include <linux/device/driver.h>
++#include <linux/dmi.h>
+ #include <linux/errno.h>
+ #include <linux/hwmon.h>
+ #include <linux/kernel.h>
+@@ -79,8 +80,12 @@ enum msi_wmi_platform_method {
+ 	MSI_PLATFORM_GET_WMI		= 0x1d,
+ };
+ 
++struct msi_wmi_platform_quirk {
++};
++
+ struct msi_wmi_platform_data {
+ 	struct wmi_device *wdev;
++	struct msi_wmi_platform_quirk *quirks;
+ 	struct mutex wmi_lock;	/* Necessary when calling WMI methods */
+ };
+ 
+@@ -124,6 +129,39 @@ static const char * const msi_wmi_platform_debugfs_names[] = {
+ 	"get_wmi"
+ };
+ 
++static struct msi_wmi_platform_quirk quirk_default = {};
++static struct msi_wmi_platform_quirk quirk_gen1 = {
++};
++static struct msi_wmi_platform_quirk quirk_gen2 = {
++};
++
++static const struct dmi_system_id msi_quirks[] = {
++	{
++		.ident = "MSI Claw (gen 1)",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International Co., Ltd."),
++			DMI_MATCH(DMI_BOARD_NAME, "MS-1T41"),
++		},
++		.driver_data = &quirk_gen1,
++	},
++	{
++		.ident = "MSI Claw AI+ 7",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International Co., Ltd."),
++			DMI_MATCH(DMI_BOARD_NAME, "MS-1T42"),
++		},
++		.driver_data = &quirk_gen2,
++	},
++	{
++		.ident = "MSI Claw AI+ 8",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International Co., Ltd."),
++			DMI_MATCH(DMI_BOARD_NAME, "MS-1T52"),
++		},
++		.driver_data = &quirk_gen2,
++	},
++};
++
+ static int msi_wmi_platform_parse_buffer(union acpi_object *obj, u8 *output, size_t length)
+ {
+ 	if (obj->type != ACPI_TYPE_BUFFER)
+@@ -413,6 +451,7 @@ static int msi_wmi_platform_init(struct msi_wmi_platform_data *data)
+ static int msi_wmi_platform_probe(struct wmi_device *wdev, const void *context)
+ {
+ 	struct msi_wmi_platform_data *data;
++	const struct dmi_system_id *dmi_id;
+ 	int ret;
+ 
+ 	data = devm_kzalloc(&wdev->dev, sizeof(*data), GFP_KERNEL);
+@@ -422,6 +461,12 @@ static int msi_wmi_platform_probe(struct wmi_device *wdev, const void *context)
+ 	data->wdev = wdev;
+ 	dev_set_drvdata(&wdev->dev, data);
+ 
++	dmi_id = dmi_first_match(msi_quirks);
++	if (dmi_id)
++		data->quirks = dmi_id->driver_data;
++	else
++		data->quirks = &quirk_default;
++
+ 	ret = devm_mutex_init(&wdev->dev, &data->wmi_lock);
+ 	if (ret < 0)
+ 		return ret;
+-- 
+2.49.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Armin Wolf <W_Armin@gmx.de>
-Date: Mon, 31 Mar 2025 17:28:39 +0200
+Date: Sun, 11 May 2025 22:44:21 +0200
 Subject: platform/x86: msi-wmi-platform: Add support for fan control
 
 Adds fan curve support for the MSI platform. These devices contain
@@ -52439,14 +52289,14 @@ Signed-off-by: Armin Wolf <W_Armin@gmx.de>
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
  .../wmi/devices/msi-wmi-platform.rst          |  26 ++
- drivers/platform/x86/msi-wmi-platform.c       | 358 ++++++++++++++++--
- 2 files changed, 359 insertions(+), 25 deletions(-)
+ drivers/platform/x86/msi-wmi-platform.c       | 328 +++++++++++++++++-
+ 2 files changed, 337 insertions(+), 17 deletions(-)
 
 diff --git a/Documentation/wmi/devices/msi-wmi-platform.rst b/Documentation/wmi/devices/msi-wmi-platform.rst
-index 31a1369428923..ac5f1c72da900 100644
+index 73197b31926a5..704bfdac5203e 100644
 --- a/Documentation/wmi/devices/msi-wmi-platform.rst
 +++ b/Documentation/wmi/devices/msi-wmi-platform.rst
-@@ -165,6 +165,32 @@ The fan RPM readings can be calculated with the following formula:
+@@ -169,6 +169,32 @@ The fan RPM readings can be calculated with the following formula:
  
  If the fan speed reading is zero, then the fan RPM is zero too.
  
@@ -52480,12 +52330,12 @@ index 31a1369428923..ac5f1c72da900 100644
  --------------------
  
 diff --git a/drivers/platform/x86/msi-wmi-platform.c b/drivers/platform/x86/msi-wmi-platform.c
-index 30f5b63b1edbe..d28d01c9dd1b7 100644
+index 408d42ab19e20..9ac3c6f1b3f1d 100644
 --- a/drivers/platform/x86/msi-wmi-platform.c
 +++ b/drivers/platform/x86/msi-wmi-platform.c
-@@ -14,12 +14,18 @@
- #include <linux/device.h>
+@@ -16,13 +16,18 @@
  #include <linux/device/driver.h>
+ #include <linux/dmi.h>
  #include <linux/errno.h>
 +#include <linux/fixp-arith.h>
  #include <linux/hwmon.h>
@@ -52494,7 +52344,7 @@ index 30f5b63b1edbe..d28d01c9dd1b7 100644
 +#include <linux/kstrtox.h>
 +#include <linux/minmax.h>
  #include <linux/module.h>
-+#include <linux/mutex.h>
+ #include <linux/mutex.h>
  #include <linux/printk.h>
  #include <linux/rwsem.h>
  #include <linux/string.h>
@@ -52502,18 +52352,19 @@ index 30f5b63b1edbe..d28d01c9dd1b7 100644
  #include <linux/types.h>
  #include <linux/wmi.h>
  
-@@ -31,9 +37,7 @@
+@@ -34,9 +39,11 @@
  
  #define MSI_WMI_PLATFORM_INTERFACE_VERSION	2
  
--#define MSI_PLATFORM_WMI_MAJOR_OFFSET	1
--#define MSI_PLATFORM_WMI_MINOR_OFFSET	2
--
++/* Get_WMI() WMI method */
+ #define MSI_PLATFORM_WMI_MAJOR_OFFSET	1
+ #define MSI_PLATFORM_WMI_MINOR_OFFSET	2
+ 
 +/* Get_EC() and Set_EC() WMI methods */
  #define MSI_PLATFORM_EC_FLAGS_OFFSET	1
  #define MSI_PLATFORM_EC_MINOR_MASK	GENMASK(3, 0)
  #define MSI_PLATFORM_EC_MAJOR_MASK	GENMASK(5, 4)
-@@ -41,6 +45,22 @@
+@@ -44,6 +51,18 @@
  #define MSI_PLATFORM_EC_IS_TIGERLAKE	BIT(7)
  #define MSI_PLATFORM_EC_VERSION_OFFSET	2
  
@@ -52529,27 +52380,11 @@ index 30f5b63b1edbe..d28d01c9dd1b7 100644
 +#define MSI_PLATFORM_AP_FAN_FLAGS_OFFSET	1
 +#define MSI_PLATFORM_AP_ENABLE_FAN_TABLES	BIT(7)
 +
-+/* Get_WMI() WMI method */
-+#define MSI_PLATFORM_WMI_MAJOR_OFFSET		1
-+#define MSI_PLATFORM_WMI_MINOR_OFFSET		2
-+
  static bool force;
  module_param_unsafe(force, bool, 0);
  MODULE_PARM_DESC(force, "Force loading without checking for supported WMI interface versions");
-@@ -77,6 +97,11 @@ enum msi_wmi_platform_method {
- 	MSI_PLATFORM_GET_WMI		= 0x1d,
- };
- 
-+struct msi_wmi_platform_data {
-+	struct wmi_device *wdev;
-+	struct mutex write_lock;
-+};
-+
- struct msi_wmi_platform_debugfs_data {
- 	struct wmi_device *wdev;
- 	enum msi_wmi_platform_method method;
-@@ -162,36 +187,302 @@ static int msi_wmi_platform_query(struct wmi_device *wdev, enum msi_wmi_platform
- 	return ret;
+@@ -221,9 +240,201 @@ static int msi_wmi_platform_query(struct msi_wmi_platform_data *data,
+ 	}
  }
  
 +static ssize_t msi_wmi_platform_fan_table_show(struct device *dev, struct device_attribute *attr,
@@ -52561,7 +52396,7 @@ index 30f5b63b1edbe..d28d01c9dd1b7 100644
 +	u8 fan_percent;
 +	int ret;
 +
-+	ret = msi_wmi_platform_query(data->wdev, MSI_PLATFORM_GET_FAN, buffer, sizeof(buffer));
++	ret = msi_wmi_platform_query(data, MSI_PLATFORM_GET_FAN, buffer, sizeof(buffer));
 +	if (ret < 0)
 +		return ret;
 +
@@ -52587,16 +52422,18 @@ index 30f5b63b1edbe..d28d01c9dd1b7 100644
 +
 +	speed = clamp_val(speed, 0, 255);
 +
-+	guard(mutex)(&data->write_lock);
++	guard(mutex)(&data->wmi_lock);
 +
-+	ret = msi_wmi_platform_query(data->wdev, MSI_PLATFORM_GET_FAN, buffer, sizeof(buffer));
++	ret = msi_wmi_platform_query_unlocked(data, MSI_PLATFORM_GET_FAN,
++					      buffer, sizeof(buffer));
 +	if (ret < 0)
 +		return ret;
 +
 +	buffer[0] = sattr->nr;
 +	buffer[sattr->index + 1] = fixp_linear_interpolate(0, 0, 255, 100, speed);
 +
-+	ret = msi_wmi_platform_query(data->wdev, MSI_PLATFORM_SET_FAN, buffer, sizeof(buffer));
++	ret = msi_wmi_platform_query_unlocked(data, MSI_PLATFORM_SET_FAN,
++					      buffer, sizeof(buffer));
 +	if (ret < 0)
 +		return ret;
 +
@@ -52612,7 +52449,7 @@ index 30f5b63b1edbe..d28d01c9dd1b7 100644
 +	u8 temp_c;
 +	int ret;
 +
-+	ret = msi_wmi_platform_query(data->wdev, MSI_PLATFORM_GET_TEMPERATURE,
++	ret = msi_wmi_platform_query(data, MSI_PLATFORM_GET_TEMPERATURE,
 +				     buffer, sizeof(buffer));
 +	if (ret < 0)
 +		return ret;
@@ -52637,18 +52474,18 @@ index 30f5b63b1edbe..d28d01c9dd1b7 100644
 +
 +	temp_c = clamp_val(temp_c, 0, 255);
 +
-+	guard(mutex)(&data->write_lock);
++	guard(mutex)(&data->wmi_lock);
 +
-+	ret = msi_wmi_platform_query(data->wdev, MSI_PLATFORM_GET_TEMPERATURE,
-+				     buffer, sizeof(buffer));
++	ret = msi_wmi_platform_query_unlocked(data, MSI_PLATFORM_GET_TEMPERATURE,
++					      buffer, sizeof(buffer));
 +	if (ret < 0)
 +		return ret;
 +
 +	buffer[0] = sattr->nr;
 +	buffer[sattr->index + 1] = temp_c;
 +
-+	ret = msi_wmi_platform_query(data->wdev, MSI_PLATFORM_SET_TEMPERATURE,
-+				     buffer, sizeof(buffer));
++	ret = msi_wmi_platform_query_unlocked(data, MSI_PLATFORM_SET_TEMPERATURE,
++					      buffer, sizeof(buffer));
 +	if (ret < 0)
 +		return ret;
 +
@@ -52748,18 +52585,14 @@ index 30f5b63b1edbe..d28d01c9dd1b7 100644
  	return 0444;
  }
  
- static int msi_wmi_platform_read(struct device *dev, enum hwmon_sensor_types type, u32 attr,
- 				 int channel, long *val)
- {
--	struct wmi_device *wdev = dev_get_drvdata(dev);
--	u8 data[32] = { 0 };
-+	struct msi_wmi_platform_data *data = dev_get_drvdata(dev);
-+	u8 buffer[32] = { };
+@@ -233,24 +444,102 @@ static int msi_wmi_platform_read(struct device *dev, enum hwmon_sensor_types typ
+ 	struct msi_wmi_platform_data *data = dev_get_drvdata(dev);
+ 	u8 buffer[32] = { 0 };
  	u16 value;
 +	u8 flags;
  	int ret;
  
--	ret = msi_wmi_platform_query(wdev, MSI_PLATFORM_GET_FAN, data, sizeof(data));
+-	ret = msi_wmi_platform_query(data, MSI_PLATFORM_GET_FAN, buf, sizeof(buf));
 -	if (ret < 0)
 -		return ret;
 +	switch (type) {
@@ -52767,7 +52600,7 @@ index 30f5b63b1edbe..d28d01c9dd1b7 100644
 +		switch (attr) {
 +		case hwmon_fan_input:
 +			buffer[0] = MSI_PLATFORM_FAN_SUBFEATURE_FAN_SPEED;
-+			ret = msi_wmi_platform_query(data->wdev, MSI_PLATFORM_GET_FAN, buffer,
++			ret = msi_wmi_platform_query(data, MSI_PLATFORM_GET_FAN, buffer,
 +						     sizeof(buffer));
 +			if (ret < 0)
 +				return ret;
@@ -52786,14 +52619,14 @@ index 30f5b63b1edbe..d28d01c9dd1b7 100644
 +		switch (attr) {
 +		case hwmon_pwm_enable:
 +			buffer[0] = MSI_PLATFORM_AP_SUBFEATURE_FAN_MODE;
-+			ret = msi_wmi_platform_query(data->wdev, MSI_PLATFORM_GET_AP, buffer,
++			ret = msi_wmi_platform_query(data, MSI_PLATFORM_GET_AP, buffer,
 +						     sizeof(buffer));
 +			if (ret < 0)
 +				return ret;
 +
 +			flags = buffer[MSI_PLATFORM_AP_FAN_FLAGS_OFFSET];
 +			if (flags & MSI_PLATFORM_AP_ENABLE_FAN_TABLES)
-+				*val = 1;	// TODO: Do fan tables count as "manual fan control"?
++				*val = 1;
 +			else
 +				*val = 2;
 +
@@ -52806,7 +52639,7 @@ index 30f5b63b1edbe..d28d01c9dd1b7 100644
 +	}
 +}
  
--	value = get_unaligned_be16(&data[channel * 2 + 1]);
+-	value = get_unaligned_be16(&buffer[channel * 2 + 1]);
 -	if (!value)
 -		*val = 0;
 -	else
@@ -52823,11 +52656,12 @@ index 30f5b63b1edbe..d28d01c9dd1b7 100644
 +	case hwmon_pwm:
 +		switch (attr) {
 +		case hwmon_pwm_enable:
-+			guard(mutex)(&data->write_lock);
++			guard(mutex)(&data->wmi_lock);
 +
 +			buffer[0] = MSI_PLATFORM_AP_SUBFEATURE_FAN_MODE;
-+			ret = msi_wmi_platform_query(data->wdev, MSI_PLATFORM_GET_AP, buffer,
-+						     sizeof(buffer));
++			ret = msi_wmi_platform_query_unlocked(
++				data, MSI_PLATFORM_GET_AP, buffer,
++				sizeof(buffer));
 +			if (ret < 0)
 +				return ret;
 +
@@ -52845,8 +52679,9 @@ index 30f5b63b1edbe..d28d01c9dd1b7 100644
 +				return -EINVAL;
 +			}
 +
-+			return msi_wmi_platform_query(data->wdev, MSI_PLATFORM_SET_AP, buffer,
-+						      sizeof(buffer));
++			return msi_wmi_platform_query_unlocked(
++				data, MSI_PLATFORM_SET_AP, buffer,
++				sizeof(buffer));
 +		default:
 +			return -EOPNOTSUPP;
 +		}
@@ -52862,7 +52697,7 @@ index 30f5b63b1edbe..d28d01c9dd1b7 100644
  };
  
  static const struct hwmon_channel_info * const msi_wmi_platform_info[] = {
-@@ -201,6 +492,10 @@ static const struct hwmon_channel_info * const msi_wmi_platform_info[] = {
+@@ -260,6 +549,10 @@ static const struct hwmon_channel_info * const msi_wmi_platform_info[] = {
  			   HWMON_F_INPUT,
  			   HWMON_F_INPUT
  			   ),
@@ -52873,7 +52708,7 @@ index 30f5b63b1edbe..d28d01c9dd1b7 100644
  	NULL
  };
  
-@@ -209,8 +504,8 @@ static const struct hwmon_chip_info msi_wmi_platform_chip_info = {
+@@ -268,8 +561,8 @@ static const struct hwmon_chip_info msi_wmi_platform_chip_info = {
  	.info = msi_wmi_platform_info,
  };
  
@@ -52884,7 +52719,7 @@ index 30f5b63b1edbe..d28d01c9dd1b7 100644
  {
  	struct seq_file *seq = fp->private_data;
  	struct msi_wmi_platform_debugfs_data *data = seq->private;
-@@ -240,7 +535,7 @@ static ssize_t msi_wmi_platform_write(struct file *fp, const char __user *input,
+@@ -303,7 +596,7 @@ static ssize_t msi_wmi_platform_write(struct file *fp, const char __user *input,
  	return length;
  }
  
@@ -52893,7 +52728,7 @@ index 30f5b63b1edbe..d28d01c9dd1b7 100644
  {
  	struct msi_wmi_platform_debugfs_data *data = seq->private;
  	int ret;
-@@ -252,19 +547,19 @@ static int msi_wmi_platform_show(struct seq_file *seq, void *p)
+@@ -315,19 +608,19 @@ static int msi_wmi_platform_show(struct seq_file *seq, void *p)
  	return ret;
  }
  
@@ -52917,167 +52752,23 @@ index 30f5b63b1edbe..d28d01c9dd1b7 100644
  	.llseek = seq_lseek,
  	.release = single_release,
  };
-@@ -321,12 +616,13 @@ static void msi_wmi_platform_debugfs_init(struct wmi_device *wdev)
- 					     method);
- }
- 
--static int msi_wmi_platform_hwmon_init(struct wmi_device *wdev)
-+static int msi_wmi_platform_hwmon_init(struct msi_wmi_platform_data *data)
- {
+@@ -389,7 +682,8 @@ static int msi_wmi_platform_hwmon_init(struct msi_wmi_platform_data *data)
  	struct device *hdev;
  
--	hdev = devm_hwmon_device_register_with_info(&wdev->dev, "msi_wmi_platform", wdev,
+ 	hdev = devm_hwmon_device_register_with_info(&data->wdev->dev, "msi_wmi_platform", data,
 -						    &msi_wmi_platform_chip_info, NULL);
-+	hdev = devm_hwmon_device_register_with_info(&data->wdev->dev, "msi_wmi_platform", data,
 +						    &msi_wmi_platform_chip_info,
 +						    msi_wmi_platform_hwmon_groups);
  
  	return PTR_ERR_OR_ZERO(hdev);
  }
-@@ -386,6 +682,7 @@ static int msi_wmi_platform_init(struct wmi_device *wdev)
- 
- static int msi_wmi_platform_probe(struct wmi_device *wdev, const void *context)
- {
-+	struct msi_wmi_platform_data *data;
- 	int ret;
- 
- 	ret = msi_wmi_platform_init(wdev);
-@@ -396,9 +693,20 @@ static int msi_wmi_platform_probe(struct wmi_device *wdev, const void *context)
- 	if (ret < 0)
- 		return ret;
- 
-+	data = devm_kzalloc(&wdev->dev, sizeof(*data), GFP_KERNEL);
-+	if (!data)
-+		return -ENODATA;
-+
-+	data->wdev = wdev;
-+	dev_set_drvdata(&wdev->dev, data);
-+
-+	ret = devm_mutex_init(&wdev->dev, &data->write_lock);
-+	if (ret < 0)
-+		return ret;
-+
- 	msi_wmi_platform_debugfs_init(wdev);
- 
--	return msi_wmi_platform_hwmon_init(wdev);
-+	return msi_wmi_platform_hwmon_init(data);
- }
- 
- static const struct wmi_device_id msi_wmi_platform_id_table[] = {
 -- 
 2.49.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Fri, 4 Apr 2025 11:07:54 +0200
-Subject: platform/x86: msi-wmi-platform: Add quirk system
-
-MSI uses the WMI interface as a passthrough for writes to the EC
-and uses a board name match and a quirk table from userspace on
-Windows. Therefore, there is no auto-detection functionality and
-we have to fallback to a quirk table.
-
-Introduce it here, prior to starting to add features to it.
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- drivers/platform/x86/msi-wmi-platform.c | 45 +++++++++++++++++++++++++
- 1 file changed, 45 insertions(+)
-
-diff --git a/drivers/platform/x86/msi-wmi-platform.c b/drivers/platform/x86/msi-wmi-platform.c
-index d28d01c9dd1b7..df1c3b91ca3fc 100644
---- a/drivers/platform/x86/msi-wmi-platform.c
-+++ b/drivers/platform/x86/msi-wmi-platform.c
-@@ -13,6 +13,7 @@
- #include <linux/debugfs.h>
- #include <linux/device.h>
- #include <linux/device/driver.h>
-+#include <linux/dmi.h>
- #include <linux/errno.h>
- #include <linux/fixp-arith.h>
- #include <linux/hwmon.h>
-@@ -97,8 +98,12 @@ enum msi_wmi_platform_method {
- 	MSI_PLATFORM_GET_WMI		= 0x1d,
- };
- 
-+struct msi_wmi_platform_quirk {
-+};
-+
- struct msi_wmi_platform_data {
- 	struct wmi_device *wdev;
-+	struct msi_wmi_platform_quirk *quirks;
- 	struct mutex write_lock;
- };
- 
-@@ -142,6 +147,39 @@ static const char * const msi_wmi_platform_debugfs_names[] = {
- 	"get_wmi"
- };
- 
-+static struct msi_wmi_platform_quirk quirk_default = {};
-+static struct msi_wmi_platform_quirk quirk_gen1 = {
-+};
-+static struct msi_wmi_platform_quirk quirk_gen2 = {
-+};
-+
-+static const struct dmi_system_id msi_quirks[] = {
-+	{
-+		.ident = "MSI Claw (gen 1)",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International Co., Ltd."),
-+			DMI_MATCH(DMI_BOARD_NAME, "MS-1T41"),
-+		},
-+		.driver_data = &quirk_gen1,
-+	},
-+	{
-+		.ident = "MSI Claw AI+ 7",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International Co., Ltd."),
-+			DMI_MATCH(DMI_BOARD_NAME, "MS-1T42"),
-+		},
-+		.driver_data = &quirk_gen2,
-+	},
-+	{
-+		.ident = "MSI Claw AI+ 8",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International Co., Ltd."),
-+			DMI_MATCH(DMI_BOARD_NAME, "MS-1T52"),
-+		},
-+		.driver_data = &quirk_gen2,
-+	},
-+};
-+
- static int msi_wmi_platform_parse_buffer(union acpi_object *obj, u8 *output, size_t length)
- {
- 	if (obj->type != ACPI_TYPE_BUFFER)
-@@ -683,6 +721,7 @@ static int msi_wmi_platform_init(struct wmi_device *wdev)
- static int msi_wmi_platform_probe(struct wmi_device *wdev, const void *context)
- {
- 	struct msi_wmi_platform_data *data;
-+	const struct dmi_system_id *dmi_id;
- 	int ret;
- 
- 	ret = msi_wmi_platform_init(wdev);
-@@ -700,6 +739,12 @@ static int msi_wmi_platform_probe(struct wmi_device *wdev, const void *context)
- 	data->wdev = wdev;
- 	dev_set_drvdata(&wdev->dev, data);
- 
-+	dmi_id = dmi_first_match(msi_quirks);
-+	if (dmi_id)
-+		data->quirks = dmi_id->driver_data;
-+	else
-+		data->quirks = &quirk_default;
-+
- 	ret = devm_mutex_init(&wdev->dev, &data->write_lock);
- 	if (ret < 0)
- 		return ret;
--- 
-2.49.0
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Fri, 4 Apr 2025 10:18:43 +0200
+Date: Sun, 11 May 2025 22:44:22 +0200
 Subject: platform/x86: msi-wmi-platform: Add platform profile through shift
  mode
 
@@ -53093,8 +52784,8 @@ custom.
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
  drivers/platform/x86/Kconfig            |   1 +
- drivers/platform/x86/msi-wmi-platform.c | 122 +++++++++++++++++++++++-
- 2 files changed, 122 insertions(+), 1 deletion(-)
+ drivers/platform/x86/msi-wmi-platform.c | 117 ++++++++++++++++++++++++
+ 2 files changed, 118 insertions(+)
 
 diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
 index bee98251b8f0b..57a48910c8fd4 100644
@@ -53109,10 +52800,10 @@ index bee98251b8f0b..57a48910c8fd4 100644
  	  Say Y here if you want to have support for WMI-based platform features
  	  like fan sensor access on MSI machines.
 diff --git a/drivers/platform/x86/msi-wmi-platform.c b/drivers/platform/x86/msi-wmi-platform.c
-index df1c3b91ca3fc..77d30e06601bc 100644
+index 9ac3c6f1b3f1d..c0b577c95c079 100644
 --- a/drivers/platform/x86/msi-wmi-platform.c
 +++ b/drivers/platform/x86/msi-wmi-platform.c
-@@ -16,6 +16,7 @@
+@@ -17,6 +17,7 @@
  #include <linux/dmi.h>
  #include <linux/errno.h>
  #include <linux/fixp-arith.h>
@@ -53120,7 +52811,7 @@ index df1c3b91ca3fc..77d30e06601bc 100644
  #include <linux/hwmon.h>
  #include <linux/hwmon-sysfs.h>
  #include <linux/kernel.h>
-@@ -58,6 +59,16 @@
+@@ -63,6 +64,16 @@
  #define MSI_PLATFORM_AP_FAN_FLAGS_OFFSET	1
  #define MSI_PLATFORM_AP_ENABLE_FAN_TABLES	BIT(7)
  
@@ -53129,15 +52820,15 @@ index df1c3b91ca3fc..77d30e06601bc 100644
 +#define MSI_PLATFORM_SHIFT_DISABLE	BIT(7)
 +#define MSI_PLATFORM_SHIFT_ENABLE	(BIT(7) | BIT(6))
 +#define MSI_PLATFORM_SHIFT_SPORT	(MSI_PLATFORM_SHIFT_ENABLE + 4)
-+#define MSI_PLATFORM_SHIFT_COMFORT 	(MSI_PLATFORM_SHIFT_ENABLE + 0)
++#define MSI_PLATFORM_SHIFT_COMFORT	(MSI_PLATFORM_SHIFT_ENABLE + 0)
 +#define MSI_PLATFORM_SHIFT_GREEN	(MSI_PLATFORM_SHIFT_ENABLE + 1)
 +#define MSI_PLATFORM_SHIFT_ECO		(MSI_PLATFORM_SHIFT_ENABLE + 2)
 +#define MSI_PLATFORM_SHIFT_USER		(MSI_PLATFORM_SHIFT_ENABLE + 3)
 +
- /* Get_WMI() WMI method */
- #define MSI_PLATFORM_WMI_MAJOR_OFFSET		1
- #define MSI_PLATFORM_WMI_MINOR_OFFSET		2
-@@ -99,11 +110,13 @@ enum msi_wmi_platform_method {
+ static bool force;
+ module_param_unsafe(force, bool, 0);
+ MODULE_PARM_DESC(force, "Force loading without checking for supported WMI interface versions");
+@@ -100,12 +111,14 @@ enum msi_wmi_platform_method {
  };
  
  struct msi_wmi_platform_quirk {
@@ -53147,11 +52838,12 @@ index df1c3b91ca3fc..77d30e06601bc 100644
  struct msi_wmi_platform_data {
  	struct wmi_device *wdev;
  	struct msi_wmi_platform_quirk *quirks;
+ 	struct mutex wmi_lock;	/* Necessary when calling WMI methods */
 +	struct device *ppdev;
- 	struct mutex write_lock;
  };
  
-@@ -149,8 +162,10 @@ static const char * const msi_wmi_platform_debugfs_names[] = {
+ struct msi_wmi_platform_debugfs_data {
+@@ -150,8 +163,10 @@ static const char * const msi_wmi_platform_debugfs_names[] = {
  
  static struct msi_wmi_platform_quirk quirk_default = {};
  static struct msi_wmi_platform_quirk quirk_gen1 = {
@@ -53162,7 +52854,7 @@ index df1c3b91ca3fc..77d30e06601bc 100644
  };
  
  static const struct dmi_system_id msi_quirks[] = {
-@@ -542,6 +557,89 @@ static const struct hwmon_chip_info msi_wmi_platform_chip_info = {
+@@ -561,6 +576,90 @@ static const struct hwmon_chip_info msi_wmi_platform_chip_info = {
  	.info = msi_wmi_platform_info,
  };
  
@@ -53179,18 +52871,19 @@ index df1c3b91ca3fc..77d30e06601bc 100644
 +					enum platform_profile_option *profile)
 +{
 +	struct msi_wmi_platform_data *data = dev_get_drvdata(dev);
++	int ret;
 +
 +	u8 buffer[32] = { };
 +
 +	buffer[0] = MSI_PLATFORM_SHIFT_ADDR;
 +
-+	int ret = msi_wmi_platform_query(data->wdev, MSI_PLATFORM_GET_DATA, buffer, sizeof(buffer));
++	ret = msi_wmi_platform_query(data, MSI_PLATFORM_GET_DATA, buffer, sizeof(buffer));
 +	if (ret < 0)
 +		return ret;
-+	
++
 +	if (buffer[0] != 1)
 +		return -EINVAL;
-+	
++
 +	switch (buffer[1]) {
 +	case MSI_PLATFORM_SHIFT_SPORT:
 +		*profile = PLATFORM_PROFILE_PERFORMANCE;
@@ -53240,7 +52933,7 @@ index df1c3b91ca3fc..77d30e06601bc 100644
 +		return -EINVAL;
 +	}
 +
-+	return msi_wmi_platform_query(data->wdev, MSI_PLATFORM_SET_DATA, buffer, sizeof(buffer));
++	return msi_wmi_platform_query(data, MSI_PLATFORM_SET_DATA, buffer, sizeof(buffer));
 +}
 +
 +static const struct platform_profile_ops msi_wmi_platform_profile_ops = {
@@ -53252,7 +52945,7 @@ index df1c3b91ca3fc..77d30e06601bc 100644
  static ssize_t msi_wmi_platform_debugfs_write(struct file *fp, const char __user *input,
  					      size_t length, loff_t *offset)
  {
-@@ -718,6 +816,22 @@ static int msi_wmi_platform_init(struct wmi_device *wdev)
+@@ -742,6 +841,22 @@ static int msi_wmi_platform_init(struct msi_wmi_platform_data *data)
  	return 0;
  }
  
@@ -53275,30 +52968,22 @@ index df1c3b91ca3fc..77d30e06601bc 100644
  static int msi_wmi_platform_probe(struct wmi_device *wdev, const void *context)
  {
  	struct msi_wmi_platform_data *data;
-@@ -749,9 +863,15 @@ static int msi_wmi_platform_probe(struct wmi_device *wdev, const void *context)
- 	if (ret < 0)
- 		return ret;
+@@ -775,6 +890,8 @@ static int msi_wmi_platform_probe(struct wmi_device *wdev, const void *context)
  
-+	ret = msi_wmi_platform_hwmon_init(data);
-+	if (ret < 0)
-+		return ret;
-+
+ 	msi_wmi_platform_debugfs_init(data);
+ 
 +	msi_wmi_platform_profile_setup(data);
 +
- 	msi_wmi_platform_debugfs_init(wdev);
- 
--	return msi_wmi_platform_hwmon_init(data);
-+	return 0;
+ 	return msi_wmi_platform_hwmon_init(data);
  }
  
- static const struct wmi_device_id msi_wmi_platform_id_table[] = {
 -- 
 2.49.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Fri, 4 Apr 2025 10:43:25 +0200
+Date: Sun, 11 May 2025 22:44:23 +0200
 Subject: platform/x86: msi-wmi-platform: Add PL1/PL2 support via firmware
  attributes
 
@@ -53311,8 +52996,8 @@ an upper bound on PL1/PL2 (e.g., low-power would be used with 8W).
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
  drivers/platform/x86/Kconfig            |   1 +
- drivers/platform/x86/msi-wmi-platform.c | 364 +++++++++++++++++++++++-
- 2 files changed, 363 insertions(+), 2 deletions(-)
+ drivers/platform/x86/msi-wmi-platform.c | 361 +++++++++++++++++++++++-
+ 2 files changed, 360 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
 index 57a48910c8fd4..fd3da718731e7 100644
@@ -53327,10 +53012,10 @@ index 57a48910c8fd4..fd3da718731e7 100644
  	  Say Y here if you want to have support for WMI-based platform features
  	  like fan sensor access on MSI machines.
 diff --git a/drivers/platform/x86/msi-wmi-platform.c b/drivers/platform/x86/msi-wmi-platform.c
-index 77d30e06601bc..edb1adfe4e9e2 100644
+index c0b577c95c079..6498f4b44fe53 100644
 --- a/drivers/platform/x86/msi-wmi-platform.c
 +++ b/drivers/platform/x86/msi-wmi-platform.c
-@@ -33,6 +33,8 @@
+@@ -34,6 +34,8 @@
  
  #include <linux/unaligned.h>
  
@@ -53339,7 +53024,7 @@ index 77d30e06601bc..edb1adfe4e9e2 100644
  #define DRIVER_NAME	"msi-wmi-platform"
  
  #define MSI_PLATFORM_GUID	"ABBC0F6E-8EA1-11d1-00A0-C90629100000"
-@@ -69,6 +71,10 @@
+@@ -74,6 +76,10 @@
  #define MSI_PLATFORM_SHIFT_ECO		(MSI_PLATFORM_SHIFT_ENABLE + 2)
  #define MSI_PLATFORM_SHIFT_USER		(MSI_PLATFORM_SHIFT_ENABLE + 3)
  
@@ -53347,10 +53032,10 @@ index 77d30e06601bc..edb1adfe4e9e2 100644
 +#define MSI_PLATFORM_PL1_ADDR	0x50
 +#define MSI_PLATFORM_PL2_ADDR	0x51
 +
- /* Get_WMI() WMI method */
- #define MSI_PLATFORM_WMI_MAJOR_OFFSET		1
- #define MSI_PLATFORM_WMI_MINOR_OFFSET		2
-@@ -111,15 +117,56 @@ enum msi_wmi_platform_method {
+ static bool force;
+ module_param_unsafe(force, bool, 0);
+ MODULE_PARM_DESC(force, "Force loading without checking for supported WMI interface versions");
+@@ -112,6 +118,9 @@ enum msi_wmi_platform_method {
  
  struct msi_wmi_platform_quirk {
  	bool shift_mode;	/* Shift mode is supported */
@@ -53360,14 +53045,14 @@ index 77d30e06601bc..edb1adfe4e9e2 100644
  };
  
  struct msi_wmi_platform_data {
- 	struct wmi_device *wdev;
+@@ -119,6 +128,44 @@ struct msi_wmi_platform_data {
  	struct msi_wmi_platform_quirk *quirks;
+ 	struct mutex wmi_lock;	/* Necessary when calling WMI methods */
  	struct device *ppdev;
 +	struct device *fw_attrs_dev;
 +	struct kset *fw_attrs_kset;
- 	struct mutex write_lock;
- };
- 
++};
++
 +enum msi_fw_attr_id {
 +	MSI_ATTR_PPT_PL1_SPL,
 +	MSI_ATTR_PPT_PL2_SPPT,
@@ -53402,12 +53087,10 @@ index 77d30e06601bc..edb1adfe4e9e2 100644
 +	ssize_t (*set_value)(struct msi_wmi_platform_data *data,
 +			     struct msi_fw_attr *fw_attr, const char *buf,
 +			     size_t count);
-+};
-+
+ };
+ 
  struct msi_wmi_platform_debugfs_data {
- 	struct wmi_device *wdev;
- 	enum msi_wmi_platform_method method;
-@@ -162,10 +209,16 @@ static const char * const msi_wmi_platform_debugfs_names[] = {
+@@ -163,10 +210,16 @@ static const char * const msi_wmi_platform_debugfs_names[] = {
  
  static struct msi_wmi_platform_quirk quirk_default = {};
  static struct msi_wmi_platform_quirk quirk_gen1 = {
@@ -53426,7 +53109,7 @@ index 77d30e06601bc..edb1adfe4e9e2 100644
  };
  
  static const struct dmi_system_id msi_quirks[] = {
-@@ -640,6 +693,309 @@ static const struct platform_profile_ops msi_wmi_platform_profile_ops = {
+@@ -660,6 +713,306 @@ static const struct platform_profile_ops msi_wmi_platform_profile_ops = {
  	.profile_set = msi_wmi_platform_profile_set,
  };
  
@@ -53469,9 +53152,7 @@ index 77d30e06601bc..edb1adfe4e9e2 100644
 +	buffer[0] = fwid;
 +	put_unaligned_le32(value, &buffer[1]);
 +
-+	guard(mutex)(&data->write_lock);
-+	
-+	ret = msi_wmi_platform_query(data->wdev, MSI_PLATFORM_SET_DATA, buffer, sizeof(buffer));
++	ret = msi_wmi_platform_query(data, MSI_PLATFORM_SET_DATA, buffer, sizeof(buffer));
 +	if (ret) {
 +		pr_warn("Failed to set_data with id %d: %d\n",
 +			fw_attr->fw_attr_id, ret);
@@ -53494,8 +53175,7 @@ index 77d30e06601bc..edb1adfe4e9e2 100644
 +
 +	buffer[0] = addr;
 +
-+	ret = msi_wmi_platform_query(data->wdev, MSI_PLATFORM_GET_DATA, buffer,
-+				     sizeof(buffer));
++	ret = msi_wmi_platform_query(data, MSI_PLATFORM_GET_DATA, buffer, sizeof(buffer));
 +	if (ret) {
 +		pr_warn("Failed to show set_data for id %d: %d\n",
 +			fw_attr->fw_attr_id, ret);
@@ -53736,7 +53416,7 @@ index 77d30e06601bc..edb1adfe4e9e2 100644
  static ssize_t msi_wmi_platform_debugfs_write(struct file *fp, const char __user *input,
  					      size_t length, loff_t *offset)
  {
-@@ -867,6 +1223,10 @@ static int msi_wmi_platform_probe(struct wmi_device *wdev, const void *context)
+@@ -888,6 +1241,10 @@ static int msi_wmi_platform_probe(struct wmi_device *wdev, const void *context)
  	if (ret < 0)
  		return ret;
  
@@ -53744,16 +53424,16 @@ index 77d30e06601bc..edb1adfe4e9e2 100644
 +	if (ret < 0)
 +		return ret;
 +
- 	msi_wmi_platform_profile_setup(data);
+ 	msi_wmi_platform_debugfs_init(data);
  
- 	msi_wmi_platform_debugfs_init(wdev);
+ 	msi_wmi_platform_profile_setup(data);
 -- 
 2.49.0
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sat, 5 Apr 2025 00:28:19 +0200
+Date: Sun, 11 May 2025 22:44:24 +0200
 Subject: platform/x86: msi-wmi-platform: Add charge_threshold support
 
 The battery of MSI laptops supports charge threshold. Add support for it.
@@ -53761,8 +53441,8 @@ The battery of MSI laptops supports charge threshold. Add support for it.
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
  drivers/platform/x86/Kconfig            |   1 +
- drivers/platform/x86/msi-wmi-platform.c | 112 ++++++++++++++++++++++++
- 2 files changed, 113 insertions(+)
+ drivers/platform/x86/msi-wmi-platform.c | 110 ++++++++++++++++++++++++
+ 2 files changed, 111 insertions(+)
 
 diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
 index fd3da718731e7..51a34ab476ffc 100644
@@ -53777,10 +53457,10 @@ index fd3da718731e7..51a34ab476ffc 100644
  	depends on HWMON
  	select ACPI_PLATFORM_PROFILE
 diff --git a/drivers/platform/x86/msi-wmi-platform.c b/drivers/platform/x86/msi-wmi-platform.c
-index edb1adfe4e9e2..93ca416b3b859 100644
+index 6498f4b44fe53..46928fb4da8a6 100644
 --- a/drivers/platform/x86/msi-wmi-platform.c
 +++ b/drivers/platform/x86/msi-wmi-platform.c
-@@ -30,6 +30,7 @@
+@@ -31,6 +31,7 @@
  #include <linux/sysfs.h>
  #include <linux/types.h>
  #include <linux/wmi.h>
@@ -53788,15 +53468,15 @@ index edb1adfe4e9e2..93ca416b3b859 100644
  
  #include <linux/unaligned.h>
  
-@@ -74,6 +75,7 @@
+@@ -79,6 +80,7 @@
  /* Get_Data() and Set_Data() Params */
  #define MSI_PLATFORM_PL1_ADDR	0x50
  #define MSI_PLATFORM_PL2_ADDR	0x51
 +#define MSI_PLATFORM_BAT_ADDR	0xd7
  
- /* Get_WMI() WMI method */
- #define MSI_PLATFORM_WMI_MAJOR_OFFSET		1
-@@ -117,6 +119,7 @@ enum msi_wmi_platform_method {
+ static bool force;
+ module_param_unsafe(force, bool, 0);
+@@ -118,6 +120,7 @@ enum msi_wmi_platform_method {
  
  struct msi_wmi_platform_quirk {
  	bool shift_mode;	/* Shift mode is supported */
@@ -53804,16 +53484,15 @@ index edb1adfe4e9e2..93ca416b3b859 100644
  	int pl_min;		/* Minimum PLx value */
  	int pl1_max;		/* Maximum PL1 value */
  	int pl2_max;		/* Maximum PL2 value */
-@@ -126,6 +129,8 @@ struct msi_wmi_platform_data {
- 	struct wmi_device *wdev;
+@@ -128,6 +131,7 @@ struct msi_wmi_platform_data {
  	struct msi_wmi_platform_quirk *quirks;
+ 	struct mutex wmi_lock;	/* Necessary when calling WMI methods */
  	struct device *ppdev;
 +	struct acpi_battery_hook battery_hook;
-+	struct device_attribute battery_attr;
  	struct device *fw_attrs_dev;
  	struct kset *fw_attrs_kset;
- 	struct mutex write_lock;
-@@ -210,12 +215,14 @@ static const char * const msi_wmi_platform_debugfs_names[] = {
+ };
+@@ -211,12 +215,14 @@ static const char * const msi_wmi_platform_debugfs_names[] = {
  static struct msi_wmi_platform_quirk quirk_default = {};
  static struct msi_wmi_platform_quirk quirk_gen1 = {
  	.shift_mode = true,
@@ -53828,124 +53507,123 @@ index edb1adfe4e9e2..93ca416b3b859 100644
  	.pl_min = 8,
  	.pl1_max = 30,
  	.pl2_max = 37
-@@ -996,6 +1003,91 @@ static int msi_wmi_fw_attrs_init(struct msi_wmi_platform_data *data)
+@@ -1013,6 +1019,94 @@ static int msi_wmi_fw_attrs_init(struct msi_wmi_platform_data *data)
  	return 0;
  }
  
-+static ssize_t charge_control_end_threshold_store(struct device *dev,
-+						  struct device_attribute *attr,
-+						  const char *buf, size_t count)
++static int msi_platform_psy_ext_get_prop(struct power_supply *psy,
++					 const struct power_supply_ext *ext,
++					 void *data,
++					 enum power_supply_property psp,
++					 union power_supply_propval *val)
 +{
-+	const struct msi_wmi_platform_data *data =
-+		container_of(attr, struct msi_wmi_platform_data, battery_attr);
++	struct msi_wmi_platform_data *msi = data;
 +	u8 buffer[32] = { 0 };
-+	u32 val;
 +	int ret;
 +
-+	ret = kstrtou32(buf, 10, &val);
-+	if (ret)
-+		return ret;
++	switch (psp) {
++	case POWER_SUPPLY_PROP_CHARGE_CONTROL_END_THRESHOLD:
++		buffer[0] = MSI_PLATFORM_BAT_ADDR;
++		ret = msi_wmi_platform_query(msi, MSI_PLATFORM_GET_DATA,
++					     buffer, sizeof(buffer));
++		if (ret)
++			return ret;
 +
-+	if (val > 100)
++		val->intval = buffer[1] & ~BIT(7);
++		if (val->intval > 100)
++			return -EINVAL;
++
++		return 0;
++	default:
 +		return -EINVAL;
-+
-+	buffer[0] = MSI_PLATFORM_BAT_ADDR;
-+	buffer[1] = val | BIT(7);
-+
-+	ret = msi_wmi_platform_query(data->wdev, MSI_PLATFORM_SET_DATA, buffer,
-+				     sizeof(buffer));
-+	if (ret)
-+		return ret;
-+
-+	return count;
++	}
 +}
 +
-+static ssize_t charge_control_end_threshold_show(struct device *dev,
-+						 struct device_attribute *attr,
-+						 char *buf)
++static int msi_platform_psy_ext_set_prop(struct power_supply *psy,
++					 const struct power_supply_ext *ext,
++					 void *data,
++					 enum power_supply_property psp,
++					 const union power_supply_propval *val)
 +{
-+	const struct msi_wmi_platform_data *data =
-+		container_of(attr, struct msi_wmi_platform_data, battery_attr);
++	struct msi_wmi_platform_data *msi = data;
 +	u8 buffer[32] = { 0 };
-+	u8 value;
-+	int ret;
 +
-+	buffer[0] = MSI_PLATFORM_BAT_ADDR;
-+
-+	ret = msi_wmi_platform_query(data->wdev, MSI_PLATFORM_GET_DATA, buffer,
-+				     sizeof(buffer));
-+
-+	if (ret)
-+		return ret;
-+
-+	value = buffer[1] & ~BIT(7);
-+
-+	if (value > 100)
-+		return -EIO;
-+
-+	return sysfs_emit(buf, "%d\n", value);
++	switch (psp) {
++	case POWER_SUPPLY_PROP_CHARGE_CONTROL_END_THRESHOLD:
++		if (val->intval > 100)
++			return -EINVAL;
++		buffer[0] = MSI_PLATFORM_BAT_ADDR;
++		buffer[1] = val->intval | BIT(7);
++		return msi_wmi_platform_query(msi, MSI_PLATFORM_SET_DATA,
++					      buffer, sizeof(buffer));
++	default:
++		return -EINVAL;
++	}
 +}
 +
-+static int msi_platform_battery_add(struct power_supply *battery,
-+			   struct acpi_battery_hook *hook)
++static int
++msi_platform_psy_prop_is_writeable(struct power_supply *psy,
++				   const struct power_supply_ext *ext,
++				   void *data, enum power_supply_property psp)
 +{
-+	struct msi_wmi_platform_data *data = container_of(hook,
-+						struct msi_wmi_platform_data, battery_hook);
-+
-+	/* MSI devices only have one battery. */
-+	if (strcmp(battery->desc->name, "BAT0") != 0 &&
-+	    strcmp(battery->desc->name, "BAT1") != 0 &&
-+	    strcmp(battery->desc->name, "BATC") != 0 &&
-+	    strcmp(battery->desc->name, "BATT") != 0)
-+		return -ENODEV;
-+
-+	if (device_create_file(&battery->dev,
-+			       &data->battery_attr))
-+		return -ENODEV;
-+
-+	return 0;
++	return true;
 +}
 +
-+static int msi_platform_battery_remove(struct power_supply *battery,
-+			      struct acpi_battery_hook *hook)
-+{
-+	struct msi_wmi_platform_data *data = container_of(hook,
-+						struct msi_wmi_platform_data, battery_hook);
++static const enum power_supply_property oxp_psy_ext_props[] = {
++	POWER_SUPPLY_PROP_CHARGE_CONTROL_END_THRESHOLD,
++};
 +
-+	device_remove_file(&battery->dev,
-+			   &data->battery_attr);
++static const struct power_supply_ext msi_platform_psy_ext = {
++	.name			= "msi-platform-charge-control",
++	.properties		= oxp_psy_ext_props,
++	.num_properties		= ARRAY_SIZE(oxp_psy_ext_props),
++	.get_property		= msi_platform_psy_ext_get_prop,
++	.set_property		= msi_platform_psy_ext_set_prop,
++	.property_is_writeable	= msi_platform_psy_prop_is_writeable,
++};
++
++static int msi_wmi_platform_battery_add(struct power_supply *battery,
++					struct acpi_battery_hook *hook)
++{
++	struct msi_wmi_platform_data *data =
++		container_of(hook, struct msi_wmi_platform_data, battery_hook);
++
++	return power_supply_register_extension(battery, &msi_platform_psy_ext,
++					       &data->wdev->dev, data);
++}
++
++static int msi_wmi_platform_battery_remove(struct power_supply *battery,
++					   struct acpi_battery_hook *hook)
++{
++	power_supply_unregister_extension(battery, &msi_platform_psy_ext);
 +	return 0;
 +}
 +
  static ssize_t msi_wmi_platform_debugfs_write(struct file *fp, const char __user *input,
  					      size_t length, loff_t *offset)
  {
-@@ -1226,6 +1318,17 @@ static int msi_wmi_platform_probe(struct wmi_device *wdev, const void *context)
- 	ret = msi_wmi_fw_attrs_init(data);
+@@ -1245,6 +1339,13 @@ static int msi_wmi_platform_probe(struct wmi_device *wdev, const void *context)
  	if (ret < 0)
  		return ret;
-+	
+ 
 +	if (data->quirks->charge_threshold) {
 +		data->battery_hook.name = "MSI Battery";
-+		data->battery_hook.add_battery = msi_platform_battery_add;
-+		data->battery_hook.remove_battery = msi_platform_battery_remove;
-+		data->battery_attr.attr.name = "charge_control_end_threshold";
-+		data->battery_attr.attr.mode = 0644;
-+		data->battery_attr.show = charge_control_end_threshold_show;
-+		data->battery_attr.store = charge_control_end_threshold_store;
++		data->battery_hook.add_battery = msi_wmi_platform_battery_add;
++		data->battery_hook.remove_battery = msi_wmi_platform_battery_remove;
 +		battery_hook_register(&data->battery_hook);
 +	}
++
+ 	msi_wmi_platform_debugfs_init(data);
  
  	msi_wmi_platform_profile_setup(data);
- 
-@@ -1234,6 +1337,14 @@ static int msi_wmi_platform_probe(struct wmi_device *wdev, const void *context)
- 	return 0;
+@@ -1252,6 +1353,14 @@ static int msi_wmi_platform_probe(struct wmi_device *wdev, const void *context)
+ 	return msi_wmi_platform_hwmon_init(data);
  }
  
 +static void msi_wmi_platform_remove(struct wmi_device *wdev)
 +{
 +	struct msi_wmi_platform_data *data = dev_get_drvdata(&wdev->dev);
-+	
++
 +	if (data->quirks->charge_threshold)
 +		battery_hook_unregister(&data->battery_hook);
 +}
@@ -53953,7 +53631,7 @@ index edb1adfe4e9e2..93ca416b3b859 100644
  static const struct wmi_device_id msi_wmi_platform_id_table[] = {
  	{ MSI_PLATFORM_GUID, NULL },
  	{ }
-@@ -1247,6 +1358,7 @@ static struct wmi_driver msi_wmi_platform_driver = {
+@@ -1265,6 +1374,7 @@ static struct wmi_driver msi_wmi_platform_driver = {
  	},
  	.id_table = msi_wmi_platform_id_table,
  	.probe = msi_wmi_platform_probe,
@@ -53967,7 +53645,7 @@ index edb1adfe4e9e2..93ca416b3b859 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sun, 6 Apr 2025 10:33:17 +0200
+Date: Sun, 11 May 2025 22:44:25 +0200
 Subject: platform/x86: msi-wmi-platform: Drop excess fans in dual fan devices
 
 Currently, the platform driver always exposes 4 fans, since the
@@ -53981,14 +53659,14 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 25 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/platform/x86/msi-wmi-platform.c b/drivers/platform/x86/msi-wmi-platform.c
-index 93ca416b3b859..fd56b62ad0e8f 100644
+index 46928fb4da8a6..eaf0eb25e349b 100644
 --- a/drivers/platform/x86/msi-wmi-platform.c
 +++ b/drivers/platform/x86/msi-wmi-platform.c
-@@ -120,6 +120,7 @@ enum msi_wmi_platform_method {
+@@ -121,6 +121,7 @@ enum msi_wmi_platform_method {
  struct msi_wmi_platform_quirk {
  	bool shift_mode;	/* Shift mode is supported */
  	bool charge_threshold;	/* Charge threshold is supported */
-+	bool dual_fans; 	/* For devices with two hwmon fans */
++	bool dual_fans;		/* For devices with two hwmon fans */
  	int pl_min;		/* Minimum PLx value */
  	int pl1_max;		/* Maximum PL1 value */
  	int pl2_max;		/* Maximum PL2 value */
@@ -54008,7 +53686,7 @@ index 93ca416b3b859..fd56b62ad0e8f 100644
  	.pl_min = 8,
  	.pl1_max = 30,
  	.pl2_max = 37
-@@ -617,6 +620,23 @@ static const struct hwmon_chip_info msi_wmi_platform_chip_info = {
+@@ -635,6 +638,23 @@ static const struct hwmon_chip_info msi_wmi_platform_chip_info = {
  	.info = msi_wmi_platform_info,
  };
  
@@ -54032,7 +53710,7 @@ index 93ca416b3b859..fd56b62ad0e8f 100644
  static int msi_wmi_platform_profile_probe(void *drvdata, unsigned long *choices)
  {
  	set_bit(PLATFORM_PROFILE_LOW_POWER, choices);
-@@ -1204,9 +1224,11 @@ static int msi_wmi_platform_hwmon_init(struct msi_wmi_platform_data *data)
+@@ -1227,9 +1247,11 @@ static int msi_wmi_platform_hwmon_init(struct msi_wmi_platform_data *data)
  {
  	struct device *hdev;
  
@@ -54053,7 +53731,41 @@ index 93ca416b3b859..fd56b62ad0e8f 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sun, 6 Apr 2025 14:44:36 +0200
+Date: Sun, 11 May 2025 22:44:26 +0200
+Subject: platform/x86: msi-wmi-platform: Update header text
+
+Update copyright information in the header and specify
+that this driver also applies to handhelds.
+
+Reviewed-by: Armin Wolf <W_Armin@gmx.de>
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/platform/x86/msi-wmi-platform.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/platform/x86/msi-wmi-platform.c b/drivers/platform/x86/msi-wmi-platform.c
+index eaf0eb25e349b..7dafe17d4d6be 100644
+--- a/drivers/platform/x86/msi-wmi-platform.c
++++ b/drivers/platform/x86/msi-wmi-platform.c
+@@ -1,8 +1,9 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+ /*
+- * Linux driver for WMI platform features on MSI notebooks.
++ * Linux driver for WMI platform features on MSI notebooks and handhelds.
+  *
+- * Copyright (C) 2024 Armin Wolf <W_Armin@gmx.de>
++ * Copyright (C) 2024-2025 Armin Wolf <W_Armin@gmx.de>
++ * Copyright (C) 2025 Antheas Kapenekakis <lkml@antheas.dev>
+  */
+ 
+ #define pr_format(fmt) KBUILD_MODNAME ": " fmt
+-- 
+2.49.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sun, 11 May 2025 22:44:27 +0200
 Subject: platform/x86: msi-wmi-platform: Restore fan curves on PWM disable and
  unload
 
@@ -54065,17 +53777,17 @@ is done in Windows.
 Suggested-by: Armin Wolf <W_Armin@gmx.de>
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- drivers/platform/x86/msi-wmi-platform.c | 124 +++++++++++++++++++++++-
- 1 file changed, 122 insertions(+), 2 deletions(-)
+ drivers/platform/x86/msi-wmi-platform.c | 123 +++++++++++++++++++++++-
+ 1 file changed, 122 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/platform/x86/msi-wmi-platform.c b/drivers/platform/x86/msi-wmi-platform.c
-index fd56b62ad0e8f..acd343f53be17 100644
+index 7dafe17d4d6be..a917db0300c06 100644
 --- a/drivers/platform/x86/msi-wmi-platform.c
 +++ b/drivers/platform/x86/msi-wmi-platform.c
-@@ -121,15 +121,24 @@ struct msi_wmi_platform_quirk {
+@@ -123,16 +123,25 @@ struct msi_wmi_platform_quirk {
  	bool shift_mode;	/* Shift mode is supported */
  	bool charge_threshold;	/* Charge threshold is supported */
- 	bool dual_fans; 	/* For devices with two hwmon fans */
+ 	bool dual_fans;		/* For devices with two hwmon fans */
 +	bool restore_curves;	/* Restore factory curves on unload */
  	int pl_min;		/* Minimum PLx value */
  	int pl1_max;		/* Maximum PL1 value */
@@ -54092,12 +53804,13 @@ index fd56b62ad0e8f..acd343f53be17 100644
  struct msi_wmi_platform_data {
  	struct wmi_device *wdev;
  	struct msi_wmi_platform_quirk *quirks;
+ 	struct mutex wmi_lock;	/* Necessary when calling WMI methods */
  	struct device *ppdev;
 +	struct msi_wmi_platform_factory_curves factory_curves;
  	struct acpi_battery_hook battery_hook;
- 	struct device_attribute battery_attr;
  	struct device *fw_attrs_dev;
-@@ -218,6 +227,7 @@ static struct msi_wmi_platform_quirk quirk_gen1 = {
+ 	struct kset *fw_attrs_kset;
+@@ -219,6 +228,7 @@ static struct msi_wmi_platform_quirk quirk_gen1 = {
  	.shift_mode = true,
  	.charge_threshold = true,
  	.dual_fans = true,
@@ -54105,7 +53818,7 @@ index fd56b62ad0e8f..acd343f53be17 100644
  	.pl_min = 8,
  	.pl1_max = 43,
  	.pl2_max = 45
-@@ -226,6 +236,7 @@ static struct msi_wmi_platform_quirk quirk_gen2 = {
+@@ -227,6 +237,7 @@ static struct msi_wmi_platform_quirk quirk_gen2 = {
  	.shift_mode = true,
  	.charge_threshold = true,
  	.dual_fans = true,
@@ -54113,7 +53826,7 @@ index fd56b62ad0e8f..acd343f53be17 100644
  	.pl_min = 8,
  	.pl1_max = 30,
  	.pl2_max = 37
-@@ -490,6 +501,94 @@ static struct attribute *msi_wmi_platform_hwmon_attrs[] = {
+@@ -507,6 +518,94 @@ static struct attribute *msi_wmi_platform_hwmon_attrs[] = {
  };
  ATTRIBUTE_GROUPS(msi_wmi_platform_hwmon);
  
@@ -54123,8 +53836,8 @@ index fd56b62ad0e8f..acd343f53be17 100644
 +
 +	data->factory_curves.cpu_fan_table[0] =
 +		MSI_PLATFORM_FAN_SUBFEATURE_CPU_FAN_TABLE;
-+	ret = msi_wmi_platform_query(
-+		data->wdev, MSI_PLATFORM_GET_FAN,
++	ret = msi_wmi_platform_query_unlocked(
++		data, MSI_PLATFORM_GET_FAN,
 +		data->factory_curves.cpu_fan_table,
 +		sizeof(data->factory_curves.cpu_fan_table));
 +	if (ret < 0)
@@ -54134,8 +53847,8 @@ index fd56b62ad0e8f..acd343f53be17 100644
 +
 +	data->factory_curves.gpu_fan_table[0] =
 +		MSI_PLATFORM_FAN_SUBFEATURE_GPU_FAN_TABLE;
-+	ret = msi_wmi_platform_query(
-+		data->wdev, MSI_PLATFORM_GET_FAN,
++	ret = msi_wmi_platform_query_unlocked(
++		data, MSI_PLATFORM_GET_FAN,
 +		data->factory_curves.gpu_fan_table,
 +		sizeof(data->factory_curves.gpu_fan_table));
 +	if (ret < 0)
@@ -54145,8 +53858,8 @@ index fd56b62ad0e8f..acd343f53be17 100644
 +
 +	data->factory_curves.cpu_temp_table[0] =
 +		MSI_PLATFORM_FAN_SUBFEATURE_CPU_TEMP_TABLE;
-+	ret = msi_wmi_platform_query(
-+		data->wdev, MSI_PLATFORM_GET_TEMPERATURE,
++	ret = msi_wmi_platform_query_unlocked(
++		data, MSI_PLATFORM_GET_TEMPERATURE,
 +		data->factory_curves.cpu_temp_table,
 +		sizeof(data->factory_curves.cpu_temp_table));
 +	if (ret < 0)
@@ -54156,8 +53869,8 @@ index fd56b62ad0e8f..acd343f53be17 100644
 +
 +	data->factory_curves.gpu_temp_table[0] =
 +		MSI_PLATFORM_FAN_SUBFEATURE_GPU_TEMP_TABLE;
-+	ret = msi_wmi_platform_query(
-+		data->wdev, MSI_PLATFORM_GET_TEMPERATURE,
++	ret = msi_wmi_platform_query_unlocked(
++		data, MSI_PLATFORM_GET_TEMPERATURE,
 +		data->factory_curves.gpu_temp_table,
 +		sizeof(data->factory_curves.gpu_temp_table));
 +	if (ret < 0)
@@ -54175,29 +53888,29 @@ index fd56b62ad0e8f..acd343f53be17 100644
 +
 +	memcpy(buffer, data->factory_curves.cpu_fan_table,
 +	       sizeof(data->factory_curves.cpu_fan_table));
-+	ret = msi_wmi_platform_query(data->wdev, MSI_PLATFORM_SET_FAN, buffer,
-+				     sizeof(buffer));
++	ret = msi_wmi_platform_query_unlocked(data, MSI_PLATFORM_SET_FAN,
++					      buffer, sizeof(buffer));
 +	if (ret < 0)
 +		return ret;
 +
 +	memcpy(buffer, data->factory_curves.gpu_fan_table,
 +	       sizeof(data->factory_curves.gpu_fan_table));
-+	ret = msi_wmi_platform_query(data->wdev, MSI_PLATFORM_SET_FAN, buffer,
-+				     sizeof(buffer));
++	ret = msi_wmi_platform_query_unlocked(data, MSI_PLATFORM_SET_FAN,
++					      buffer, sizeof(buffer));
 +	if (ret < 0)
 +		return ret;
-+	
++
 +	memcpy(buffer, data->factory_curves.cpu_temp_table,
 +	       sizeof(data->factory_curves.cpu_temp_table));
-+	ret = msi_wmi_platform_query(data->wdev, MSI_PLATFORM_SET_TEMPERATURE,
-+				     buffer, sizeof(buffer));
++	ret = msi_wmi_platform_query_unlocked(
++		data, MSI_PLATFORM_SET_TEMPERATURE, buffer, sizeof(buffer));
 +	if (ret < 0)
 +		return ret;
-+	
++
 +	memcpy(buffer, data->factory_curves.gpu_temp_table,
 +	       sizeof(data->factory_curves.gpu_temp_table));
-+	ret = msi_wmi_platform_query(data->wdev, MSI_PLATFORM_SET_TEMPERATURE,
-+				     buffer, sizeof(buffer));
++	ret = msi_wmi_platform_query_unlocked(
++		data, MSI_PLATFORM_SET_TEMPERATURE, buffer, sizeof(buffer));
 +	if (ret < 0)
 +		return ret;
 +
@@ -54208,17 +53921,17 @@ index fd56b62ad0e8f..acd343f53be17 100644
  static umode_t msi_wmi_platform_is_visible(const void *drvdata, enum hwmon_sensor_types type,
  					   u32 attr, int channel)
  {
-@@ -585,8 +684,18 @@ static int msi_wmi_platform_write(struct device *dev, enum hwmon_sensor_types ty
+@@ -603,9 +702,19 @@ static int msi_wmi_platform_write(struct device *dev, enum hwmon_sensor_types ty
  				return -EINVAL;
  			}
  
--			return msi_wmi_platform_query(data->wdev, MSI_PLATFORM_SET_AP, buffer,
--						      sizeof(buffer));
-+			ret = msi_wmi_platform_query(data->wdev, MSI_PLATFORM_SET_AP, buffer,
-+						     sizeof(buffer));
+-			return msi_wmi_platform_query_unlocked(
++			ret = msi_wmi_platform_query_unlocked(
+ 				data, MSI_PLATFORM_SET_AP, buffer,
+ 				sizeof(buffer));
 +			if (ret < 0)
 +				return ret;
-+			
++
 +			if (val == 2 && data->quirks->restore_curves) {
 +				ret = msi_wmi_platform_curves_load(data);
 +				if (ret < 0)
@@ -54229,31 +53942,82 @@ index fd56b62ad0e8f..acd343f53be17 100644
  		default:
  			return -EOPNOTSUPP;
  		}
-@@ -1356,6 +1465,12 @@ static int msi_wmi_platform_probe(struct wmi_device *wdev, const void *context)
+@@ -1373,6 +1482,13 @@ static int msi_wmi_platform_probe(struct wmi_device *wdev, const void *context)
  
- 	msi_wmi_platform_debugfs_init(wdev);
+ 	msi_wmi_platform_profile_setup(data);
  
 +	if (data->quirks->restore_curves) {
++		guard(mutex)(&data->wmi_lock);
 +		ret = msi_wmi_platform_curves_save(data);
 +		if (ret < 0)
 +			return ret;
 +	}
 +
- 	return 0;
+ 	return msi_wmi_platform_hwmon_init(data);
  }
  
-@@ -1365,6 +1480,11 @@ static void msi_wmi_platform_remove(struct wmi_device *wdev)
- 	
+@@ -1382,6 +1498,11 @@ static void msi_wmi_platform_remove(struct wmi_device *wdev)
+ 
  	if (data->quirks->charge_threshold)
  		battery_hook_unregister(&data->battery_hook);
 +
 +	if (data->quirks->restore_curves) {
-+		guard(mutex)(&data->write_lock);
++		guard(mutex)(&data->wmi_lock);
 +		msi_wmi_platform_curves_load(data);
 +	}
  }
  
  static const struct wmi_device_id msi_wmi_platform_id_table[] = {
+-- 
+2.49.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Tue, 20 May 2025 19:58:42 +0200
+Subject: platform/x86: msi-wmi-platform: Fix clang errors
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/platform/x86/msi-wmi-platform.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/platform/x86/msi-wmi-platform.c b/drivers/platform/x86/msi-wmi-platform.c
+index a917db0300c06..5018edf345fd6 100644
+--- a/drivers/platform/x86/msi-wmi-platform.c
++++ b/drivers/platform/x86/msi-wmi-platform.c
+@@ -675,12 +675,12 @@ static int msi_wmi_platform_write(struct device *dev, enum hwmon_sensor_types ty
+ 	u8 buffer[32] = { };
+ 	int ret;
+ 
++	guard(mutex)(&data->write_lock);
++
+ 	switch (type) {
+ 	case hwmon_pwm:
+ 		switch (attr) {
+ 		case hwmon_pwm_enable:
+-			guard(mutex)(&data->wmi_lock);
+-
+ 			buffer[0] = MSI_PLATFORM_AP_SUBFEATURE_FAN_MODE;
+ 			ret = msi_wmi_platform_query_unlocked(
+ 				data, MSI_PLATFORM_GET_AP, buffer,
+@@ -1422,16 +1422,12 @@ static int msi_wmi_platform_init(struct msi_wmi_platform_data *data)
+ 
+ static int msi_wmi_platform_profile_setup(struct msi_wmi_platform_data *data)
+ {
+-	int err;
+-
+ 	if (!data->quirks->shift_mode)
+ 		return 0;
+ 
+ 	data->ppdev = devm_platform_profile_register(
+ 		&data->wdev->dev, "msi-wmi-platform", data,
+ 		&msi_wmi_platform_profile_ops);
+-	if (err)
+-		return err;
+ 
+ 	return PTR_ERR_OR_ZERO(data->ppdev);
+ }
 -- 
 2.49.0
 
@@ -54526,6 +54290,305 @@ index 148d1aa0a580d..6b311e300eaef 100644
  			"reporting any bugs unrelated to overdrive.\n");
  	}
  
+-- 
+2.49.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alex Deucher <alexander.deucher@amd.com>
+Date: Thu, 1 May 2025 13:00:16 -0400
+Subject: Revert "drm/amd: Stop evicting resources on APUs in suspend"
+
+This reverts commit 3a9626c816db901def438dc2513622e281186d39.
+
+This breaks S4 because we end up setting the s3/s0ix flags
+even when we are entering s4 since prepare is used by both
+flows.  The causes both the S3/s0ix and s4 flags to be set
+which breaks several checks in the driver which assume they
+are mutually exclusive.
+
+Closes: https://gitlab.freedesktop.org/drm/amd/-/issues/3634
+Cc: Mario Limonciello <mario.limonciello@amd.com>
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+---
+ drivers/gpu/drm/amd/amdgpu/amdgpu.h        |  2 --
+ drivers/gpu/drm/amd/amdgpu/amdgpu_acpi.c   | 18 ------------------
+ drivers/gpu/drm/amd/amdgpu/amdgpu_device.c | 11 ++---------
+ 3 files changed, 2 insertions(+), 29 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu.h b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
+index d2dbe7557b001..620fe57d4a4e7 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu.h
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
+@@ -1597,11 +1597,9 @@ static inline void amdgpu_acpi_get_backlight_caps(struct amdgpu_dm_backlight_cap
+ #if defined(CONFIG_ACPI) && defined(CONFIG_SUSPEND)
+ bool amdgpu_acpi_is_s3_active(struct amdgpu_device *adev);
+ bool amdgpu_acpi_is_s0ix_active(struct amdgpu_device *adev);
+-void amdgpu_choose_low_power_state(struct amdgpu_device *adev);
+ #else
+ static inline bool amdgpu_acpi_is_s0ix_active(struct amdgpu_device *adev) { return false; }
+ static inline bool amdgpu_acpi_is_s3_active(struct amdgpu_device *adev) { return false; }
+-static inline void amdgpu_choose_low_power_state(struct amdgpu_device *adev) { }
+ #endif
+ 
+ void amdgpu_register_gpu_instance(struct amdgpu_device *adev);
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_acpi.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_acpi.c
+index b8d4e07d2043e..bebfbc1497d8e 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_acpi.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_acpi.c
+@@ -1533,22 +1533,4 @@ bool amdgpu_acpi_is_s0ix_active(struct amdgpu_device *adev)
+ #endif /* CONFIG_AMD_PMC */
+ }
+ 
+-/**
+- * amdgpu_choose_low_power_state
+- *
+- * @adev: amdgpu_device_pointer
+- *
+- * Choose the target low power state for the GPU
+- */
+-void amdgpu_choose_low_power_state(struct amdgpu_device *adev)
+-{
+-	if (adev->in_runpm)
+-		return;
+-
+-	if (amdgpu_acpi_is_s0ix_active(adev))
+-		adev->in_s0ix = true;
+-	else if (amdgpu_acpi_is_s3_active(adev))
+-		adev->in_s3 = true;
+-}
+-
+ #endif /* CONFIG_SUSPEND */
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
+index 19e78963ee8e2..e644791dda1d8 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
+@@ -4874,15 +4874,13 @@ int amdgpu_device_prepare(struct drm_device *dev)
+ 	struct amdgpu_device *adev = drm_to_adev(dev);
+ 	int i, r;
+ 
+-	amdgpu_choose_low_power_state(adev);
+-
+ 	if (dev->switch_power_state == DRM_SWITCH_POWER_OFF)
+ 		return 0;
+ 
+ 	/* Evict the majority of BOs before starting suspend sequence */
+ 	r = amdgpu_device_evict_resources(adev);
+ 	if (r)
+-		goto unprepare;
++		return r;
+ 
+ 	flush_delayed_work(&adev->gfx.gfx_off_delay_work);
+ 
+@@ -4893,15 +4891,10 @@ int amdgpu_device_prepare(struct drm_device *dev)
+ 			continue;
+ 		r = adev->ip_blocks[i].version->funcs->prepare_suspend(&adev->ip_blocks[i]);
+ 		if (r)
+-			goto unprepare;
++			return r;
+ 	}
+ 
+ 	return 0;
+-
+-unprepare:
+-	adev->in_s0ix = adev->in_s3 = adev->in_s4 = false;
+-
+-	return r;
+ }
+ 
+ /**
+-- 
+2.49.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mario Limonciello <mario.limonciello@amd.com>
+Date: Thu, 1 May 2025 16:17:32 -0500
+Subject: PM: Add suspend and hibernate notifications for after freeze
+
+Suspend and hibernate notifications are available specifically when
+the sequence starts and finishes.  However there are no notifications
+during the process when tasks have been frozen.
+
+Introduce two new events `PM_SUSPEND_POST_FREEZE` and
+`PM_HIBERNATE_POST_FREEZE` that drivers can subscribe to and take
+different actions specifically knowing userspace is frozen.
+
+Suggested-by: Alex Deucher <alexander.deucher@amd.com>
+Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+---
+ Documentation/driver-api/pm/notifiers.rst | 19 ++++++++++++++++---
+ include/linux/suspend.h                   | 14 ++++++++------
+ kernel/power/hibernate.c                  |  9 +++++++--
+ kernel/power/suspend.c                    | 13 +++++++++----
+ 4 files changed, 40 insertions(+), 15 deletions(-)
+
+diff --git a/Documentation/driver-api/pm/notifiers.rst b/Documentation/driver-api/pm/notifiers.rst
+index 186435c43b77e..6a1912fbee214 100644
+--- a/Documentation/driver-api/pm/notifiers.rst
++++ b/Documentation/driver-api/pm/notifiers.rst
+@@ -32,6 +32,18 @@ will be called upon the following events by the PM core:
+ 	additional work is done between the notifiers and the invocation of PM
+ 	callbacks for the "freeze" transition.
+ 
++``PM_HIBERNATION_POST_FREEZE``
++	The system is going to hibernate and tasks have just been frozen.
++
++``PM_SUSPEND_PREPARE``
++	The system is going to suspend, tasks will be frozen immediately.  This
++	is different from ``PM_HIBERNATION_PREPARE`` above, because in this case
++	additional work is done between the notifiers and the invocation of PM
++	callbacks for the "freeze" transition.
++
++``PM_SUSPEND_POST_FREEZE``
++	The system is going to suspend and tasks have just been frozen.
++
+ ``PM_POST_HIBERNATION``
+ 	The system memory state has been restored from a hibernation image or an
+ 	error occurred during hibernation.  Device restore callbacks have been
+@@ -54,9 +66,10 @@ will be called upon the following events by the PM core:
+ 	resume callbacks have been executed and tasks have been thawed.
+ 
+ It is generally assumed that whatever the notifiers do for
+-``PM_HIBERNATION_PREPARE``, should be undone for ``PM_POST_HIBERNATION``.
+-Analogously, operations carried out for ``PM_SUSPEND_PREPARE`` should be
+-reversed for ``PM_POST_SUSPEND``.
++``PM_HIBERNATION_PREPARE`` and ``PM_HIBERNATION_POST_FREEZE``, should be undone
++for ``PM_POST_HIBERNATION``.
++Analogously, operations carried out for ``PM_SUSPEND_PREPARE`` and ``PM_SUSPEND_POST_FREEZE``
++should be reversed for ``PM_POST_SUSPEND``.
+ 
+ Moreover, if one of the notifiers fails for the ``PM_HIBERNATION_PREPARE`` or
+ ``PM_SUSPEND_PREPARE`` event, the notifiers that have already succeeded for that
+diff --git a/include/linux/suspend.h b/include/linux/suspend.h
+index d120d9b425978..8217aebde645b 100644
+--- a/include/linux/suspend.h
++++ b/include/linux/suspend.h
+@@ -438,12 +438,14 @@ static inline int is_hibernate_resume_dev(dev_t dev) { return 0; }
+ #endif
+ 
+ /* Hibernation and suspend events */
+-#define PM_HIBERNATION_PREPARE	0x0001 /* Going to hibernate */
+-#define PM_POST_HIBERNATION	0x0002 /* Hibernation finished */
+-#define PM_SUSPEND_PREPARE	0x0003 /* Going to suspend the system */
+-#define PM_POST_SUSPEND		0x0004 /* Suspend finished */
+-#define PM_RESTORE_PREPARE	0x0005 /* Going to restore a saved image */
+-#define PM_POST_RESTORE		0x0006 /* Restore failed */
++#define PM_HIBERNATION_PREPARE		0x0001 /* Going to hibernate */
++#define PM_HIBERNATION_POST_FREEZE	0x0002 /* Prepared for hibernation and tasks have been frozen */
++#define PM_POST_HIBERNATION		0x0003 /* Hibernation finished */
++#define PM_SUSPEND_PREPARE		0x0004 /* Going to suspend the system */
++#define PM_SUSPEND_POST_FREEZE		0x0005 /* Prepared and tasks have been frozen */
++#define PM_POST_SUSPEND			0x0006 /* Suspend finished */
++#define PM_RESTORE_PREPARE		0x0007 /* Going to restore a saved image */
++#define PM_POST_RESTORE			0x0008 /* Restore failed */
+ 
+ extern struct mutex system_transition_mutex;
+ 
+diff --git a/kernel/power/hibernate.c b/kernel/power/hibernate.c
+index 43d4c0116e4a8..5803f091f2b43 100644
+--- a/kernel/power/hibernate.c
++++ b/kernel/power/hibernate.c
+@@ -793,11 +793,15 @@ int hibernate(void)
+ 	if (error)
+ 		goto Exit;
+ 
++	error = pm_notifier_call_chain_robust(PM_HIBERNATION_POST_FREEZE, PM_POST_HIBERNATION);
++	if (error)
++		goto Thaw;
++
+ 	lock_device_hotplug();
+ 	/* Allocate memory management structures */
+ 	error = create_basic_memory_bitmaps();
+ 	if (error)
+-		goto Thaw;
++		goto Unlock_hotplug;
+ 
+ 	error = hibernation_snapshot(hibernation_mode == HIBERNATION_PLATFORM);
+ 	if (error || freezer_test_done)
+@@ -845,8 +849,9 @@ int hibernate(void)
+ 
+  Free_bitmaps:
+ 	free_basic_memory_bitmaps();
+- Thaw:
++ Unlock_hotplug:
+ 	unlock_device_hotplug();
++ Thaw:
+ 	if (snapshot_test) {
+ 		pm_pr_dbg("Checking hibernation image\n");
+ 		error = swsusp_check(false);
+diff --git a/kernel/power/suspend.c b/kernel/power/suspend.c
+index a6a376618b5d1..d8d8a15c27eee 100644
+--- a/kernel/power/suspend.c
++++ b/kernel/power/suspend.c
+@@ -531,13 +531,18 @@ static int suspend_prepare(suspend_state_t state)
+ 	trace_suspend_resume(TPS("freeze_processes"), 0, true);
+ 	error = suspend_freeze_processes();
+ 	trace_suspend_resume(TPS("freeze_processes"), 0, false);
+-	if (!error)
+-		return 0;
++	if (error)
++		goto Restore;
++	error = pm_notifier_call_chain_robust(PM_SUSPEND_POST_FREEZE, PM_POST_SUSPEND);
++	if (error)
++		goto Thaw;
+ 
+-	dpm_save_failed_step(SUSPEND_FREEZE);
+-	pm_notifier_call_chain(PM_POST_SUSPEND);
++	return 0;
++ Thaw:
++	suspend_thaw_processes();
+  Restore:
+ 	pm_restore_console();
++	dpm_save_failed_step(SUSPEND_FREEZE);
+ 	return error;
+ }
+ 
+-- 
+2.49.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mario Limonciello <mario.limonciello@amd.com>
+Date: Thu, 1 May 2025 16:17:33 -0500
+Subject: drm/amd: Use suspend and hibernate post freeze notifications
+
+commit 2965e6355dcd ("drm/amd: Add Suspend/Hibernate notification
+callback support") introduced a VRAM eviction earlier in the PM
+sequences when swap was still available for evicting to. This helped
+to fix a number of memory pressure related bugs but also exposed a
+new one.
+
+If a userspace process is actively using the GPU when suspend starts
+then a deadlock could occur.
+
+Instead of going off the prepare notifier, use the PM notifiers that
+occur after processes have been frozen to do evictions.
+
+Closes: https://gitlab.freedesktop.org/drm/amd/-/issues/4178
+Fixes: 2965e6355dcd ("drm/amd: Add Suspend/Hibernate notification callback support")
+Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+---
+ drivers/gpu/drm/amd/amdgpu/amdgpu_device.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
+index e644791dda1d8..8027f9550a7f3 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
+@@ -4842,10 +4842,10 @@ static int amdgpu_device_pm_notifier(struct notifier_block *nb, unsigned long mo
+ 	int r;
+ 
+ 	switch (mode) {
+-	case PM_HIBERNATION_PREPARE:
++	case PM_HIBERNATION_POST_FREEZE:
+ 		adev->in_s4 = true;
+ 		fallthrough;
+-	case PM_SUSPEND_PREPARE:
++	case PM_SUSPEND_POST_FREEZE:
+ 		r = amdgpu_device_evict_resources(adev);
+ 		/*
+ 		 * This is considered non-fatal at this time because
 -- 
 2.49.0
 
