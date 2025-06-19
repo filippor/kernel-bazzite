@@ -54907,3 +54907,38 @@ index 018dfde4025e..5cd4392b964e 100644
 -- 
 2.49.0
 
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Fri, 20 Jun 2025 01:55:33 +0200
+Subject: Revert "platform/x86/amd: pmc: Require at least 2.5 seconds between
+ HW sleep cycles"
+
+Prolongs wakeups before sleep and during EC checks too much.
+
+This reverts commit 9f5595d5f03fd4dc640607a71e89a1daa68fd19d.
+---
+ drivers/platform/x86/amd/pmc/pmc.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/platform/x86/amd/pmc/pmc.c b/drivers/platform/x86/amd/pmc/pmc.c
+index cfd1c37cf6b6..e6124498b195 100644
+--- a/drivers/platform/x86/amd/pmc/pmc.c
++++ b/drivers/platform/x86/amd/pmc/pmc.c
+@@ -724,9 +724,10 @@ static void amd_pmc_s2idle_check(void)
+ 	struct smu_metrics table;
+ 	int rc;
+ 
+-	/* Avoid triggering OVP */
+-	if (!get_metrics_table(pdev, &table) && table.s0i3_last_entry_status)
+-		msleep(2500);
++	/* CZN: Ensure that future s0i3 entry attempts at least 10ms passed */
++	if (pdev->cpu_id == AMD_CPU_ID_CZN && !get_metrics_table(pdev, &table) &&
++	    table.s0i3_last_entry_status)
++		usleep_range(10000, 20000);
+ 
+ 	/* Dump the IdleMask before we add to the STB */
+ 	amd_pmc_idlemask_read(pdev, pdev->dev, NULL);
+-- 
+2.49.0
+
