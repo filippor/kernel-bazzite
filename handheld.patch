@@ -54673,14 +54673,14 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 8 insertions(+)
 
 diff --git a/kernel/power/suspend.c b/kernel/power/suspend.c
-index e7b17f399966..9e5382313681 100644
+index e7b17f399966..10340ed2cdb4 100644
 --- a/kernel/power/suspend.c
 +++ b/kernel/power/suspend.c
 @@ -153,6 +153,7 @@ static void s2idle_loop(void)
  	 * Wakeups during the noirq suspend of devices may be spurious, so try
  	 * to avoid them upfront.
  	 */
-+	long curr, previous = 0;
++	unsigned long curr, previous = 0;
  	for (;;) {
  		if (s2idle_ops && s2idle_ops->wake) {
  			if (s2idle_ops->wake())

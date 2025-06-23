@@ -169,7 +169,7 @@ Summary: The Linux kernel
 # This is needed to do merge window version magic
 %define patchlevel 15
 # This allows pkg_release to have configurable %%{?dist} tag
-%define specrelease 100%{?buildid}%{?dist}
+%define specrelease 101%{?buildid}%{?dist}
 # This defines the kabi tarball version
 %define kabiversion 6.15.3
 
@@ -1068,8 +1068,6 @@ Source482: %{name}-aarch64-rt-64k-fedora.config
 Source483: %{name}-aarch64-rt-64k-debug-fedora.config
 Source484: %{name}-x86_64-rt-fedora.config
 Source485: %{name}-x86_64-rt-debug-fedora.config
-Source486: %{name}-riscv64-rt-fedora.config
-Source487: %{name}-riscv64-rt-debug-fedora.config
 %endif
 %endif
 
