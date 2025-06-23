@@ -1,22 +1,23 @@
- Documentation/ABI/testing/sysfs-kernel-fadump      |    3 +-
- .../arch/powerpc/firmware-assisted-dump.rst        |   22 +
  MAINTAINERS                                        |   17 +
  Makefile                                           |   40 +
  arch/arm/Kconfig                                   |    4 +-
  arch/arm64/Kconfig                                 |    2 +-
- arch/powerpc/include/asm/prom.h                    |    2 +
- arch/powerpc/kernel/fadump.c                       |   21 +-
- arch/powerpc/kernel/prom_init.c                    |    2 +-
+ arch/arm64/boot/dts/rockchip/rk3328-rock64.dts     |    1 +
+ arch/arm64/boot/dts/rockchip/rk3399-rockpro64.dtsi |    1 +
+ arch/arm64/boot/dts/rockchip/rk3566-quartz64-b.dts |    1 +
+ arch/arm64/boot/dts/rockchip/rk3568-nanopi-r5s.dts |   19 +-
+ arch/arm64/boot/dts/rockchip/rk3568-qnap-ts433.dts |   15 +-
+ arch/arm64/boot/dts/rockchip/rk3568.dtsi           |    8 +-
+ arch/arm64/boot/dts/rockchip/rk3588-base.dtsi      |    6 -
+ arch/arm64/boot/dts/rockchip/rk3588-rock-5b.dts    |    1 +
+ arch/powerpc/include/uapi/asm/ioctls.h             |    8 +-
  arch/s390/include/asm/ipl.h                        |    1 +
  arch/s390/kernel/ipl.c                             |    5 +
  arch/s390/kernel/setup.c                           |    4 +
  arch/x86/kernel/setup.c                            |   22 +-
- arch/x86/tools/insn_decoder_test.c                 |    2 +-
- crypto/akcipher.c                                  |    3 +-
- crypto/dh.c                                        |   25 +
- crypto/seqiv.c                                     |   15 +-
  crypto/sig.c                                       |    3 +-
- crypto/testmgr.c                                   |    6 +-
+ crypto/testmgr.c                                   |    2 +-
+ drivers/acpi/acpica/dsmethod.c                     |    7 +
  drivers/acpi/apei/hest.c                           |    8 +
  drivers/acpi/irq.c                                 |   17 +-
  drivers/acpi/scan.c                                |    9 +
@@ -34,87 +35,38 @@
  drivers/media/i2c/Makefile                         |    2 +
  drivers/media/i2c/ov02c10.c                        | 1013 ++++++++++++++++++++
  drivers/media/i2c/ov02e10.c                        |  969 +++++++++++++++++++
- drivers/media/i2c/ov08x40.c                        |  108 +--
+ drivers/media/i2c/ov08x40.c                        |    2 +-
+ drivers/net/wireless/ath/ath12k/core.c             |   23 +-
+ drivers/net/wireless/ath/ath12k/core.h             |    4 +
+ drivers/net/wireless/ath/ath12k/fw.c               |    9 +-
+ drivers/net/wireless/ath/ath12k/fw.h               |    3 +-
+ drivers/net/wireless/ath/ath12k/pci.c              |    4 +-
+ drivers/net/wireless/ath/ath12k/qmi.c              |    6 +-
  drivers/pci/quirks.c                               |   24 +
  drivers/platform/x86/intel/int3472/Makefile        |    3 +-
  .../platform/x86/intel/int3472/clk_and_regulator.c |  166 ++--
  drivers/platform/x86/intel/int3472/common.h        |   57 +-
- drivers/platform/x86/intel/int3472/discrete.c      |   83 +-
+ drivers/platform/x86/intel/int3472/discrete.c      |   41 +-
  .../platform/x86/intel/int3472/discrete_quirks.c   |   22 +
- drivers/platform/x86/intel/pmc/adl.c               |   22 +-
- drivers/platform/x86/intel/pmc/arl.c               |   79 +-
- drivers/platform/x86/intel/pmc/cnp.c               |   21 +-
- drivers/platform/x86/intel/pmc/core.c              |  114 ++-
- drivers/platform/x86/intel/pmc/core.h              |   46 +-
- drivers/platform/x86/intel/pmc/icl.c               |   18 +-
- drivers/platform/x86/intel/pmc/lnl.c               |   25 +-
- drivers/platform/x86/intel/pmc/mtl.c               |   45 +-
- drivers/platform/x86/intel/pmc/spt.c               |   33 +-
- drivers/platform/x86/intel/pmc/tgl.c               |   39 +-
  drivers/scsi/sd.c                                  |   10 +
  drivers/usb/core/hub.c                             |    7 +
- include/linux/crypto.h                             |    2 +
  include/linux/efi.h                                |   22 +-
  include/linux/lsm_hook_defs.h                      |    1 +
  include/linux/rmi.h                                |    1 +
  include/linux/security.h                           |    9 +
  kernel/module/signing.c                            |    9 +-
- scripts/Makefile.extrawarn                         |    4 +
+ scripts/Makefile.lib                               |    3 +
  scripts/tags.sh                                    |    2 +
  security/integrity/platform_certs/load_uefi.c      |    6 +-
  security/lockdown/Kconfig                          |   13 +
  security/lockdown/lockdown.c                       |   11 +
- 66 files changed, 3062 insertions(+), 620 deletions(-)
+ 62 files changed, 2757 insertions(+), 349 deletions(-)
 
-diff --git a/Documentation/ABI/testing/sysfs-kernel-fadump b/Documentation/ABI/testing/sysfs-kernel-fadump
-index 2f9daa7ca55b..b64b7622e6fc 100644
---- a/Documentation/ABI/testing/sysfs-kernel-fadump
-+++ b/Documentation/ABI/testing/sysfs-kernel-fadump
-@@ -55,4 +55,5 @@ Date:		May 2024
- Contact:	linuxppc-dev@lists.ozlabs.org
- Description:	read/write
- 		This is a special sysfs file available to setup additional
--		parameters to be passed to capture kernel.
-+		parameters to be passed to capture kernel. For HASH MMU it
-+		is exported only if RMA size higher than 768MB.
-diff --git a/Documentation/arch/powerpc/firmware-assisted-dump.rst b/Documentation/arch/powerpc/firmware-assisted-dump.rst
-index 7e37aadd1f77..7e266e749cd5 100644
---- a/Documentation/arch/powerpc/firmware-assisted-dump.rst
-+++ b/Documentation/arch/powerpc/firmware-assisted-dump.rst
-@@ -120,6 +120,28 @@ to ensure that crash data is preserved to process later.
-    e.g.
-      # echo 1 > /sys/firmware/opal/mpipl/release_core
- 
-+-- Support for Additional Kernel Arguments in Fadump
-+   Fadump has a feature that allows passing additional kernel arguments
-+   to the fadump kernel. This feature was primarily designed to disable
-+   kernel functionalities that are not required for the fadump kernel
-+   and to reduce its memory footprint while collecting the dump.
-+
-+  Command to Add Additional Kernel Parameters to Fadump:
-+  e.g.
-+  # echo "nr_cpus=16" > /sys/kernel/fadump/bootargs_append
-+
-+  The above command is sufficient to add additional arguments to fadump.
-+  An explicit service restart is not required.
-+
-+  Command to Retrieve the Additional Fadump Arguments:
-+  e.g.
-+  # cat /sys/kernel/fadump/bootargs_append
-+
-+Note: Additional kernel arguments for fadump with HASH MMU is only
-+      supported if the RMA size is greater than 768 MB. If the RMA
-+      size is less than 768 MB, the kernel does not export the
-+      /sys/kernel/fadump/bootargs_append sysfs node.
-+
- Implementation details:
- -----------------------
- 
 diff --git a/MAINTAINERS b/MAINTAINERS
-index 00e94bec401e..292b51652cca 100644
+index dd844ac8d910..dab2b4892122 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
-@@ -17461,6 +17461,23 @@ T:	git git://linuxtv.org/media.git
+@@ -18014,6 +18014,23 @@ T:	git git://linuxtv.org/media.git
  F:	Documentation/devicetree/bindings/media/i2c/ovti,ov02a10.yaml
  F:	drivers/media/i2c/ov02a10.c
  
@@ -139,7 +91,7 @@ index 00e94bec401e..292b51652cca 100644
  M:	Jimmy Su <jimmy.su@intel.com>
  L:	linux-media@vger.kernel.org
 diff --git a/Makefile b/Makefile
-index 6c3233a21380..1fc0f912e778 100644
+index 01ddb4eb3659..063569b53bbd 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -22,6 +22,18 @@ $(if $(filter __%, $(MAKECMDGOALS)), \
@@ -161,7 +113,7 @@ index 6c3233a21380..1fc0f912e778 100644
  # We are using a recursive build, so we need to do a little thinking
  # to get the ordering right.
  #
-@@ -358,6 +370,17 @@ ifneq ($(filter install,$(MAKECMDGOALS)),)
+@@ -355,6 +367,17 @@ ifneq ($(filter install,$(MAKECMDGOALS)),)
      endif
  endif
  
@@ -179,7 +131,7 @@ index 6c3233a21380..1fc0f912e778 100644
  ifdef mixed-build
  # ===========================================================================
  # We're called with mixed targets (*config and build targets).
-@@ -1918,6 +1941,23 @@ endif
+@@ -1924,6 +1947,23 @@ endif
  
  ifdef CONFIG_MODULES
  
@@ -204,10 +156,10 @@ index 6c3233a21380..1fc0f912e778 100644
  	@:
  
 diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index f3f6b7a33b79..803bd258f1b7 100644
+index 25ed6f1a7c7a..d19fc6d6c134 100644
 --- a/arch/arm/Kconfig
 +++ b/arch/arm/Kconfig
-@@ -1231,9 +1231,9 @@ config HIGHMEM
+@@ -1232,9 +1232,9 @@ config HIGHMEM
  	  If unsure, say n.
  
  config HIGHPTE
@@ -220,10 +172,10 @@ index f3f6b7a33b79..803bd258f1b7 100644
  	  The VM uses one page of physical memory for each page table.
  	  For systems with a lot of processes, this can use a lot of
 diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 3e7483ad5276..6ec02dbd2dd0 100644
+index 6527d0d5656a..4db1bdab9ab1 100644
 --- a/arch/arm64/Kconfig
 +++ b/arch/arm64/Kconfig
-@@ -1409,7 +1409,7 @@ endchoice
+@@ -1413,7 +1413,7 @@ endchoice
  
  config ARM64_FORCE_52BIT
  	bool "Force 52-bit virtual addresses for userspace"
@@ -232,74 +184,246 @@ index 3e7483ad5276..6ec02dbd2dd0 100644
  	help
  	  For systems with 52-bit userspace VAs enabled, the kernel will attempt
  	  to maintain compatibility with older software by providing 48-bit VAs
-diff --git a/arch/powerpc/include/asm/prom.h b/arch/powerpc/include/asm/prom.h
-index c0107d8ddd8c..f679a11a7e7f 100644
---- a/arch/powerpc/include/asm/prom.h
-+++ b/arch/powerpc/include/asm/prom.h
-@@ -17,6 +17,8 @@
- struct device_node;
- struct property;
+diff --git a/arch/arm64/boot/dts/rockchip/rk3328-rock64.dts b/arch/arm64/boot/dts/rockchip/rk3328-rock64.dts
+index e550b6eeeff3..5367e5fa9232 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3328-rock64.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3328-rock64.dts
+@@ -343,6 +343,7 @@ flash@0 {
  
-+#define MIN_RMA			768		/* Minimum RMA (in MB) for CAS negotiation */
+ 		/* maximum speed for Rockchip SPI */
+ 		spi-max-frequency = <50000000>;
++		vcc-supply = <&vcc_io>;
+ 	};
+ };
+ 
+diff --git a/arch/arm64/boot/dts/rockchip/rk3399-rockpro64.dtsi b/arch/arm64/boot/dts/rockchip/rk3399-rockpro64.dtsi
+index 51c6aa26d828..a7e4adf87e7a 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3399-rockpro64.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399-rockpro64.dtsi
+@@ -850,6 +850,7 @@ flash@0 {
+ 		compatible = "jedec,spi-nor";
+ 		reg = <0>;
+ 		spi-max-frequency = <10000000>;
++		vcc-supply = <&vcc_3v0>;
+ 	};
+ };
+ 
+diff --git a/arch/arm64/boot/dts/rockchip/rk3566-quartz64-b.dts b/arch/arm64/boot/dts/rockchip/rk3566-quartz64-b.dts
+index 5707321a1144..f8cf03380636 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3566-quartz64-b.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3566-quartz64-b.dts
+@@ -648,6 +648,7 @@ flash@0 {
+ 		spi-max-frequency = <24000000>;
+ 		spi-rx-bus-width = <4>;
+ 		spi-tx-bus-width = <1>;
++		vcc-supply = <&vcc_1v8>;
+ 	};
+ };
+ 
+diff --git a/arch/arm64/boot/dts/rockchip/rk3568-nanopi-r5s.dts b/arch/arm64/boot/dts/rockchip/rk3568-nanopi-r5s.dts
+index b6ad8328c7eb..3b31f0dd8f3b 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3568-nanopi-r5s.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3568-nanopi-r5s.dts
+@@ -20,33 +20,43 @@ aliases {
+ 	gpio-leds {
+ 		compatible = "gpio-leds";
+ 		pinctrl-names = "default";
+-		pinctrl-0 = <&lan1_led_pin>, <&lan2_led_pin>, <&power_led_pin>, <&wan_led_pin>;
++		pinctrl-0 = <&lan1_led_pin>, <&lan2_led_pin>, <&sys_led_pin>, <&wan_led_pin>;
+ 
+ 		led-lan1 {
+ 			color = <LED_COLOR_ID_GREEN>;
++			default-state = "off";
+ 			function = LED_FUNCTION_LAN;
+ 			function-enumerator = <1>;
+ 			gpios = <&gpio3 RK_PD6 GPIO_ACTIVE_HIGH>;
++			label = "LAN-1";
++			linux,default-trigger = "netdev";
+ 		};
+ 
+ 		led-lan2 {
+ 			color = <LED_COLOR_ID_GREEN>;
++			default-state = "off";
+ 			function = LED_FUNCTION_LAN;
+ 			function-enumerator = <2>;
+ 			gpios = <&gpio3 RK_PD7 GPIO_ACTIVE_HIGH>;
++			label = "LAN-2";
++			linux,default-trigger = "netdev";
+ 		};
+ 
+-		power_led: led-power {
++		power_led: led-sys {
+ 			color = <LED_COLOR_ID_RED>;
+ 			function = LED_FUNCTION_POWER;
+-			linux,default-trigger = "heartbeat";
+ 			gpios = <&gpio4 RK_PD2 GPIO_ACTIVE_HIGH>;
++			label = "SYS";
++			linux,default-trigger = "heartbeat";
+ 		};
+ 
+ 		led-wan {
+ 			color = <LED_COLOR_ID_GREEN>;
++			default-state = "off";
+ 			function = LED_FUNCTION_WAN;
+ 			gpios = <&gpio2 RK_PC1 GPIO_ACTIVE_HIGH>;
++			label = "WAN";
++			linux,default-trigger = "netdev";
+ 		};
+ 	};
+ };
+@@ -58,6 +68,7 @@ &gmac0 {
+ 	clock_in_out = "output";
+ 	phy-handle = <&rgmii_phy0>;
+ 	phy-mode = "rgmii";
++	phy-supply = <&vcc_3v3>;
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&gmac0_miim
+ 		     &gmac0_tx_bus2
+@@ -125,7 +136,7 @@ lan2_led_pin: lan2-led-pin {
+ 			rockchip,pins = <3 RK_PD7 RK_FUNC_GPIO &pcfg_pull_none>;
+ 		};
+ 
+-		power_led_pin: power-led-pin {
++		sys_led_pin: sys-led-pin {
+ 			rockchip,pins = <4 RK_PD2 RK_FUNC_GPIO &pcfg_pull_none>;
+ 		};
+ 
+diff --git a/arch/arm64/boot/dts/rockchip/rk3568-qnap-ts433.dts b/arch/arm64/boot/dts/rockchip/rk3568-qnap-ts433.dts
+index b80d628c426b..6ae4316761c4 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3568-qnap-ts433.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3568-qnap-ts433.dts
+@@ -481,9 +481,14 @@ eeprom@56 {
+ };
+ 
+ &mdio0 {
+-	rgmii_phy0: ethernet-phy@0 {
++	rgmii_phy0: ethernet-phy@3 {
++		/* Motorcomm YT8521 phy */
+ 		compatible = "ethernet-phy-ieee802.3-c22";
+-		reg = <0x0>;
++		reg = <0x3>;
++		pinctrl-0 = <&eth_phy0_reset_pin>;
++		pinctrl-names = "default";
++		reset-assert-us = <10000>;
++		reset-gpios = <&gpio0 RK_PC6 GPIO_ACTIVE_LOW>;
+ 	};
+ };
+ 
+@@ -556,6 +561,12 @@ &pcie3x2 {
+ };
+ 
+ &pinctrl {
++	gmac0 {
++		eth_phy0_reset_pin: eth-phy0-reset-pin {
++			rockchip,pins = <0 RK_PC6 RK_FUNC_GPIO &pcfg_pull_up>;
++		};
++	};
 +
- #define OF_DT_BEGIN_NODE	0x1		/* Start of node, full name */
- #define OF_DT_END_NODE		0x2		/* End node */
- #define OF_DT_PROP		0x3		/* Property: name off, size,
-diff --git a/arch/powerpc/kernel/fadump.c b/arch/powerpc/kernel/fadump.c
-index 4b371c738213..26e3d151e048 100644
---- a/arch/powerpc/kernel/fadump.c
-+++ b/arch/powerpc/kernel/fadump.c
-@@ -33,6 +33,7 @@
- #include <asm/fadump-internal.h>
- #include <asm/setup.h>
- #include <asm/interrupt.h>
-+#include <asm/prom.h>
+ 	keys {
+ 		copy_button_pin: copy-button-pin {
+ 			rockchip,pins = <0 RK_PB6 RK_FUNC_GPIO &pcfg_pull_up>;
+diff --git a/arch/arm64/boot/dts/rockchip/rk3568.dtsi b/arch/arm64/boot/dts/rockchip/rk3568.dtsi
+index 695cccbdab0f..e719a3df126c 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3568.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3568.dtsi
+@@ -152,7 +152,7 @@ pcie3x1: pcie@fe270000 {
+ 		compatible = "rockchip,rk3568-pcie";
+ 		#address-cells = <3>;
+ 		#size-cells = <2>;
+-		bus-range = <0x0 0xf>;
++		bus-range = <0x10 0x1f>;
+ 		clocks = <&cru ACLK_PCIE30X1_MST>, <&cru ACLK_PCIE30X1_SLV>,
+ 			 <&cru ACLK_PCIE30X1_DBI>, <&cru PCLK_PCIE30X1>,
+ 			 <&cru CLK_PCIE30X1_AUX_NDFT>;
+@@ -175,7 +175,7 @@ pcie3x1: pcie@fe270000 {
+ 		num-ib-windows = <6>;
+ 		num-ob-windows = <2>;
+ 		max-link-speed = <3>;
+-		msi-map = <0x0 &gic 0x1000 0x1000>;
++		msi-map = <0x1000 &its 0x1000 0x1000>;
+ 		num-lanes = <1>;
+ 		phys = <&pcie30phy>;
+ 		phy-names = "pcie-phy";
+@@ -205,7 +205,7 @@ pcie3x2: pcie@fe280000 {
+ 		compatible = "rockchip,rk3568-pcie";
+ 		#address-cells = <3>;
+ 		#size-cells = <2>;
+-		bus-range = <0x0 0xf>;
++		bus-range = <0x20 0x2f>;
+ 		clocks = <&cru ACLK_PCIE30X2_MST>, <&cru ACLK_PCIE30X2_SLV>,
+ 			 <&cru ACLK_PCIE30X2_DBI>, <&cru PCLK_PCIE30X2>,
+ 			 <&cru CLK_PCIE30X2_AUX_NDFT>;
+@@ -228,7 +228,7 @@ pcie3x2: pcie@fe280000 {
+ 		num-ib-windows = <6>;
+ 		num-ob-windows = <2>;
+ 		max-link-speed = <3>;
+-		msi-map = <0x0 &gic 0x2000 0x1000>;
++		msi-map = <0x2000 &its 0x2000 0x1000>;
+ 		num-lanes = <2>;
+ 		phys = <&pcie30phy>;
+ 		phy-names = "pcie-phy";
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588-base.dtsi b/arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+index c52af310c706..5d8b96384856 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+@@ -95,8 +95,6 @@ cpu_l0: cpu@0 {
+ 			enable-method = "psci";
+ 			capacity-dmips-mhz = <530>;
+ 			clocks = <&scmi_clk SCMI_CLK_CPUL>;
+-			assigned-clocks = <&scmi_clk SCMI_CLK_CPUL>;
+-			assigned-clock-rates = <816000000>;
+ 			cpu-idle-states = <&CPU_SLEEP>;
+ 			i-cache-size = <32768>;
+ 			i-cache-line-size = <64>;
+@@ -173,8 +171,6 @@ cpu_b0: cpu@400 {
+ 			enable-method = "psci";
+ 			capacity-dmips-mhz = <1024>;
+ 			clocks = <&scmi_clk SCMI_CLK_CPUB01>;
+-			assigned-clocks = <&scmi_clk SCMI_CLK_CPUB01>;
+-			assigned-clock-rates = <816000000>;
+ 			cpu-idle-states = <&CPU_SLEEP>;
+ 			i-cache-size = <65536>;
+ 			i-cache-line-size = <64>;
+@@ -213,8 +209,6 @@ cpu_b2: cpu@600 {
+ 			enable-method = "psci";
+ 			capacity-dmips-mhz = <1024>;
+ 			clocks = <&scmi_clk SCMI_CLK_CPUB23>;
+-			assigned-clocks = <&scmi_clk SCMI_CLK_CPUB23>;
+-			assigned-clock-rates = <816000000>;
+ 			cpu-idle-states = <&CPU_SLEEP>;
+ 			i-cache-size = <65536>;
+ 			i-cache-line-size = <64>;
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588-rock-5b.dts b/arch/arm64/boot/dts/rockchip/rk3588-rock-5b.dts
+index d22068475c5d..17f4fd054cd3 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588-rock-5b.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588-rock-5b.dts
+@@ -562,6 +562,7 @@ flash@0 {
+ 		spi-max-frequency = <104000000>;
+ 		spi-rx-bus-width = <4>;
+ 		spi-tx-bus-width = <1>;
++		vcc-supply = <&vcc_3v3_s3>;
+ 	};
+ };
  
- /*
-  * The CPU who acquired the lock to trigger the fadump crash should
-@@ -1764,19 +1765,19 @@ void __init fadump_setup_param_area(void)
- 		range_end = memblock_end_of_DRAM();
- 	} else {
- 		/*
--		 * Passing additional parameters is supported for hash MMU only
--		 * if the first memory block size is 768MB or higher.
-+		 * Memory range for passing additional parameters for HASH MMU
-+		 * must meet the following conditions:
-+		 * 1. The first memory block size must be higher than the
-+		 *    minimum RMA (MIN_RMA) size. Bootloader can use memory
-+		 *    upto RMA size. So it should be avoided.
-+		 * 2. The range should be between MIN_RMA and RMA size (ppc64_rma_size)
-+		 * 3. It must not overlap with the fadump reserved area.
- 		 */
--		if (ppc64_rma_size < 0x30000000)
-+		if (ppc64_rma_size < MIN_RMA*1024*1024)
- 			return;
+diff --git a/arch/powerpc/include/uapi/asm/ioctls.h b/arch/powerpc/include/uapi/asm/ioctls.h
+index 2c145da3b774..b5211e413829 100644
+--- a/arch/powerpc/include/uapi/asm/ioctls.h
++++ b/arch/powerpc/include/uapi/asm/ioctls.h
+@@ -23,10 +23,10 @@
+ #define TCSETSW		_IOW('t', 21, struct termios)
+ #define TCSETSF		_IOW('t', 22, struct termios)
  
--		/*
--		 * 640 MB to 768 MB is not used by PFW/bootloader. So, try reserving
--		 * memory for passing additional parameters in this range to avoid
--		 * being stomped on by PFW/bootloader.
--		 */
--		range_start = 0x2A000000;
--		range_end = range_start + 0x4000000;
-+		range_start = MIN_RMA * 1024 * 1024;
-+		range_end = min(ppc64_rma_size, fw_dump.boot_mem_top);
- 	}
+-#define TCGETA		_IOR('t', 23, struct termio)
+-#define TCSETA		_IOW('t', 24, struct termio)
+-#define TCSETAW		_IOW('t', 25, struct termio)
+-#define TCSETAF		_IOW('t', 28, struct termio)
++#define TCGETA		0x40147417 /* _IOR('t', 23, struct termio) */
++#define TCSETA		0x80147418 /* _IOW('t', 24, struct termio) */
++#define TCSETAW		0x80147419 /* _IOW('t', 25, struct termio) */
++#define TCSETAF		0x8014741c /* _IOW('t', 28, struct termio) */
  
- 	fw_dump.param_area = memblock_phys_alloc_range(COMMAND_LINE_SIZE,
-diff --git a/arch/powerpc/kernel/prom_init.c b/arch/powerpc/kernel/prom_init.c
-index 57082fac4668..fce32b162ef3 100644
---- a/arch/powerpc/kernel/prom_init.c
-+++ b/arch/powerpc/kernel/prom_init.c
-@@ -1061,7 +1061,7 @@ static const struct ibm_arch_vec ibm_architecture_vec_template __initconst = {
- 		.virt_base = cpu_to_be32(0xffffffff),
- 		.virt_size = cpu_to_be32(0xffffffff),
- 		.load_base = cpu_to_be32(0xffffffff),
--		.min_rma = cpu_to_be32(512),		/* 512MB min RMA */
-+		.min_rma = cpu_to_be32(MIN_RMA),
- 		.min_load = cpu_to_be32(0xffffffff),	/* full client load */
- 		.min_rma_percent = 0,	/* min RMA percentage of total RAM */
- 		.max_pft_size = 48,	/* max log_2(hash table size) */
+ #define TCSBRK		_IO('t', 29)
+ #define TCXONC		_IO('t', 30)
 diff --git a/arch/s390/include/asm/ipl.h b/arch/s390/include/asm/ipl.h
 index b0d00032479d..afb9544fb007 100644
 --- a/arch/s390/include/asm/ipl.h
@@ -313,10 +437,10 @@ index b0d00032479d..afb9544fb007 100644
  /*
   * DIAG 308 support
 diff --git a/arch/s390/kernel/ipl.c b/arch/s390/kernel/ipl.c
-index 69be2309cde0..1d85c99be81b 100644
+index 3b9d9ccfad63..648ac8c7e1fd 100644
 --- a/arch/s390/kernel/ipl.c
 +++ b/arch/s390/kernel/ipl.c
-@@ -2497,3 +2497,8 @@ int ipl_report_free(struct ipl_report *report)
+@@ -2498,3 +2498,8 @@ int ipl_report_free(struct ipl_report *report)
  }
  
  #endif
@@ -326,7 +450,7 @@ index 69be2309cde0..1d85c99be81b 100644
 +	return !!ipl_secure_flag;
 +}
 diff --git a/arch/s390/kernel/setup.c b/arch/s390/kernel/setup.c
-index d78bcfe707b5..f3a71214a211 100644
+index f244c5560e7f..464f915011b8 100644
 --- a/arch/s390/kernel/setup.c
 +++ b/arch/s390/kernel/setup.c
 @@ -49,6 +49,7 @@
@@ -337,7 +461,7 @@ index d78bcfe707b5..f3a71214a211 100644
  #include <linux/hugetlb.h>
  #include <linux/kmemleak.h>
  
-@@ -916,6 +917,9 @@ void __init setup_arch(char **cmdline_p)
+@@ -914,6 +915,9 @@ void __init setup_arch(char **cmdline_p)
  
  	log_component_list();
  
@@ -348,7 +472,7 @@ index d78bcfe707b5..f3a71214a211 100644
  	/* boot_command_line has been already set up in early.c */
  	*cmdline_p = boot_command_line;
 diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-index cebee310e200..8d015c5faf59 100644
+index 9d2a13b37833..770aee4ae9ae 100644
 --- a/arch/x86/kernel/setup.c
 +++ b/arch/x86/kernel/setup.c
 @@ -21,6 +21,7 @@
@@ -359,7 +483,7 @@ index cebee310e200..8d015c5faf59 100644
  #include <linux/usb/xhci-dbgp.h>
  #include <linux/static_call.h>
  #include <linux/swiotlb.h>
-@@ -907,6 +908,13 @@ void __init setup_arch(char **cmdline_p)
+@@ -964,6 +965,13 @@ void __init setup_arch(char **cmdline_p)
  	if (efi_enabled(EFI_BOOT))
  		efi_init();
  
@@ -373,7 +497,7 @@ index cebee310e200..8d015c5faf59 100644
  	reserve_ibft_region();
  	x86_init.resources.dmi_setup();
  
-@@ -1073,19 +1081,7 @@ void __init setup_arch(char **cmdline_p)
+@@ -1127,19 +1135,7 @@ void __init setup_arch(char **cmdline_p)
  	/* Allocate bigger log buffer */
  	setup_log_buf(1);
  
@@ -394,111 +518,11 @@ index cebee310e200..8d015c5faf59 100644
  
  	reserve_initrd();
  
-diff --git a/arch/x86/tools/insn_decoder_test.c b/arch/x86/tools/insn_decoder_test.c
-index 472540aeabc2..366e07546344 100644
---- a/arch/x86/tools/insn_decoder_test.c
-+++ b/arch/x86/tools/insn_decoder_test.c
-@@ -106,7 +106,7 @@ static void parse_args(int argc, char **argv)
- 	}
- }
- 
--#define BUFSIZE 256
-+#define BUFSIZE 4096
- 
- int main(int argc, char **argv)
- {
-diff --git a/crypto/akcipher.c b/crypto/akcipher.c
-index 72c82d9aa077..da1ac5de8252 100644
---- a/crypto/akcipher.c
-+++ b/crypto/akcipher.c
-@@ -141,8 +141,7 @@ int crypto_register_akcipher(struct akcipher_alg *alg)
- 
- 	if (!alg->encrypt)
- 		alg->encrypt = akcipher_default_op;
--	if (!alg->decrypt)
--		alg->decrypt = akcipher_default_op;
-+	alg->decrypt = akcipher_default_op;
- 	if (!alg->set_priv_key)
- 		alg->set_priv_key = akcipher_default_set_key;
- 
-diff --git a/crypto/dh.c b/crypto/dh.c
-index afc0fd847761..e13258c3d1d1 100644
---- a/crypto/dh.c
-+++ b/crypto/dh.c
-@@ -227,10 +227,35 @@ static int dh_compute_value(struct kpp_request *req)
- 
- 		/* SP800-56A rev 3 5.6.2.1.3 key check */
- 		} else {
-+			MPI val_pct;
-+
- 			if (dh_is_pubkey_valid(ctx, val)) {
- 				ret = -EAGAIN;
- 				goto err_free_val;
- 			}
-+
-+			/*
-+			 * SP800-56Arev3, 5.6.2.1.4: ("Owner Assurance
-+			 * of Pair-wise Consistency"): recompute the
-+			 * public key and check if the results match.
-+			 */
-+			val_pct = mpi_alloc(0);
-+			if (!val_pct) {
-+				ret = -ENOMEM;
-+				goto err_free_val;
-+			}
-+
-+			ret = _compute_val(ctx, base, val_pct);
-+			if (ret) {
-+				mpi_free(val_pct);
-+				goto err_free_val;
-+			}
-+
-+			if (mpi_cmp(val, val_pct) != 0) {
-+				fips_fail_notify();
-+				panic("dh: pair-wise consistency test failed\n");
-+			}
-+			mpi_free(val_pct);
- 		}
- 	}
- 
-diff --git a/crypto/seqiv.c b/crypto/seqiv.c
-index 17e11d51ddc3..9c136a3b6267 100644
---- a/crypto/seqiv.c
-+++ b/crypto/seqiv.c
-@@ -132,6 +132,19 @@ static int seqiv_aead_decrypt(struct aead_request *req)
- 	return crypto_aead_decrypt(subreq);
- }
- 
-+static int aead_init_seqiv(struct crypto_aead *aead)
-+{
-+	int err;
-+
-+	err = aead_init_geniv(aead);
-+	if (err)
-+		return err;
-+
-+	crypto_aead_set_flags(aead, CRYPTO_TFM_FIPS_COMPLIANCE);
-+
-+	return 0;
-+}
-+
- static int seqiv_aead_create(struct crypto_template *tmpl, struct rtattr **tb)
- {
- 	struct aead_instance *inst;
-@@ -149,7 +162,7 @@ static int seqiv_aead_create(struct crypto_template *tmpl, struct rtattr **tb)
- 	inst->alg.encrypt = seqiv_aead_encrypt;
- 	inst->alg.decrypt = seqiv_aead_decrypt;
- 
--	inst->alg.init = aead_init_geniv;
-+	inst->alg.init = aead_init_seqiv;
- 	inst->alg.exit = aead_exit_geniv;
- 
- 	inst->alg.base.cra_ctxsize = sizeof(struct aead_geniv_ctx);
 diff --git a/crypto/sig.c b/crypto/sig.c
-index dfc7cae90802..2a58d726149d 100644
+index 53a3dd6fbe3f..2321847d8b45 100644
 --- a/crypto/sig.c
 +++ b/crypto/sig.c
-@@ -106,8 +106,7 @@ static int sig_prepare_alg(struct sig_alg *alg)
+@@ -111,8 +111,7 @@ static int sig_prepare_alg(struct sig_alg *alg)
  {
  	struct crypto_alg *base = &alg->base;
  
@@ -509,19 +533,10 @@ index dfc7cae90802..2a58d726149d 100644
  		alg->verify = sig_default_verify;
  	if (!alg->set_priv_key)
 diff --git a/crypto/testmgr.c b/crypto/testmgr.c
-index e61490ba4095..d24a50804349 100644
+index 82977ea25db3..aeb84a4b5937 100644
 --- a/crypto/testmgr.c
 +++ b/crypto/testmgr.c
-@@ -4189,7 +4189,7 @@ static int test_akcipher_one(struct crypto_akcipher *tfm,
- 	 * Don't invoke decrypt test which requires a private key
- 	 * for vectors with only a public key.
- 	 */
--	if (vecs->public_key_vec) {
-+	if (1 || vecs->public_key_vec) {
- 		err = 0;
- 		goto free_all;
- 	}
-@@ -4325,7 +4325,7 @@ static int test_sig_one(struct crypto_sig *tfm, const struct sig_testvec *vecs)
+@@ -4170,7 +4170,7 @@ static int test_sig_one(struct crypto_sig *tfm, const struct sig_testvec *vecs)
  	 * Don't invoke sign test (which requires a private key)
  	 * for vectors with only a public key.
  	 */
@@ -529,22 +544,25 @@ index e61490ba4095..d24a50804349 100644
 +	if (1 || vecs->public_key_vec)
  		return 0;
  
- 	sig_size = crypto_sig_keysize(tfm);
-@@ -5169,14 +5169,12 @@ static const struct alg_test_desc alg_test_descs[] = {
- 	}, {
- 		.alg = "ecdh-nist-p256",
- 		.test = alg_test_kpp,
--		.fips_allowed = 1,
- 		.suite = {
- 			.kpp = __VECS(ecdh_p256_tv_template)
- 		}
- 	}, {
- 		.alg = "ecdh-nist-p384",
- 		.test = alg_test_kpp,
--		.fips_allowed = 1,
- 		.suite = {
- 			.kpp = __VECS(ecdh_p384_tv_template)
- 		}
+ 	sig_size = crypto_sig_maxsize(tfm);
+diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
+index e809c2aed78a..a232746d150a 100644
+--- a/drivers/acpi/acpica/dsmethod.c
++++ b/drivers/acpi/acpica/dsmethod.c
+@@ -483,6 +483,13 @@ acpi_ds_call_control_method(struct acpi_thread_state *thread,
+ 		return_ACPI_STATUS(AE_NULL_OBJECT);
+ 	}
+ 
++	if (this_walk_state->num_operands < obj_desc->method.param_count) {
++		ACPI_ERROR((AE_INFO, "Missing argument for method [%4.4s]",
++			    acpi_ut_get_node_name(method_node)));
++
++		return_ACPI_STATUS(AE_AML_UNINITIALIZED_ARG);
++	}
++
+ 	/* Init for new method, possibly wait on method mutex */
+ 
+ 	status =
 diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
 index 20d757687e3d..90a13f20f052 100644
 --- a/drivers/acpi/apei/hest.c
@@ -608,10 +626,10 @@ index 1687483ff319..390b67f19181 100644
  	return ctx.rc;
  }
 diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 9f4efa8f75a6..b7d9f1e31c8f 100644
+index fb1fe9f3b1a3..5a3312fc0ea0 100644
 --- a/drivers/acpi/scan.c
 +++ b/drivers/acpi/scan.c
-@@ -1801,6 +1801,15 @@ static bool acpi_device_enumeration_by_parent(struct acpi_device *device)
+@@ -1794,6 +1794,15 @@ static bool acpi_device_enumeration_by_parent(struct acpi_device *device)
  	if (!acpi_match_device_ids(device, ignore_serial_bus_ids))
  		return false;
  
@@ -683,7 +701,7 @@ index bbf7029e224b..cf7faa970dd6 100644
  		dmi_decode_ipmi((const struct dmi_header *) dev->device_data);
  
 diff --git a/drivers/char/ipmi/ipmi_msghandler.c b/drivers/char/ipmi/ipmi_msghandler.c
-index 1e5313748f8b..f2a56c624f54 100644
+index 3ba9d7e9a6c7..82300dc5fd49 100644
 --- a/drivers/char/ipmi/ipmi_msghandler.c
 +++ b/drivers/char/ipmi/ipmi_msghandler.c
 @@ -35,6 +35,7 @@
@@ -1021,7 +1039,7 @@ index d4af17fdba46..154f0403cbf4 100644
  	data->xport.ops = &hid_rmi_ops;
  
 diff --git a/drivers/hwtracing/coresight/coresight-etm4x-core.c b/drivers/hwtracing/coresight/coresight-etm4x-core.c
-index 5bda265d0234..25fd94e40bb6 100644
+index 88ef381ee6dd..b6bbed9c0cad 100644
 --- a/drivers/hwtracing/coresight/coresight-etm4x-core.c
 +++ b/drivers/hwtracing/coresight/coresight-etm4x-core.c
 @@ -11,6 +11,7 @@
@@ -1032,7 +1050,7 @@ index 5bda265d0234..25fd94e40bb6 100644
  #include <linux/io.h>
  #include <linux/err.h>
  #include <linux/fs.h>
-@@ -2418,6 +2419,16 @@ static const struct amba_id etm4_ids[] = {
+@@ -2383,6 +2384,16 @@ static const struct amba_id etm4_ids[] = {
  	{},
  };
  
@@ -1049,7 +1067,7 @@ index 5bda265d0234..25fd94e40bb6 100644
  MODULE_DEVICE_TABLE(amba, etm4_ids);
  
  static struct amba_driver etm4x_amba_driver = {
-@@ -2486,6 +2497,11 @@ static int __init etm4x_init(void)
+@@ -2451,6 +2462,11 @@ static int __init etm4x_init(void)
  {
  	int ret;
  
@@ -1061,7 +1079,7 @@ index 5bda265d0234..25fd94e40bb6 100644
  	ret = etm4_pm_setup();
  
  	/* etm4_pm_setup() does its own cleanup - exit on error */
-@@ -2512,6 +2528,9 @@ static int __init etm4x_init(void)
+@@ -2477,6 +2493,9 @@ static int __init etm4x_init(void)
  
  static void __exit etm4x_exit(void)
  {
@@ -1264,7 +1282,7 @@ index 2168b6cd7167..5d7cda175a0c 100644
  	if (data->f01_container->dev.driver) {
  		/* Driver already bound, so enable ATTN now. */
 diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
-index 1efe7cddb4fe..e5cb44fab8dc 100644
+index e4628d962161..9b5994d1a535 100644
 --- a/drivers/iommu/iommu.c
 +++ b/drivers/iommu/iommu.c
 @@ -8,6 +8,7 @@
@@ -1275,7 +1293,7 @@ index 1efe7cddb4fe..e5cb44fab8dc 100644
  #include <linux/kernel.h>
  #include <linux/bits.h>
  #include <linux/bug.h>
-@@ -2912,6 +2913,27 @@ int iommu_dev_disable_feature(struct device *dev, enum iommu_dev_features feat)
+@@ -2954,6 +2955,27 @@ int iommu_dev_disable_feature(struct device *dev, enum iommu_dev_features feat)
  }
  EXPORT_SYMBOL_GPL(iommu_dev_disable_feature);
  
@@ -1304,7 +1322,7 @@ index 1efe7cddb4fe..e5cb44fab8dc 100644
   * iommu_setup_default_domain - Set the default_domain for the group
   * @group: Group to change
 diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index 85ecb2aeefdb..d34910feaed7 100644
+index e45ba127069f..7617a6dd2e2f 100644
 --- a/drivers/media/i2c/Kconfig
 +++ b/drivers/media/i2c/Kconfig
 @@ -356,6 +356,26 @@ config VIDEO_OV02A10
@@ -1335,10 +1353,10 @@ index 85ecb2aeefdb..d34910feaed7 100644
          tristate "OmniVision OV08D10 sensor support"
          help
 diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-index fbb988bd067a..bf35fd1707b7 100644
+index 6c23a4463527..1b577e5ebc73 100644
 --- a/drivers/media/i2c/Makefile
 +++ b/drivers/media/i2c/Makefile
-@@ -82,6 +82,8 @@ obj-$(CONFIG_VIDEO_MT9V111) += mt9v111.o
+@@ -83,6 +83,8 @@ obj-$(CONFIG_VIDEO_MT9V111) += mt9v111.o
  obj-$(CONFIG_VIDEO_OG01A1B) += og01a1b.o
  obj-$(CONFIG_VIDEO_OV01A10) += ov01a10.o
  obj-$(CONFIG_VIDEO_OV02A10) += ov02a10.o
@@ -3342,20 +3360,10 @@ index 000000000000..d74dc62e189d
 +MODULE_DESCRIPTION("OmniVision OV02E10 sensor driver");
 +MODULE_LICENSE("GPL");
 diff --git a/drivers/media/i2c/ov08x40.c b/drivers/media/i2c/ov08x40.c
-index 625fbcd39068..54575eea3c49 100644
+index cf0e41fc3071..54575eea3c49 100644
 --- a/drivers/media/i2c/ov08x40.c
 +++ b/drivers/media/i2c/ov08x40.c
-@@ -1322,9 +1322,6 @@ static int ov08x40_power_on(struct device *dev)
- 	struct ov08x40 *ov08x = to_ov08x40(sd);
- 	int ret;
- 
--	if (is_acpi_node(dev_fwnode(dev)))
--		return 0;
--
- 	ret = clk_prepare_enable(ov08x->xvclk);
- 	if (ret < 0) {
- 		dev_err(dev, "failed to enable xvclk\n");
-@@ -1344,7 +1341,7 @@ static int ov08x40_power_on(struct device *dev)
+@@ -1341,7 +1341,7 @@ static int ov08x40_power_on(struct device *dev)
  	}
  
  	gpiod_set_value_cansleep(ov08x->reset_gpio, 0);
@@ -3364,207 +3372,176 @@ index 625fbcd39068..54575eea3c49 100644
  
  	return 0;
  
-@@ -1360,9 +1357,6 @@ static int ov08x40_power_off(struct device *dev)
- 	struct v4l2_subdev *sd = dev_get_drvdata(dev);
- 	struct ov08x40 *ov08x = to_ov08x40(sd);
+diff --git a/drivers/net/wireless/ath/ath12k/core.c b/drivers/net/wireless/ath/ath12k/core.c
+index 261f52b327e8..b768799221c4 100644
+--- a/drivers/net/wireless/ath/ath12k/core.c
++++ b/drivers/net/wireless/ath/ath12k/core.c
+@@ -1854,20 +1854,18 @@ void ath12k_core_hw_group_set_mlo_capable(struct ath12k_hw_group *ag)
  
--	if (is_acpi_node(dev_fwnode(dev)))
--		return 0;
+ 	lockdep_assert_held(&ag->mutex);
+ 
+-	/* If more than one devices are grouped, then inter MLO
+-	 * functionality can work still independent of whether internally
+-	 * each device supports single_chip_mlo or not.
+-	 * Only when there is one device, then disable for WCN chipsets
+-	 * till the required driver implementation is in place.
+-	 */
+ 	if (ag->num_devices == 1) {
+ 		ab = ag->ab[0];
 -
- 	gpiod_set_value_cansleep(ov08x->reset_gpio, 1);
- 	regulator_bulk_disable(ARRAY_SIZE(ov08x40_supply_names),
- 			       ov08x->supplies);
-@@ -1400,7 +1394,7 @@ static int ov08x40_read_reg(struct ov08x40 *ov08x,
+-		/* WCN chipsets does not advertise in firmware features
+-		 * hence skip checking
+-		 */
+-		if (ab->hw_params->def_num_link)
++		/* QCN9274 firmware uses firmware IE for MLO advertisement */
++		if (ab->fw.fw_features_valid) {
++			ag->mlo_capable =
++				ath12k_fw_feature_supported(ab, ATH12K_FW_FEATURE_MLO);
+ 			return;
++		}
++
++		/* while WCN7850 firmware uses QMI single_chip_mlo_support bit */
++		ag->mlo_capable = ab->single_chip_mlo_support;
++		return;
+ 	}
  
- 	ret = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
- 	if (ret != ARRAY_SIZE(msgs))
--		return -EIO;
-+		return ret < 0 ? ret : -EIO;
+ 	ag->mlo_capable = true;
+@@ -1880,7 +1878,7 @@ void ath12k_core_hw_group_set_mlo_capable(struct ath12k_hw_group *ag)
+ 		/* even if 1 device's firmware feature indicates MLO
+ 		 * unsupported, make MLO unsupported for the whole group
+ 		 */
+-		if (!test_bit(ATH12K_FW_FEATURE_MLO, ab->fw.fw_features)) {
++		if (!ath12k_fw_feature_supported(ab, ATH12K_FW_FEATURE_MLO)) {
+ 			ag->mlo_capable = false;
+ 			return;
+ 		}
+@@ -1989,6 +1987,7 @@ struct ath12k_base *ath12k_core_alloc(struct device *dev, size_t priv_size,
+ 	ab->dev = dev;
+ 	ab->hif.bus = bus;
+ 	ab->qmi.num_radios = U8_MAX;
++	ab->single_chip_mlo_support = false;
  
- 	*val = be32_to_cpu(data_be);
+ 	/* Device index used to identify the devices in a group.
+ 	 *
+diff --git a/drivers/net/wireless/ath/ath12k/core.h b/drivers/net/wireless/ath/ath12k/core.h
+index f5f1ec796f7c..e0687fb113de 100644
+--- a/drivers/net/wireless/ath/ath12k/core.h
++++ b/drivers/net/wireless/ath/ath12k/core.h
+@@ -1061,6 +1061,7 @@ struct ath12k_base {
+ 		size_t m3_len;
  
-@@ -1469,7 +1463,7 @@ static int ov08x40_write_reg(struct ov08x40 *ov08x,
- 			     u16 reg, u32 len, u32 __val)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(&ov08x->sd);
--	int buf_i, val_i;
-+	int buf_i, val_i, ret;
- 	u8 buf[6], *val_p;
- 	__be32 val;
+ 		DECLARE_BITMAP(fw_features, ATH12K_FW_FEATURE_COUNT);
++		bool fw_features_valid;
+ 	} fw;
  
-@@ -1487,8 +1481,9 @@ static int ov08x40_write_reg(struct ov08x40 *ov08x,
- 	while (val_i < 4)
- 		buf[buf_i++] = val_p[val_i++];
+ 	const struct hal_rx_ops *hal_rx_ops;
+@@ -1098,6 +1099,9 @@ struct ath12k_base {
+ 	enum ath12k_firmware_mode fw_mode;
+ 	struct ath12k_ftm_event_obj ftm_event_obj;
  
--	if (i2c_master_send(client, buf, len + 2) != len + 2)
--		return -EIO;
-+	ret = i2c_master_send(client, buf, len + 2);
-+	if (ret != len + 2)
-+		return ret < 0 ? ret : -EIO;
++	/* Denote whether MLO is possible within the device */
++	bool single_chip_mlo_support;
++
+ 	/* must be last */
+ 	u8 drv_priv[] __aligned(sizeof(void *));
+ };
+diff --git a/drivers/net/wireless/ath/ath12k/fw.c b/drivers/net/wireless/ath/ath12k/fw.c
+index 5be4b2d4a19d..5ac497f80cad 100644
+--- a/drivers/net/wireless/ath/ath12k/fw.c
++++ b/drivers/net/wireless/ath/ath12k/fw.c
+@@ -1,6 +1,6 @@
+ // SPDX-License-Identifier: BSD-3-Clause-Clear
+ /*
+- * Copyright (c) 2022-2024 Qualcomm Innovation Center, Inc. All rights reserved.
++ * Copyright (c) 2022-2025 Qualcomm Innovation Center, Inc. All rights reserved.
+  */
  
- 	return 0;
+ #include "core.h"
+@@ -99,6 +99,8 @@ static int ath12k_fw_request_firmware_api_n(struct ath12k_base *ab,
+ 					__set_bit(i, ab->fw.fw_features);
+ 			}
+ 
++			ab->fw.fw_features_valid = true;
++
+ 			ath12k_dbg_dump(ab, ATH12K_DBG_BOOT, "features", "",
+ 					ab->fw.fw_features,
+ 					sizeof(ab->fw.fw_features));
+@@ -169,3 +171,8 @@ void ath12k_fw_unmap(struct ath12k_base *ab)
+ 	release_firmware(ab->fw.fw);
+ 	memset(&ab->fw, 0, sizeof(ab->fw));
  }
-@@ -1949,8 +1944,10 @@ static int ov08x40_identify_module(struct ov08x40 *ov08x)
++
++bool ath12k_fw_feature_supported(struct ath12k_base *ab, enum ath12k_fw_features feat)
++{
++	return ab->fw.fw_features_valid && test_bit(feat, ab->fw.fw_features);
++}
+diff --git a/drivers/net/wireless/ath/ath12k/fw.h b/drivers/net/wireless/ath/ath12k/fw.h
+index 273c003eff3b..7afaefed5086 100644
+--- a/drivers/net/wireless/ath/ath12k/fw.h
++++ b/drivers/net/wireless/ath/ath12k/fw.h
+@@ -1,6 +1,6 @@
+ /* SPDX-License-Identifier: BSD-3-Clause-Clear */
+ /*
+- * Copyright (c) 2022-2024 Qualcomm Innovation Center, Inc. All rights reserved.
++ * Copyright (c) 2022-2025 Qualcomm Innovation Center, Inc. All rights reserved.
+  */
  
- 	ret = ov08x40_read_reg(ov08x, OV08X40_REG_CHIP_ID,
- 			       OV08X40_REG_VALUE_24BIT, &val);
--	if (ret)
-+	if (ret) {
-+		dev_err(&client->dev, "error reading chip-id register: %d\n", ret);
- 		return ret;
-+	}
+ #ifndef ATH12K_FW_H
+@@ -32,5 +32,6 @@ enum ath12k_fw_features {
  
- 	if (val != OV08X40_CHIP_ID) {
- 		dev_err(&client->dev, "chip id mismatch: %x!=%x\n",
-@@ -1958,6 +1955,7 @@ static int ov08x40_identify_module(struct ov08x40 *ov08x)
- 		return -ENXIO;
+ void ath12k_fw_map(struct ath12k_base *ab);
+ void ath12k_fw_unmap(struct ath12k_base *ab);
++bool ath12k_fw_feature_supported(struct ath12k_base *ab, enum ath12k_fw_features feat);
+ 
+ #endif /* ATH12K_FW_H */
+diff --git a/drivers/net/wireless/ath/ath12k/pci.c b/drivers/net/wireless/ath/ath12k/pci.c
+index 2e7d302ace67..eaa4ca79c6d8 100644
+--- a/drivers/net/wireless/ath/ath12k/pci.c
++++ b/drivers/net/wireless/ath/ath12k/pci.c
+@@ -718,7 +718,7 @@ static void ath12k_pci_init_qmi_ce_config(struct ath12k_base *ab)
+ 	cfg->svc_to_ce_map_len = ab->hw_params->svc_to_ce_map_len;
+ 	ab->qmi.service_ins_id = ab->hw_params->qmi_service_ins_id;
+ 
+-	if (test_bit(ATH12K_FW_FEATURE_MULTI_QRTR_ID, ab->fw.fw_features)) {
++	if (ath12k_fw_feature_supported(ab, ATH12K_FW_FEATURE_MULTI_QRTR_ID)) {
+ 		ab_pci->qmi_instance =
+ 			u32_encode_bits(pci_domain_nr(bus), DOMAIN_NUMBER_MASK) |
+ 			u32_encode_bits(bus->number, BUS_NUMBER_MASK);
+@@ -1472,7 +1472,7 @@ int ath12k_pci_power_up(struct ath12k_base *ab)
+ 
+ 	ath12k_pci_msi_enable(ab_pci);
+ 
+-	if (test_bit(ATH12K_FW_FEATURE_MULTI_QRTR_ID, ab->fw.fw_features))
++	if (ath12k_fw_feature_supported(ab, ATH12K_FW_FEATURE_MULTI_QRTR_ID))
+ 		ath12k_pci_update_qrtr_node_id(ab);
+ 
+ 	ret = ath12k_mhi_start(ab_pci);
+diff --git a/drivers/net/wireless/ath/ath12k/qmi.c b/drivers/net/wireless/ath/ath12k/qmi.c
+index 348dbc81bad8..c5e31b954796 100644
+--- a/drivers/net/wireless/ath/ath12k/qmi.c
++++ b/drivers/net/wireless/ath/ath12k/qmi.c
+@@ -2264,6 +2264,9 @@ static void ath12k_qmi_phy_cap_send(struct ath12k_base *ab)
+ 		goto out;
  	}
  
-+	dev_dbg(&client->dev, "chip id 0x%x\n", val);
- 	ov08x->identified = true;
++	if (resp.single_chip_mlo_support_valid && resp.single_chip_mlo_support)
++		ab->single_chip_mlo_support = true;
++
+ 	if (!resp.num_phy_valid) {
+ 		ret = -ENODATA;
+ 		goto out;
+@@ -2272,7 +2275,8 @@ static void ath12k_qmi_phy_cap_send(struct ath12k_base *ab)
+ 	ab->qmi.num_radios = resp.num_phy;
  
- 	return 0;
-@@ -2155,65 +2153,69 @@ static int ov08x40_check_hwcfg(struct ov08x40 *ov08x, struct device *dev)
- 	int ret;
- 	u32 xvclk_rate;
+ 	ath12k_dbg(ab, ATH12K_DBG_QMI,
+-		   "phy capability resp valid %d num_phy %d valid %d board_id %d\n",
++		   "phy capability resp valid %d single_chip_mlo_support %d valid %d num_phy %d valid %d board_id %d\n",
++		   resp.single_chip_mlo_support_valid, resp.single_chip_mlo_support,
+ 		   resp.num_phy_valid, resp.num_phy,
+ 		   resp.board_id_valid, resp.board_id);
  
--	if (!fwnode)
--		return -ENXIO;
-+	/*
-+	 * Sometimes the fwnode graph is initialized by the bridge driver.
-+	 * Bridge drivers doing this also add sensor properties, wait for this.
-+	 */
-+	ep = fwnode_graph_get_next_endpoint(fwnode, NULL);
-+	if (!ep)
-+		return dev_err_probe(dev, -EPROBE_DEFER,
-+				     "waiting for fwnode graph endpoint\n");
- 
--	if (!is_acpi_node(fwnode)) {
--		ov08x->xvclk = devm_clk_get(dev, NULL);
--		if (IS_ERR(ov08x->xvclk)) {
--			dev_err(dev, "could not get xvclk clock (%pe)\n",
--				ov08x->xvclk);
--			return PTR_ERR(ov08x->xvclk);
--		}
-+	ret = v4l2_fwnode_endpoint_alloc_parse(ep, &bus_cfg);
-+	fwnode_handle_put(ep);
-+	if (ret)
-+		return dev_err_probe(dev, ret, "parsing endpoint failed\n");
- 
--		xvclk_rate = clk_get_rate(ov08x->xvclk);
-+	ov08x->reset_gpio = devm_gpiod_get_optional(dev, "reset",
-+						    GPIOD_OUT_HIGH);
-+	if (IS_ERR(ov08x->reset_gpio)) {
-+		ret = dev_err_probe(dev, PTR_ERR(ov08x->reset_gpio),
-+				    "getting reset GPIO\n");
-+		goto out_err;
-+	}
- 
--		ov08x->reset_gpio = devm_gpiod_get_optional(dev, "reset",
--							    GPIOD_OUT_LOW);
--		if (IS_ERR(ov08x->reset_gpio))
--			return PTR_ERR(ov08x->reset_gpio);
-+	for (i = 0; i < ARRAY_SIZE(ov08x40_supply_names); i++)
-+		ov08x->supplies[i].supply = ov08x40_supply_names[i];
- 
--		for (i = 0; i < ARRAY_SIZE(ov08x40_supply_names); i++)
--			ov08x->supplies[i].supply = ov08x40_supply_names[i];
-+	ret = devm_regulator_bulk_get(dev, ARRAY_SIZE(ov08x40_supply_names),
-+				      ov08x->supplies);
-+	if (ret)
-+		goto out_err;
- 
--		ret = devm_regulator_bulk_get(dev,
--					      ARRAY_SIZE(ov08x40_supply_names),
--					      ov08x->supplies);
--		if (ret)
--			return ret;
-+	ov08x->xvclk = devm_clk_get_optional(dev, NULL);
-+	if (IS_ERR(ov08x->xvclk)) {
-+		ret = dev_err_probe(dev, PTR_ERR(ov08x->xvclk),
-+				    "getting xvclk\n");
-+		goto out_err;
-+	}
-+	if (ov08x->xvclk) {
-+		xvclk_rate = clk_get_rate(ov08x->xvclk);
- 	} else {
- 		ret = fwnode_property_read_u32(dev_fwnode(dev), "clock-frequency",
- 					       &xvclk_rate);
- 		if (ret) {
--			dev_err(dev, "can't get clock frequency");
--			return ret;
-+			dev_err(dev, "can't get clock frequency\n");
-+			goto out_err;
- 		}
- 	}
- 
- 	if (xvclk_rate != OV08X40_XVCLK) {
--		dev_err(dev, "external clock %d is not supported",
-+		dev_err(dev, "external clock %d is not supported\n",
- 			xvclk_rate);
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto out_err;
- 	}
- 
--	ep = fwnode_graph_get_next_endpoint(fwnode, NULL);
--	if (!ep)
--		return -ENXIO;
--
--	ret = v4l2_fwnode_endpoint_alloc_parse(ep, &bus_cfg);
--	fwnode_handle_put(ep);
--	if (ret)
--		return ret;
--
- 	if (bus_cfg.bus.mipi_csi2.num_data_lanes != OV08X40_DATA_LANES) {
--		dev_err(dev, "number of CSI2 data lanes %d is not supported",
-+		dev_err(dev, "number of CSI2 data lanes %d is not supported\n",
- 			bus_cfg.bus.mipi_csi2.num_data_lanes);
- 		ret = -EINVAL;
- 		goto out_err;
- 	}
- 
- 	if (!bus_cfg.nr_of_link_frequencies) {
--		dev_err(dev, "no link frequencies defined");
-+		dev_err(dev, "no link frequencies defined\n");
- 		ret = -EINVAL;
- 		goto out_err;
- 	}
-@@ -2226,7 +2228,7 @@ static int ov08x40_check_hwcfg(struct ov08x40 *ov08x, struct device *dev)
- 		}
- 
- 		if (j == bus_cfg.nr_of_link_frequencies) {
--			dev_err(dev, "no link frequency %lld supported",
-+			dev_err(dev, "no link frequency %lld supported\n",
- 				link_freq_menu_items[i]);
- 			ret = -EINVAL;
- 			goto out_err;
-@@ -2250,10 +2252,8 @@ static int ov08x40_probe(struct i2c_client *client)
- 
- 	/* Check HW config */
- 	ret = ov08x40_check_hwcfg(ov08x, &client->dev);
--	if (ret) {
--		dev_err(&client->dev, "failed to check hwcfg: %d", ret);
-+	if (ret)
- 		return ret;
--	}
- 
- 	/* Initialize subdev */
- 	v4l2_i2c_subdev_init(&ov08x->sd, client, &ov08x40_subdev_ops);
-@@ -2268,10 +2268,8 @@ static int ov08x40_probe(struct i2c_client *client)
- 
- 		/* Check module identity */
- 		ret = ov08x40_identify_module(ov08x);
--		if (ret) {
--			dev_err(&client->dev, "failed to find sensor: %d\n", ret);
-+		if (ret)
- 			goto probe_power_off;
--		}
- 	}
- 
- 	/* Set default mode to max resolution */
 diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
-index 82b21e34c545..0cf24ba613a2 100644
+index 94daca15a096..8de27d109820 100644
 --- a/drivers/pci/quirks.c
 +++ b/drivers/pci/quirks.c
 @@ -4452,6 +4452,30 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_BROADCOM, 0x9000,
@@ -3974,7 +3951,7 @@ index 145dec66df64..51b818e62a25 100644
  
  int skl_int3472_register_pled(struct int3472_discrete_device *int3472, struct gpio_desc *gpio);
 diff --git a/drivers/platform/x86/intel/int3472/discrete.c b/drivers/platform/x86/intel/int3472/discrete.c
-index 092252eb95a8..394975f55d64 100644
+index 30ff8f3ea1f5..394975f55d64 100644
 --- a/drivers/platform/x86/intel/int3472/discrete.c
 +++ b/drivers/platform/x86/intel/int3472/discrete.c
 @@ -5,6 +5,7 @@
@@ -3985,96 +3962,19 @@ index 092252eb95a8..394975f55d64 100644
  #include <linux/gpio/consumer.h>
  #include <linux/gpio/machine.h>
  #include <linux/i2c.h>
-@@ -56,7 +57,7 @@ static void skl_int3472_log_sensor_module_name(struct int3472_discrete_device *i
- 
- static int skl_int3472_fill_gpiod_lookup(struct gpiod_lookup *table_entry,
- 					 struct acpi_resource_gpio *agpio,
--					 const char *func, unsigned long gpio_flags)
-+					 const char *con_id, unsigned long gpio_flags)
- {
- 	char *path = agpio->resource_source.string_ptr;
- 	struct acpi_device *adev;
-@@ -71,14 +72,14 @@ static int skl_int3472_fill_gpiod_lookup(struct gpiod_lookup *table_entry,
- 	if (!adev)
- 		return -ENODEV;
- 
--	*table_entry = GPIO_LOOKUP(acpi_dev_name(adev), agpio->pin_table[0], func, gpio_flags);
-+	*table_entry = GPIO_LOOKUP(acpi_dev_name(adev), agpio->pin_table[0], con_id, gpio_flags);
- 
- 	return 0;
- }
- 
- static int skl_int3472_map_gpio_to_sensor(struct int3472_discrete_device *int3472,
- 					  struct acpi_resource_gpio *agpio,
--					  const char *func, unsigned long gpio_flags)
-+					  const char *con_id, unsigned long gpio_flags)
- {
- 	int ret;
- 
-@@ -88,7 +89,7 @@ static int skl_int3472_map_gpio_to_sensor(struct int3472_discrete_device *int347
- 	}
- 
- 	ret = skl_int3472_fill_gpiod_lookup(&int3472->gpios.table[int3472->n_sensor_gpios],
--					    agpio, func, gpio_flags);
-+					    agpio, con_id, gpio_flags);
- 	if (ret)
- 		return ret;
- 
-@@ -101,7 +102,7 @@ static int skl_int3472_map_gpio_to_sensor(struct int3472_discrete_device *int347
- static struct gpio_desc *
- skl_int3472_gpiod_get_from_temp_lookup(struct int3472_discrete_device *int3472,
- 				       struct acpi_resource_gpio *agpio,
--				       const char *func, unsigned long gpio_flags)
-+				       const char *con_id, unsigned long gpio_flags)
- {
- 	struct gpio_desc *desc;
- 	int ret;
-@@ -112,12 +113,12 @@ skl_int3472_gpiod_get_from_temp_lookup(struct int3472_discrete_device *int3472,
- 		return ERR_PTR(-ENOMEM);
- 
- 	lookup->dev_id = dev_name(int3472->dev);
--	ret = skl_int3472_fill_gpiod_lookup(&lookup->table[0], agpio, func, gpio_flags);
-+	ret = skl_int3472_fill_gpiod_lookup(&lookup->table[0], agpio, con_id, gpio_flags);
- 	if (ret)
- 		return ERR_PTR(ret);
- 
- 	gpiod_add_lookup_table(lookup);
--	desc = devm_gpiod_get(int3472->dev, func, GPIOD_OUT_LOW);
-+	desc = devm_gpiod_get(int3472->dev, con_id, GPIOD_OUT_LOW);
- 	gpiod_remove_lookup_table(lookup);
- 
- 	return desc;
-@@ -129,7 +130,7 @@ skl_int3472_gpiod_get_from_temp_lookup(struct int3472_discrete_device *int3472,
-  * @hid: The ACPI HID of the device without the instance number e.g. INT347E
-  * @type_from: The GPIO type from ACPI ?SDT
-  * @type_to: The assigned GPIO type, typically same as @type_from
-- * @func: The function, e.g. "enable"
-+ * @con_id: The name of the GPIO for the device
-  * @polarity_low: GPIO_ACTIVE_LOW true if the @polarity_low is true,
-  * GPIO_ACTIVE_HIGH otherwise
-  */
-@@ -138,16 +139,17 @@ struct int3472_gpio_map {
- 	u8 type_from;
- 	u8 type_to;
- 	bool polarity_low;
--	const char *func;
-+	const char *con_id;
- };
- 
- static const struct int3472_gpio_map int3472_gpio_map[] = {
+@@ -145,9 +146,10 @@ static const struct int3472_gpio_map int3472_gpio_map[] = {
  	{ "INT347E", INT3472_GPIO_TYPE_RESET, INT3472_GPIO_TYPE_RESET, false, "enable" },
  };
  
--static void int3472_get_func_and_polarity(struct acpi_device *adev, u8 *type,
--					  const char **func, unsigned long *gpio_flags)
+-static void int3472_get_con_id_and_polarity(struct acpi_device *adev, u8 *type,
 +static void int3472_get_con_id_and_polarity(struct int3472_discrete_device *int3472, u8 *type,
-+					    const char **con_id, unsigned long *gpio_flags)
+ 					    const char **con_id, unsigned long *gpio_flags)
  {
 +	struct acpi_device *adev = int3472->sensor;
  	unsigned int i;
  
  	for (i = 0; i < ARRAY_SIZE(int3472_gpio_map); i++) {
-@@ -162,36 +164,43 @@ static void int3472_get_func_and_polarity(struct acpi_device *adev, u8 *type,
+@@ -162,6 +164,9 @@ static void int3472_get_con_id_and_polarity(struct acpi_device *adev, u8 *type,
  		if (!acpi_dev_hid_uid_match(adev, int3472_gpio_map[i].hid, NULL))
  			continue;
  
@@ -4084,34 +3984,11 @@ index 092252eb95a8..394975f55d64 100644
  		*type = int3472_gpio_map[i].type_to;
  		*gpio_flags = int3472_gpio_map[i].polarity_low ?
  			      GPIO_ACTIVE_LOW : GPIO_ACTIVE_HIGH;
--		*func = int3472_gpio_map[i].func;
-+		*con_id = int3472_gpio_map[i].con_id;
- 		return;
- 	}
- 
- 	switch (*type) {
- 	case INT3472_GPIO_TYPE_RESET:
--		*func = "reset";
-+		*con_id = "reset";
- 		*gpio_flags = GPIO_ACTIVE_LOW;
- 		break;
- 	case INT3472_GPIO_TYPE_POWERDOWN:
--		*func = "powerdown";
-+		*con_id = "powerdown";
- 		*gpio_flags = GPIO_ACTIVE_LOW;
- 		break;
- 	case INT3472_GPIO_TYPE_CLK_ENABLE:
--		*func = "clk-enable";
-+		*con_id = "clk-enable";
- 		*gpio_flags = GPIO_ACTIVE_HIGH;
- 		break;
- 	case INT3472_GPIO_TYPE_PRIVACY_LED:
--		*func = "privacy-led";
-+		*con_id = "privacy-led";
+@@ -187,7 +192,11 @@ static void int3472_get_con_id_and_polarity(struct acpi_device *adev, u8 *type,
  		*gpio_flags = GPIO_ACTIVE_HIGH;
  		break;
  	case INT3472_GPIO_TYPE_POWER_ENABLE:
--		*func = "power-enable";
+-		*con_id = "power-enable";
 +		*con_id = "avdd";
 +		*gpio_flags = GPIO_ACTIVE_HIGH;
 +		break;
@@ -4120,61 +3997,23 @@ index 092252eb95a8..394975f55d64 100644
  		*gpio_flags = GPIO_ACTIVE_HIGH;
  		break;
  	default:
--		*func = "unknown";
-+		*con_id = "unknown";
- 		*gpio_flags = GPIO_ACTIVE_HIGH;
- 		break;
- 	}
-@@ -238,7 +247,7 @@ static int skl_int3472_handle_gpio_resources(struct acpi_resource *ares,
- 	union acpi_object *obj;
- 	struct gpio_desc *gpio;
- 	const char *err_msg;
--	const char *func;
-+	const char *con_id;
- 	unsigned long gpio_flags;
- 	int ret;
- 
-@@ -262,26 +271,26 @@ static int skl_int3472_handle_gpio_resources(struct acpi_resource *ares,
+@@ -262,7 +271,7 @@ static int skl_int3472_handle_gpio_resources(struct acpi_resource *ares,
  
  	type = FIELD_GET(INT3472_GPIO_DSM_TYPE, obj->integer.value);
  
--	int3472_get_func_and_polarity(int3472->sensor, &type, &func, &gpio_flags);
+-	int3472_get_con_id_and_polarity(int3472->sensor, &type, &con_id, &gpio_flags);
 +	int3472_get_con_id_and_polarity(int3472, &type, &con_id, &gpio_flags);
  
  	pin = FIELD_GET(INT3472_GPIO_DSM_PIN, obj->integer.value);
  	/* Pin field is not really used under Windows and wraps around at 8 bits */
- 	if (pin != (agpio->pin_table[0] & 0xff))
- 		dev_dbg(int3472->dev, FW_BUG "%s %s pin number mismatch _DSM %d resource %d\n",
--			func, agpio->resource_source.string_ptr, pin, agpio->pin_table[0]);
-+			con_id, agpio->resource_source.string_ptr, pin, agpio->pin_table[0]);
- 
- 	active_value = FIELD_GET(INT3472_GPIO_DSM_SENSOR_ON_VAL, obj->integer.value);
- 	if (!active_value)
- 		gpio_flags ^= GPIO_ACTIVE_LOW;
- 
--	dev_dbg(int3472->dev, "%s %s pin %d active-%s\n", func,
-+	dev_dbg(int3472->dev, "%s %s pin %d active-%s\n", con_id,
- 		agpio->resource_source.string_ptr, agpio->pin_table[0],
- 		str_high_low(gpio_flags == GPIO_ACTIVE_HIGH));
- 
- 	switch (type) {
- 	case INT3472_GPIO_TYPE_RESET:
- 	case INT3472_GPIO_TYPE_POWERDOWN:
--		ret = skl_int3472_map_gpio_to_sensor(int3472, agpio, func, gpio_flags);
-+		ret = skl_int3472_map_gpio_to_sensor(int3472, agpio, con_id, gpio_flags);
- 		if (ret)
- 			err_msg = "Failed to map GPIO pin to sensor\n";
- 
-@@ -289,7 +298,8 @@ static int skl_int3472_handle_gpio_resources(struct acpi_resource *ares,
+@@ -289,6 +298,7 @@ static int skl_int3472_handle_gpio_resources(struct acpi_resource *ares,
  	case INT3472_GPIO_TYPE_CLK_ENABLE:
  	case INT3472_GPIO_TYPE_PRIVACY_LED:
  	case INT3472_GPIO_TYPE_POWER_ENABLE:
--		gpio = skl_int3472_gpiod_get_from_temp_lookup(int3472, agpio, func, gpio_flags);
 +	case INT3472_GPIO_TYPE_HANDSHAKE:
-+		gpio = skl_int3472_gpiod_get_from_temp_lookup(int3472, agpio, con_id, gpio_flags);
+ 		gpio = skl_int3472_gpiod_get_from_temp_lookup(int3472, agpio, con_id, gpio_flags);
  		if (IS_ERR(gpio)) {
  			ret = PTR_ERR(gpio);
- 			err_msg = "Failed to get GPIO\n";
 @@ -310,9 +320,21 @@ static int skl_int3472_handle_gpio_resources(struct acpi_resource *ares,
  
  			break;
@@ -4257,638 +4096,6 @@ index 000000000000..bf88863803b2
 +	},
 +	{ }
 +};
-diff --git a/drivers/platform/x86/intel/pmc/adl.c b/drivers/platform/x86/intel/pmc/adl.c
-index e7878558fd90..de361a316d51 100644
---- a/drivers/platform/x86/intel/pmc/adl.c
-+++ b/drivers/platform/x86/intel/pmc/adl.c
-@@ -311,20 +311,8 @@ const struct pmc_reg_map adl_reg_map = {
- 	.pson_residency_counter_step = TGL_PSON_RES_COUNTER_STEP,
- };
- 
--int adl_core_init(struct pmc_dev *pmcdev)
--{
--	struct pmc *pmc = pmcdev->pmcs[PMC_IDX_MAIN];
--	int ret;
--
--	pmcdev->suspend = cnl_suspend;
--	pmcdev->resume = cnl_resume;
--
--	pmc->map = &adl_reg_map;
--	ret = get_primary_reg_base(pmc);
--	if (ret)
--		return ret;
--
--	pmc_core_get_low_power_modes(pmcdev);
--
--	return 0;
--}
-+struct pmc_dev_info adl_pmc_dev = {
-+	.map = &adl_reg_map,
-+	.suspend = cnl_suspend,
-+	.resume = cnl_resume,
-+};
-diff --git a/drivers/platform/x86/intel/pmc/arl.c b/drivers/platform/x86/intel/pmc/arl.c
-index 05dec4f5019f..54b0e8e56de9 100644
---- a/drivers/platform/x86/intel/pmc/arl.c
-+++ b/drivers/platform/x86/intel/pmc/arl.c
-@@ -16,6 +16,7 @@
- #define IOEP_LPM_REQ_GUID	0x5077612
- #define SOCS_LPM_REQ_GUID	0x8478657
- #define PCHS_LPM_REQ_GUID	0x9684572
-+#define SOCM_LPM_REQ_GUID	0x2625030
- 
- static const u8 ARL_LPM_REG_INDEX[] = {0, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 20};
- 
-@@ -650,6 +651,7 @@ const struct pmc_reg_map arl_pchs_reg_map = {
- 	.etr3_offset = ETR3_OFFSET,
- };
- 
-+#define PMC_DEVID_SOCM 0x777f
- #define PMC_DEVID_SOCS 0xae7f
- #define PMC_DEVID_IOEP 0x7ecf
- #define PMC_DEVID_PCHS 0x7f27
-@@ -669,11 +671,17 @@ static struct pmc_info arl_pmc_info_list[] = {
- 		.devid	= PMC_DEVID_PCHS,
- 		.map	= &arl_pchs_reg_map,
- 	},
-+	{
-+		.guid	= SOCM_LPM_REQ_GUID,
-+		.devid	= PMC_DEVID_SOCM,
-+		.map	= &mtl_socm_reg_map,
-+	},
- 	{}
- };
- 
- #define ARL_NPU_PCI_DEV			0xad1d
- #define ARL_GNA_PCI_DEV			0xae4c
-+#define ARL_H_GNA_PCI_DEV		0x774c
- /*
-  * Set power state of select devices that do not have drivers to D3
-  * so that they do not block Package C entry.
-@@ -684,6 +692,12 @@ static void arl_d3_fixup(void)
- 	pmc_core_set_device_d3(ARL_GNA_PCI_DEV);
- }
- 
-+static void arl_h_d3_fixup(void)
-+{
-+	pmc_core_set_device_d3(ARL_NPU_PCI_DEV);
-+	pmc_core_set_device_d3(ARL_H_GNA_PCI_DEV);
-+}
-+
- static int arl_resume(struct pmc_dev *pmcdev)
- {
- 	arl_d3_fixup();
-@@ -691,40 +705,41 @@ static int arl_resume(struct pmc_dev *pmcdev)
- 	return cnl_resume(pmcdev);
- }
- 
--int arl_core_init(struct pmc_dev *pmcdev)
-+static int arl_h_resume(struct pmc_dev *pmcdev)
- {
--	struct pmc *pmc = pmcdev->pmcs[PMC_IDX_SOC];
--	int ret;
--	int func = 0;
--	bool ssram_init = true;
-+	arl_h_d3_fixup();
-+
-+	return cnl_resume(pmcdev);
-+}
- 
-+static int arl_core_init(struct pmc_dev *pmcdev, struct pmc_dev_info *pmc_dev_info)
-+{
- 	arl_d3_fixup();
--	pmcdev->suspend = cnl_suspend;
--	pmcdev->resume = arl_resume;
--	pmcdev->regmap_list = arl_pmc_info_list;
-+	return generic_core_init(pmcdev, pmc_dev_info);
-+}
- 
--	/*
--	 * If ssram init fails use legacy method to at least get the
--	 * primary PMC
--	 */
--	ret = pmc_core_ssram_init(pmcdev, func);
--	if (ret) {
--		ssram_init = false;
--		pmc->map = &arl_socs_reg_map;
--
--		ret = get_primary_reg_base(pmc);
--		if (ret)
--			return ret;
--	}
--
--	pmc_core_get_low_power_modes(pmcdev);
--	pmc_core_punit_pmt_init(pmcdev, ARL_PMT_DMU_GUID);
--
--	if (ssram_init)	{
--		ret = pmc_core_ssram_get_lpm_reqs(pmcdev);
--		if (ret)
--			return ret;
--	}
--
--	return 0;
-+static int arl_h_core_init(struct pmc_dev *pmcdev, struct pmc_dev_info *pmc_dev_info)
-+{
-+	arl_h_d3_fixup();
-+	return generic_core_init(pmcdev, pmc_dev_info);
- }
-+
-+struct pmc_dev_info arl_pmc_dev = {
-+	.pci_func = 0,
-+	.dmu_guid = ARL_PMT_DMU_GUID,
-+	.regmap_list = arl_pmc_info_list,
-+	.map = &arl_socs_reg_map,
-+	.suspend = cnl_suspend,
-+	.resume = arl_resume,
-+	.init = arl_core_init,
-+};
-+
-+struct pmc_dev_info arl_h_pmc_dev = {
-+	.pci_func = 2,
-+	.dmu_guid = ARL_PMT_DMU_GUID,
-+	.regmap_list = arl_pmc_info_list,
-+	.map = &mtl_socm_reg_map,
-+	.suspend = cnl_suspend,
-+	.resume = arl_h_resume,
-+	.init = arl_h_core_init,
-+};
-diff --git a/drivers/platform/x86/intel/pmc/cnp.c b/drivers/platform/x86/intel/pmc/cnp.c
-index fc5193fdf8a8..f147ec51c7fd 100644
---- a/drivers/platform/x86/intel/pmc/cnp.c
-+++ b/drivers/platform/x86/intel/pmc/cnp.c
-@@ -274,20 +274,9 @@ int cnl_resume(struct pmc_dev *pmcdev)
- 	return pmc_core_resume_common(pmcdev);
- }
- 
--int cnp_core_init(struct pmc_dev *pmcdev)
--{
--	struct pmc *pmc = pmcdev->pmcs[PMC_IDX_MAIN];
--	int ret;
--
--	pmcdev->suspend = cnl_suspend;
--	pmcdev->resume = cnl_resume;
--
--	pmc->map = &cnp_reg_map;
--	ret = get_primary_reg_base(pmc);
--	if (ret)
--		return ret;
--
--	pmc_core_get_low_power_modes(pmcdev);
-+struct pmc_dev_info cnp_pmc_dev = {
-+	.map = &cnp_reg_map,
-+	.suspend = cnl_suspend,
-+	.resume = cnl_resume,
-+};
- 
--	return 0;
--}
-diff --git a/drivers/platform/x86/intel/pmc/core.c b/drivers/platform/x86/intel/pmc/core.c
-index 1ee0fb5f8250..28e0c09dd599 100644
---- a/drivers/platform/x86/intel/pmc/core.c
-+++ b/drivers/platform/x86/intel/pmc/core.c
-@@ -1345,40 +1345,79 @@ static void pmc_core_dbgfs_register(struct pmc_dev *pmcdev)
- 	}
- }
- 
-+/*
-+ * When supported, ssram init is used to achieve all available PMCs.
-+ * If ssram init fails, this function uses legacy method to at least get the
-+ * primary PMC.
-+ */
-+int generic_core_init(struct pmc_dev *pmcdev, struct pmc_dev_info *pmc_dev_info)
-+{
-+	struct pmc *pmc = pmcdev->pmcs[PMC_IDX_MAIN];
-+	bool ssram;
-+	int ret;
-+
-+	pmcdev->suspend = pmc_dev_info->suspend;
-+	pmcdev->resume = pmc_dev_info->resume;
-+
-+	ssram = pmc_dev_info->regmap_list != NULL;
-+	if (ssram) {
-+		pmcdev->regmap_list = pmc_dev_info->regmap_list;
-+		ret = pmc_core_ssram_init(pmcdev, pmc_dev_info->pci_func);
-+		if (ret) {
-+			dev_warn(&pmcdev->pdev->dev,
-+				 "ssram init failed, %d, using legacy init\n", ret);
-+			ssram = false;
-+		}
-+	}
-+
-+	if (!ssram) {
-+		pmc->map = pmc_dev_info->map;
-+		ret = get_primary_reg_base(pmc);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	pmc_core_get_low_power_modes(pmcdev);
-+	if (pmc_dev_info->dmu_guid)
-+		pmc_core_punit_pmt_init(pmcdev, pmc_dev_info->dmu_guid);
-+
-+	if (ssram)
-+		return pmc_core_ssram_get_lpm_reqs(pmcdev);
-+
-+	return 0;
-+}
-+
- static const struct x86_cpu_id intel_pmc_core_ids[] = {
--	X86_MATCH_VFM(INTEL_SKYLAKE_L,		spt_core_init),
--	X86_MATCH_VFM(INTEL_SKYLAKE,		spt_core_init),
--	X86_MATCH_VFM(INTEL_KABYLAKE_L,		spt_core_init),
--	X86_MATCH_VFM(INTEL_KABYLAKE,		spt_core_init),
--	X86_MATCH_VFM(INTEL_CANNONLAKE_L,	cnp_core_init),
--	X86_MATCH_VFM(INTEL_ICELAKE_L,		icl_core_init),
--	X86_MATCH_VFM(INTEL_ICELAKE_NNPI,	icl_core_init),
--	X86_MATCH_VFM(INTEL_COMETLAKE,		cnp_core_init),
--	X86_MATCH_VFM(INTEL_COMETLAKE_L,	cnp_core_init),
--	X86_MATCH_VFM(INTEL_TIGERLAKE_L,	tgl_l_core_init),
--	X86_MATCH_VFM(INTEL_TIGERLAKE,		tgl_core_init),
--	X86_MATCH_VFM(INTEL_ATOM_TREMONT,	tgl_l_core_init),
--	X86_MATCH_VFM(INTEL_ATOM_TREMONT_L,	icl_core_init),
--	X86_MATCH_VFM(INTEL_ROCKETLAKE,		tgl_core_init),
--	X86_MATCH_VFM(INTEL_ALDERLAKE_L,	tgl_l_core_init),
--	X86_MATCH_VFM(INTEL_ATOM_GRACEMONT,	tgl_l_core_init),
--	X86_MATCH_VFM(INTEL_ALDERLAKE,		adl_core_init),
--	X86_MATCH_VFM(INTEL_RAPTORLAKE_P,	tgl_l_core_init),
--	X86_MATCH_VFM(INTEL_RAPTORLAKE,		adl_core_init),
--	X86_MATCH_VFM(INTEL_RAPTORLAKE_S,	adl_core_init),
--	X86_MATCH_VFM(INTEL_METEORLAKE_L,	mtl_core_init),
--	X86_MATCH_VFM(INTEL_ARROWLAKE,		arl_core_init),
--	X86_MATCH_VFM(INTEL_LUNARLAKE_M,	lnl_core_init),
-+	X86_MATCH_VFM(INTEL_SKYLAKE_L,		&spt_pmc_dev),
-+	X86_MATCH_VFM(INTEL_SKYLAKE,		&spt_pmc_dev),
-+	X86_MATCH_VFM(INTEL_KABYLAKE_L,		&spt_pmc_dev),
-+	X86_MATCH_VFM(INTEL_KABYLAKE,		&spt_pmc_dev),
-+	X86_MATCH_VFM(INTEL_CANNONLAKE_L,	&cnp_pmc_dev),
-+	X86_MATCH_VFM(INTEL_ICELAKE_L,		&icl_pmc_dev),
-+	X86_MATCH_VFM(INTEL_ICELAKE_NNPI,	&icl_pmc_dev),
-+	X86_MATCH_VFM(INTEL_COMETLAKE,		&cnp_pmc_dev),
-+	X86_MATCH_VFM(INTEL_COMETLAKE_L,	&cnp_pmc_dev),
-+	X86_MATCH_VFM(INTEL_TIGERLAKE_L,	&tgl_l_pmc_dev),
-+	X86_MATCH_VFM(INTEL_TIGERLAKE,		&tgl_pmc_dev),
-+	X86_MATCH_VFM(INTEL_ATOM_TREMONT,	&tgl_l_pmc_dev),
-+	X86_MATCH_VFM(INTEL_ATOM_TREMONT_L,	&icl_pmc_dev),
-+	X86_MATCH_VFM(INTEL_ROCKETLAKE,		&tgl_pmc_dev),
-+	X86_MATCH_VFM(INTEL_ALDERLAKE_L,	&tgl_l_pmc_dev),
-+	X86_MATCH_VFM(INTEL_ATOM_GRACEMONT,	&tgl_l_pmc_dev),
-+	X86_MATCH_VFM(INTEL_ALDERLAKE,		&adl_pmc_dev),
-+	X86_MATCH_VFM(INTEL_RAPTORLAKE_P,	&tgl_l_pmc_dev),
-+	X86_MATCH_VFM(INTEL_RAPTORLAKE,		&adl_pmc_dev),
-+	X86_MATCH_VFM(INTEL_RAPTORLAKE_S,	&adl_pmc_dev),
-+	X86_MATCH_VFM(INTEL_METEORLAKE_L,	&mtl_pmc_dev),
-+	X86_MATCH_VFM(INTEL_ARROWLAKE,		&arl_pmc_dev),
-+	X86_MATCH_VFM(INTEL_ARROWLAKE_H,	&arl_h_pmc_dev),
-+	X86_MATCH_VFM(INTEL_ARROWLAKE_U,	&arl_h_pmc_dev),
-+	X86_MATCH_VFM(INTEL_LUNARLAKE_M,	&lnl_pmc_dev),
- 	{}
- };
- 
- MODULE_DEVICE_TABLE(x86cpu, intel_pmc_core_ids);
- 
--static const struct pci_device_id pmc_pci_ids[] = {
--	{ PCI_VDEVICE(INTEL, SPT_PMC_PCI_DEVICE_ID) },
--	{ }
--};
--
- /*
-  * This quirk can be used on those platforms where
-  * the platform BIOS enforces 24Mhz crystal to shutdown
-@@ -1452,7 +1491,7 @@ static int pmc_core_probe(struct platform_device *pdev)
- 	static bool device_initialized;
- 	struct pmc_dev *pmcdev;
- 	const struct x86_cpu_id *cpu_id;
--	int (*core_init)(struct pmc_dev *pmcdev);
-+	struct pmc_dev_info *pmc_dev_info;
- 	struct pmc *primary_pmc;
- 	int ret;
- 
-@@ -1472,7 +1511,7 @@ static int pmc_core_probe(struct platform_device *pdev)
- 	if (!cpu_id)
- 		return -ENODEV;
- 
--	core_init = (int (*)(struct pmc_dev *))cpu_id->driver_data;
-+	pmc_dev_info = (struct pmc_dev_info *)cpu_id->driver_data;
- 
- 	/* Primary PMC */
- 	primary_pmc = devm_kzalloc(&pdev->dev, sizeof(*primary_pmc), GFP_KERNEL);
-@@ -1489,16 +1528,13 @@ static int pmc_core_probe(struct platform_device *pdev)
- 	if (!pmcdev->pkgc_res_cnt)
- 		return -ENOMEM;
- 
--	/*
--	 * Coffee Lake has CPU ID of Kaby Lake and Cannon Lake PCH. So here
--	 * Sunrisepoint PCH regmap can't be used. Use Cannon Lake PCH regmap
--	 * in this case.
--	 */
--	if (core_init == spt_core_init && !pci_dev_present(pmc_pci_ids))
--		core_init = cnp_core_init;
--
- 	mutex_init(&pmcdev->lock);
--	ret = core_init(pmcdev);
-+
-+	if (pmc_dev_info->init)
-+		ret = pmc_dev_info->init(pmcdev, pmc_dev_info);
-+	else
-+		ret = generic_core_init(pmcdev, pmc_dev_info);
-+
- 	if (ret) {
- 		pmc_core_clean_structure(pdev);
- 		return ret;
-diff --git a/drivers/platform/x86/intel/pmc/core.h b/drivers/platform/x86/intel/pmc/core.h
-index b9d3291d0bf2..987fde3ffc1c 100644
---- a/drivers/platform/x86/intel/pmc/core.h
-+++ b/drivers/platform/x86/intel/pmc/core.h
-@@ -430,12 +430,34 @@ struct pmc_dev {
- 
- enum pmc_index {
- 	PMC_IDX_MAIN,
--	PMC_IDX_SOC = PMC_IDX_MAIN,
- 	PMC_IDX_IOE,
- 	PMC_IDX_PCH,
- 	PMC_IDX_MAX
- };
- 
-+/**
-+ * struct pmc_dev_info - Structure to keep PMC device info
-+ * @pci_func:		Function number of the primary PMC
-+ * @dmu_guid:		Die Management Unit GUID
-+ * @regmap_list:	Pointer to a list of pmc_info structure that could be
-+ *			available for the platform. When set, this field implies
-+ *			SSRAM support.
-+ * @map:		Pointer to a pmc_reg_map struct that contains platform
-+ *			specific attributes of the primary PMC
-+ * @suspend:		Function to perform platform specific suspend
-+ * @resume:		Function to perform platform specific resume
-+ * @init:		Function to perform platform specific init action
-+ */
-+struct pmc_dev_info {
-+	u8 pci_func;
-+	u32 dmu_guid;
-+	struct pmc_info *regmap_list;
-+	const struct pmc_reg_map *map;
-+	void (*suspend)(struct pmc_dev *pmcdev);
-+	int (*resume)(struct pmc_dev *pmcdev);
-+	int (*init)(struct pmc_dev *pmcdev, struct pmc_dev_info *pmc_dev_info);
-+};
-+
- extern const struct pmc_bit_map msr_map[];
- extern const struct pmc_bit_map spt_pll_map[];
- extern const struct pmc_bit_map spt_mphy_map[];
-@@ -592,16 +614,18 @@ extern void pmc_core_set_device_d3(unsigned int device);
- 
- extern int pmc_core_ssram_init(struct pmc_dev *pmcdev, int func);
- 
--int spt_core_init(struct pmc_dev *pmcdev);
--int cnp_core_init(struct pmc_dev *pmcdev);
--int icl_core_init(struct pmc_dev *pmcdev);
--int tgl_core_init(struct pmc_dev *pmcdev);
--int tgl_l_core_init(struct pmc_dev *pmcdev);
--int tgl_core_generic_init(struct pmc_dev *pmcdev, int pch_tp);
--int adl_core_init(struct pmc_dev *pmcdev);
--int mtl_core_init(struct pmc_dev *pmcdev);
--int arl_core_init(struct pmc_dev *pmcdev);
--int lnl_core_init(struct pmc_dev *pmcdev);
-+int generic_core_init(struct pmc_dev *pmcdev, struct pmc_dev_info *pmc_dev_info);
-+
-+extern struct pmc_dev_info spt_pmc_dev;
-+extern struct pmc_dev_info cnp_pmc_dev;
-+extern struct pmc_dev_info icl_pmc_dev;
-+extern struct pmc_dev_info tgl_l_pmc_dev;
-+extern struct pmc_dev_info tgl_pmc_dev;
-+extern struct pmc_dev_info adl_pmc_dev;
-+extern struct pmc_dev_info mtl_pmc_dev;
-+extern struct pmc_dev_info arl_pmc_dev;
-+extern struct pmc_dev_info arl_h_pmc_dev;
-+extern struct pmc_dev_info lnl_pmc_dev;
- 
- void cnl_suspend(struct pmc_dev *pmcdev);
- int cnl_resume(struct pmc_dev *pmcdev);
-diff --git a/drivers/platform/x86/intel/pmc/icl.c b/drivers/platform/x86/intel/pmc/icl.c
-index 71b0fd6cb7d8..6952c8ef58a0 100644
---- a/drivers/platform/x86/intel/pmc/icl.c
-+++ b/drivers/platform/x86/intel/pmc/icl.c
-@@ -50,18 +50,6 @@ const struct pmc_reg_map icl_reg_map = {
- 	.etr3_offset = ETR3_OFFSET,
- };
- 
--int icl_core_init(struct pmc_dev *pmcdev)
--{
--	struct pmc *pmc = pmcdev->pmcs[PMC_IDX_MAIN];
--	int ret;
--
--	pmc->map = &icl_reg_map;
--
--	ret = get_primary_reg_base(pmc);
--	if (ret)
--		return ret;
--
--	pmc_core_get_low_power_modes(pmcdev);
--
--	return ret;
--}
-+struct pmc_dev_info icl_pmc_dev = {
-+	.map = &icl_reg_map,
-+};
-diff --git a/drivers/platform/x86/intel/pmc/lnl.c b/drivers/platform/x86/intel/pmc/lnl.c
-index be029f12cdf4..5a78807b9bc2 100644
---- a/drivers/platform/x86/intel/pmc/lnl.c
-+++ b/drivers/platform/x86/intel/pmc/lnl.c
-@@ -550,22 +550,15 @@ static int lnl_resume(struct pmc_dev *pmcdev)
- 	return cnl_resume(pmcdev);
- }
- 
--int lnl_core_init(struct pmc_dev *pmcdev)
-+static int lnl_core_init(struct pmc_dev *pmcdev, struct pmc_dev_info *pmc_dev_info)
- {
--	int ret;
--	struct pmc *pmc = pmcdev->pmcs[PMC_IDX_SOC];
--
- 	lnl_d3_fixup();
--
--	pmcdev->suspend = cnl_suspend;
--	pmcdev->resume = lnl_resume;
--
--	pmc->map = &lnl_socm_reg_map;
--	ret = get_primary_reg_base(pmc);
--	if (ret)
--		return ret;
--
--	pmc_core_get_low_power_modes(pmcdev);
--
--	return 0;
-+	return generic_core_init(pmcdev, pmc_dev_info);
- }
-+
-+struct pmc_dev_info lnl_pmc_dev = {
-+	.map = &lnl_socm_reg_map,
-+	.suspend = cnl_suspend,
-+	.resume = lnl_resume,
-+	.init = lnl_core_init,
-+};
-diff --git a/drivers/platform/x86/intel/pmc/mtl.c b/drivers/platform/x86/intel/pmc/mtl.c
-index 02949fed76e9..705b7e1b0b86 100644
---- a/drivers/platform/x86/intel/pmc/mtl.c
-+++ b/drivers/platform/x86/intel/pmc/mtl.c
-@@ -990,39 +990,18 @@ static int mtl_resume(struct pmc_dev *pmcdev)
- 	return cnl_resume(pmcdev);
- }
- 
--int mtl_core_init(struct pmc_dev *pmcdev)
-+static int mtl_core_init(struct pmc_dev *pmcdev, struct pmc_dev_info *pmc_dev_info)
- {
--	struct pmc *pmc = pmcdev->pmcs[PMC_IDX_SOC];
--	int ret;
--	int func = 2;
--	bool ssram_init = true;
--
- 	mtl_d3_fixup();
--
--	pmcdev->suspend = cnl_suspend;
--	pmcdev->resume = mtl_resume;
--	pmcdev->regmap_list = mtl_pmc_info_list;
--
--	/*
--	 * If ssram init fails use legacy method to at least get the
--	 * primary PMC
--	 */
--	ret = pmc_core_ssram_init(pmcdev, func);
--	if (ret) {
--		ssram_init = false;
--		dev_warn(&pmcdev->pdev->dev,
--			 "ssram init failed, %d, using legacy init\n", ret);
--		pmc->map = &mtl_socm_reg_map;
--		ret = get_primary_reg_base(pmc);
--		if (ret)
--			return ret;
--	}
--
--	pmc_core_get_low_power_modes(pmcdev);
--	pmc_core_punit_pmt_init(pmcdev, MTL_PMT_DMU_GUID);
--
--	if (ssram_init)
--		return pmc_core_ssram_get_lpm_reqs(pmcdev);
--
--	return 0;
-+	return generic_core_init(pmcdev, pmc_dev_info);
- }
-+
-+struct pmc_dev_info mtl_pmc_dev = {
-+	.pci_func = 2,
-+	.dmu_guid = MTL_PMT_DMU_GUID,
-+	.regmap_list = mtl_pmc_info_list,
-+	.map = &mtl_socm_reg_map,
-+	.suspend = cnl_suspend,
-+	.resume = mtl_resume,
-+	.init = mtl_core_init,
-+};
-diff --git a/drivers/platform/x86/intel/pmc/spt.c b/drivers/platform/x86/intel/pmc/spt.c
-index ab993a69e33e..9289cd76b014 100644
---- a/drivers/platform/x86/intel/pmc/spt.c
-+++ b/drivers/platform/x86/intel/pmc/spt.c
-@@ -8,6 +8,8 @@
-  *
-  */
- 
-+#include <linux/pci.h>
-+
- #include "core.h"
- 
- const struct pmc_bit_map spt_pll_map[] = {
-@@ -134,18 +136,25 @@ const struct pmc_reg_map spt_reg_map = {
- 	.pm_vric1_offset = SPT_PMC_VRIC1_OFFSET,
- };
- 
--int spt_core_init(struct pmc_dev *pmcdev)
--{
--	struct pmc *pmc = pmcdev->pmcs[PMC_IDX_MAIN];
--	int ret;
--
--	pmc->map = &spt_reg_map;
--
--	ret = get_primary_reg_base(pmc);
--	if (ret)
--		return ret;
-+static const struct pci_device_id pmc_pci_ids[] = {
-+	{ PCI_VDEVICE(INTEL, SPT_PMC_PCI_DEVICE_ID) },
-+	{ }
-+};
- 
--	pmc_core_get_low_power_modes(pmcdev);
-+static int spt_core_init(struct pmc_dev *pmcdev, struct pmc_dev_info *pmc_dev_info)
-+{
-+	/*
-+	 * Coffee Lake has CPU ID of Kaby Lake and Cannon Lake PCH. So here
-+	 * Sunrisepoint PCH regmap can't be used. Use Cannon Lake PCH regmap
-+	 * in this case.
-+	 */
-+	if (!pci_dev_present(pmc_pci_ids))
-+		return generic_core_init(pmcdev, &cnp_pmc_dev);
- 
--	return ret;
-+	return generic_core_init(pmcdev, pmc_dev_info);
- }
-+
-+struct pmc_dev_info spt_pmc_dev = {
-+	.map = &spt_reg_map,
-+	.init = spt_core_init,
-+};
-diff --git a/drivers/platform/x86/intel/pmc/tgl.c b/drivers/platform/x86/intel/pmc/tgl.c
-index e0580de18077..758bd8d162e5 100644
---- a/drivers/platform/x86/intel/pmc/tgl.c
-+++ b/drivers/platform/x86/intel/pmc/tgl.c
-@@ -285,35 +285,28 @@ void pmc_core_get_tgl_lpm_reqs(struct platform_device *pdev)
- 	ACPI_FREE(out_obj);
- }
- 
--int tgl_l_core_init(struct pmc_dev *pmcdev)
-+static int tgl_core_init(struct pmc_dev *pmcdev, struct pmc_dev_info *pmc_dev_info)
- {
--	return tgl_core_generic_init(pmcdev, PCH_LP);
--}
--
--int tgl_core_init(struct pmc_dev *pmcdev)
--{
--	return tgl_core_generic_init(pmcdev, PCH_H);
--}
--
--int tgl_core_generic_init(struct pmc_dev *pmcdev, int pch_tp)
--{
--	struct pmc *pmc = pmcdev->pmcs[PMC_IDX_MAIN];
- 	int ret;
- 
--	if (pch_tp == PCH_H)
--		pmc->map = &tgl_h_reg_map;
--	else
--		pmc->map = &tgl_reg_map;
--
--	pmcdev->suspend = cnl_suspend;
--	pmcdev->resume = cnl_resume;
--
--	ret = get_primary_reg_base(pmc);
-+	ret = generic_core_init(pmcdev, pmc_dev_info);
- 	if (ret)
- 		return ret;
- 
--	pmc_core_get_low_power_modes(pmcdev);
- 	pmc_core_get_tgl_lpm_reqs(pmcdev->pdev);
--
- 	return 0;
- }
-+
-+struct pmc_dev_info tgl_l_pmc_dev = {
-+	.map = &tgl_reg_map,
-+	.suspend = cnl_suspend,
-+	.resume = cnl_resume,
-+	.init = tgl_core_init,
-+};
-+
-+struct pmc_dev_info tgl_pmc_dev = {
-+	.map = &tgl_h_reg_map,
-+	.suspend = cnl_suspend,
-+	.resume = cnl_resume,
-+	.init = tgl_core_init,
-+};
 diff --git a/drivers/scsi/sd.c b/drivers/scsi/sd.c
 index 950d8c9fb884..77ac6f8c1805 100644
 --- a/drivers/scsi/sd.c
@@ -4918,10 +4125,10 @@ index 950d8c9fb884..77ac6f8c1805 100644
  	if (err)
  		goto err_out_driver;
 diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index dcba4281ea48..bb82bf5148b0 100644
+index 9f19fc7494e0..595b7b294f0f 100644
 --- a/drivers/usb/core/hub.c
 +++ b/drivers/usb/core/hub.c
-@@ -5856,6 +5856,13 @@ static void hub_event(struct work_struct *work)
+@@ -5854,6 +5854,13 @@ static void hub_event(struct work_struct *work)
  			(u16) hub->change_bits[0],
  			(u16) hub->event_bits[0]);
  
@@ -4935,19 +4142,6 @@ index dcba4281ea48..bb82bf5148b0 100644
  	/* Lock the device, then check to see if we were
  	 * disconnected while waiting for the lock to succeed. */
  	usb_lock_device(hdev);
-diff --git a/include/linux/crypto.h b/include/linux/crypto.h
-index b164da5e129e..72bfb79b491d 100644
---- a/include/linux/crypto.h
-+++ b/include/linux/crypto.h
-@@ -134,6 +134,8 @@
- #define CRYPTO_TFM_REQ_MAY_SLEEP	0x00000200
- #define CRYPTO_TFM_REQ_MAY_BACKLOG	0x00000400
- 
-+#define CRYPTO_TFM_FIPS_COMPLIANCE	0x80000000
-+
- /*
-  * Miscellaneous stuff.
-  */
 diff --git a/include/linux/efi.h b/include/linux/efi.h
 index 7d63d1d75f22..c7481fdedbdd 100644
 --- a/include/linux/efi.h
@@ -5017,7 +4211,7 @@ index 7d63d1d75f22..c7481fdedbdd 100644
  enum efi_secureboot_mode efi_get_secureboot_mode(efi_get_variable_t *get_var)
  {
 diff --git a/include/linux/lsm_hook_defs.h b/include/linux/lsm_hook_defs.h
-index e2f1ce37c41e..3fe30fcc506c 100644
+index bf3bbac4e02a..b9840b1a43fe 100644
 --- a/include/linux/lsm_hook_defs.h
 +++ b/include/linux/lsm_hook_defs.h
 @@ -444,6 +444,7 @@ LSM_HOOK(int, 0, bpf_token_capable, const struct bpf_token *token, int cap)
@@ -5026,7 +4220,7 @@ index e2f1ce37c41e..3fe30fcc506c 100644
  
 +
  #ifdef CONFIG_PERF_EVENTS
- LSM_HOOK(int, 0, perf_event_open, struct perf_event_attr *attr, int type)
+ LSM_HOOK(int, 0, perf_event_open, int type)
  LSM_HOOK(int, 0, perf_event_alloc, struct perf_event *event)
 diff --git a/include/linux/rmi.h b/include/linux/rmi.h
 index ab7eea01ab42..fff7c5f737fc 100644
@@ -5041,10 +4235,10 @@ index ab7eea01ab42..fff7c5f737fc 100644
  
  int rmi_register_transport_device(struct rmi_transport_dev *xport);
 diff --git a/include/linux/security.h b/include/linux/security.h
-index 980b6c207cad..a0f0b41d7dcc 100644
+index cc9b54d95d22..fce0e3457cf7 100644
 --- a/include/linux/security.h
 +++ b/include/linux/security.h
-@@ -2386,4 +2386,13 @@ static inline void security_initramfs_populated(void)
+@@ -2390,4 +2390,13 @@ static inline void security_initramfs_populated(void)
  }
  #endif /* CONFIG_SECURITY */
  
@@ -5081,23 +4275,23 @@ index a2ff4242e623..f0d2be1ee4f1 100644
  }
  
  int module_sig_check(struct load_info *info, int flags)
-diff --git a/scripts/Makefile.extrawarn b/scripts/Makefile.extrawarn
-index dc081cf46d21..25fe35170155 100644
---- a/scripts/Makefile.extrawarn
-+++ b/scripts/Makefile.extrawarn
-@@ -20,6 +20,10 @@ KBUILD_CFLAGS += $(call cc-disable-warning, address-of-packed-member)
- KBUILD_CFLAGS += -Wmissing-declarations
- KBUILD_CFLAGS += -Wmissing-prototypes
+diff --git a/scripts/Makefile.lib b/scripts/Makefile.lib
+index 2fe73cda0bdd..f766681e1b5c 100644
+--- a/scripts/Makefile.lib
++++ b/scripts/Makefile.lib
+@@ -272,7 +272,10 @@ objtool-args-$(CONFIG_HAVE_STATIC_CALL_INLINE)		+= --static-call
+ objtool-args-$(CONFIG_HAVE_UACCESS_VALIDATION)		+= --uaccess
+ objtool-args-$(or $(CONFIG_GCOV_KERNEL),$(CONFIG_KCOV))	+= --no-unreachable
+ objtool-args-$(CONFIG_PREFIX_SYMBOLS)			+= --prefix=$(CONFIG_FUNCTION_PADDING_BYTES)
++# RHEL-only: don't enforce OBJTOOL_WERROR for out of tree modules
++ifeq ($(KBUILD_EXTMOD),)
+ objtool-args-$(CONFIG_OBJTOOL_WERROR)			+= --Werror
++endif
  
-+# temporarily disable a warning to allow compiling with gcc15, as suggested by
-+# Jakub Jelinek in https://bugzilla.redhat.com/show_bug.cgi?id=2338533#c7
-+KBUILD_CFLAGS += $(call cc-option,-Wno-error=unterminated-string-initialization)
-+
- ifneq ($(CONFIG_FRAME_WARN),0)
- KBUILD_CFLAGS += -Wframe-larger-than=$(CONFIG_FRAME_WARN)
- endif
+ objtool-args = $(objtool-args-y)					\
+ 	$(if $(delay-objtool), --link)					\
 diff --git a/scripts/tags.sh b/scripts/tags.sh
-index 45eaf35f5bff..8cd9b8bbadc0 100755
+index 98680e9cd7be..0880675cf517 100755
 --- a/scripts/tags.sh
 +++ b/scripts/tags.sh
 @@ -16,6 +16,8 @@ fi
