@@ -706,7 +706,7 @@ Patchset: mwifiex
  1 file changed, 15 insertions(+)
 
 diff --git a/drivers/bluetooth/btusb.c b/drivers/bluetooth/btusb.c
-index 256b451bbe06..ee7767cc1c9e 100644
+index ef9689f87769..09f1b31d27ab 100644
 --- a/drivers/bluetooth/btusb.c
 +++ b/drivers/bluetooth/btusb.c
 @@ -66,6 +66,7 @@ static struct usb_driver btusb_driver;
@@ -725,7 +725,7 @@ index 256b451bbe06..ee7767cc1c9e 100644
  
  	/* Intel Bluetooth devices */
  	{ USB_DEVICE(0x8087, 0x0025), .driver_info = BTUSB_INTEL_COMBINED },
-@@ -3990,6 +3992,19 @@ static int btusb_probe(struct usb_interface *intf,
+@@ -3995,6 +3997,19 @@ static int btusb_probe(struct usb_interface *intf,
  	if (id->driver_info & BTUSB_MARVELL)
  		hdev->set_bdaddr = btusb_set_bdaddr_marvell;
  
@@ -934,7 +934,7 @@ Patchset: ipts
  1 file changed, 29 insertions(+)
 
 diff --git a/drivers/iommu/intel/iommu.c b/drivers/iommu/intel/iommu.c
-index cb0b993bebb4..c07d15343f76 100644
+index 9d2d34c1b2ff..a2db1548864e 100644
 --- a/drivers/iommu/intel/iommu.c
 +++ b/drivers/iommu/intel/iommu.c
 @@ -39,6 +39,11 @@
@@ -964,7 +964,7 @@ index cb0b993bebb4..c07d15343f76 100644
  
  const struct iommu_ops intel_iommu_ops;
  static const struct iommu_dirty_ops intel_dirty_ops;
-@@ -1935,6 +1942,9 @@ static int device_def_domain_type(struct device *dev)
+@@ -1936,6 +1943,9 @@ static int device_def_domain_type(struct device *dev)
  
  		if ((iommu_identity_mapping & IDENTMAP_AZALIA) && IS_AZALIA(pdev))
  			return IOMMU_DOMAIN_IDENTITY;
@@ -974,7 +974,7 @@ index cb0b993bebb4..c07d15343f76 100644
  	}
  
  	return 0;
-@@ -2229,6 +2239,9 @@ static int __init init_dmars(void)
+@@ -2230,6 +2240,9 @@ static int __init init_dmars(void)
  		iommu_set_root_entry(iommu);
  	}
  
@@ -984,7 +984,7 @@ index cb0b993bebb4..c07d15343f76 100644
  	check_tylersburg_isoch();
  
  	/*
-@@ -4430,6 +4443,18 @@ static void quirk_iommu_igfx(struct pci_dev *dev)
+@@ -4441,6 +4454,18 @@ static void quirk_iommu_igfx(struct pci_dev *dev)
  	disable_igfx_iommu = 1;
  }
  
@@ -1003,7 +1003,7 @@ index cb0b993bebb4..c07d15343f76 100644
  /* G4x/GM45 integrated gfx dmar support is totally busted. */
  DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x2a40, quirk_iommu_igfx);
  DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x2e00, quirk_iommu_igfx);
-@@ -4468,6 +4493,10 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x1632, quirk_iommu_igfx);
+@@ -4479,6 +4504,10 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x1632, quirk_iommu_igfx);
  DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x163A, quirk_iommu_igfx);
  DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x163D, quirk_iommu_igfx);
  
@@ -7966,10 +7966,10 @@ index c8bd71a739f7..0656b4d3e0e5 100644
  
  	if (drv && drv->shutdown)
 diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
-index 8de27d109820..242d5a940110 100644
+index ba74f2d67495..cfeea1282929 100644
 --- a/drivers/pci/quirks.c
 +++ b/drivers/pci/quirks.c
-@@ -6340,3 +6340,39 @@ static void pci_mask_replay_timer_timeout(struct pci_dev *pdev)
+@@ -6363,3 +6363,39 @@ static void pci_mask_replay_timer_timeout(struct pci_dev *pdev)
  DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_GLI, 0x9750, pci_mask_replay_timer_timeout);
  DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_GLI, 0x9755, pci_mask_replay_timer_timeout);
  #endif
@@ -8180,7 +8180,7 @@ Patchset: cameras
  1 file changed, 30 insertions(+)
 
 diff --git a/drivers/iommu/intel/iommu.c b/drivers/iommu/intel/iommu.c
-index c07d15343f76..f0fd3155340a 100644
+index a2db1548864e..71ffdb90cea9 100644
 --- a/drivers/iommu/intel/iommu.c
 +++ b/drivers/iommu/intel/iommu.c
 @@ -44,6 +44,13 @@
@@ -8212,7 +8212,7 @@ index c07d15343f76..f0fd3155340a 100644
  #define IDENTMAP_IPTS		16
  
  const struct iommu_ops intel_iommu_ops;
-@@ -1943,6 +1952,9 @@ static int device_def_domain_type(struct device *dev)
+@@ -1944,6 +1953,9 @@ static int device_def_domain_type(struct device *dev)
  		if ((iommu_identity_mapping & IDENTMAP_AZALIA) && IS_AZALIA(pdev))
  			return IOMMU_DOMAIN_IDENTITY;
  
@@ -8222,7 +8222,7 @@ index c07d15343f76..f0fd3155340a 100644
  		if ((iommu_identity_mapping & IDENTMAP_IPTS) && IS_IPTS(pdev))
  			return IOMMU_DOMAIN_IDENTITY;
  	}
-@@ -2239,6 +2251,9 @@ static int __init init_dmars(void)
+@@ -2240,6 +2252,9 @@ static int __init init_dmars(void)
  		iommu_set_root_entry(iommu);
  	}
  
@@ -8232,7 +8232,7 @@ index c07d15343f76..f0fd3155340a 100644
  	if (!dmar_map_ipts)
  		iommu_identity_mapping |= IDENTMAP_IPTS;
  
-@@ -4443,6 +4458,18 @@ static void quirk_iommu_igfx(struct pci_dev *dev)
+@@ -4454,6 +4469,18 @@ static void quirk_iommu_igfx(struct pci_dev *dev)
  	disable_igfx_iommu = 1;
  }
  
@@ -8251,7 +8251,7 @@ index c07d15343f76..f0fd3155340a 100644
  static void quirk_iommu_ipts(struct pci_dev *dev)
  {
  	if (!IS_IPTS(dev))
-@@ -4493,6 +4520,9 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x1632, quirk_iommu_igfx);
+@@ -4504,6 +4531,9 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x1632, quirk_iommu_igfx);
  DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x163A, quirk_iommu_igfx);
  DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x163D, quirk_iommu_igfx);
  
@@ -11104,10 +11104,10 @@ Acked-by: Jiri Kosina <jkosina@suse.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index 46e3e42f9eb5..2df6a1ca57ba 100644
+index 599c836507ff..1e3ae6ef8f4e 100644
 --- a/drivers/hid/hid-asus.c
 +++ b/drivers/hid/hid-asus.c
-@@ -1327,4 +1327,5 @@ static struct hid_driver asus_driver = {
+@@ -1430,4 +1430,5 @@ static struct hid_driver asus_driver = {
  };
  module_hid_driver(asus_driver);
  
@@ -18439,10 +18439,10 @@ index a2d9d34f9fb0..61be34ccb625 100644
 +
  #endif
 diff --git a/drivers/bluetooth/btusb.c b/drivers/bluetooth/btusb.c
-index ee7767cc1c9e..58e4d7abb576 100644
+index 09f1b31d27ab..173567814158 100644
 --- a/drivers/bluetooth/btusb.c
 +++ b/drivers/bluetooth/btusb.c
-@@ -920,9 +920,11 @@ struct btusb_data {
+@@ -925,9 +925,11 @@ struct btusb_data {
  
  	int (*setup_on_usb)(struct hci_dev *hdev);
  
@@ -18454,7 +18454,7 @@ index ee7767cc1c9e..58e4d7abb576 100644
  
  	int oob_wake_irq;   /* irq for out-of-band wake-on-bt */
  
-@@ -4077,6 +4079,8 @@ static int btusb_probe(struct usb_interface *intf,
+@@ -4082,6 +4084,8 @@ static int btusb_probe(struct usb_interface *intf,
  		hdev->shutdown = btrtl_shutdown_realtek;
  		hdev->reset = btusb_rtl_reset;
  		hdev->hw_error = btusb_rtl_hw_error;
@@ -18463,7 +18463,7 @@ index ee7767cc1c9e..58e4d7abb576 100644
  
  		/* Realtek devices need to set remote wakeup on auto-suspend */
  		set_bit(BTUSB_WAKEUP_AUTOSUSPEND, &data->flags);
-@@ -4248,6 +4252,8 @@ static void btusb_disconnect(struct usb_interface *intf)
+@@ -4253,6 +4257,8 @@ static void btusb_disconnect(struct usb_interface *intf)
  static int btusb_suspend(struct usb_interface *intf, pm_message_t message)
  {
  	struct btusb_data *data = usb_get_intfdata(intf);
@@ -18472,7 +18472,7 @@ index ee7767cc1c9e..58e4d7abb576 100644
  
  	BT_DBG("intf %p", intf);
  
-@@ -4260,6 +4266,11 @@ static int btusb_suspend(struct usb_interface *intf, pm_message_t message)
+@@ -4265,6 +4271,11 @@ static int btusb_suspend(struct usb_interface *intf, pm_message_t message)
  	if (data->suspend_count++)
  		return 0;
  
@@ -18484,7 +18484,7 @@ index ee7767cc1c9e..58e4d7abb576 100644
  	spin_lock_irq(&data->txlock);
  	if (!(PMSG_IS_AUTO(message) && data->tx_in_flight)) {
  		set_bit(BTUSB_SUSPENDING, &data->flags);
-@@ -4387,6 +4398,11 @@ static int btusb_resume(struct usb_interface *intf)
+@@ -4392,6 +4403,11 @@ static int btusb_resume(struct usb_interface *intf)
  	spin_unlock_irq(&data->txlock);
  	schedule_work(&data->work);
  
@@ -18806,10 +18806,10 @@ index 61be34ccb625..a2d9d34f9fb0 100644
 -
  #endif
 diff --git a/drivers/bluetooth/btusb.c b/drivers/bluetooth/btusb.c
-index 58e4d7abb576..ee7767cc1c9e 100644
+index 173567814158..09f1b31d27ab 100644
 --- a/drivers/bluetooth/btusb.c
 +++ b/drivers/bluetooth/btusb.c
-@@ -920,11 +920,9 @@ struct btusb_data {
+@@ -925,11 +925,9 @@ struct btusb_data {
  
  	int (*setup_on_usb)(struct hci_dev *hdev);
  
@@ -18821,7 +18821,7 @@ index 58e4d7abb576..ee7767cc1c9e 100644
  
  	int oob_wake_irq;   /* irq for out-of-band wake-on-bt */
  
-@@ -4079,8 +4077,6 @@ static int btusb_probe(struct usb_interface *intf,
+@@ -4084,8 +4082,6 @@ static int btusb_probe(struct usb_interface *intf,
  		hdev->shutdown = btrtl_shutdown_realtek;
  		hdev->reset = btusb_rtl_reset;
  		hdev->hw_error = btusb_rtl_hw_error;
@@ -18830,7 +18830,7 @@ index 58e4d7abb576..ee7767cc1c9e 100644
  
  		/* Realtek devices need to set remote wakeup on auto-suspend */
  		set_bit(BTUSB_WAKEUP_AUTOSUSPEND, &data->flags);
-@@ -4252,8 +4248,6 @@ static void btusb_disconnect(struct usb_interface *intf)
+@@ -4257,8 +4253,6 @@ static void btusb_disconnect(struct usb_interface *intf)
  static int btusb_suspend(struct usb_interface *intf, pm_message_t message)
  {
  	struct btusb_data *data = usb_get_intfdata(intf);
@@ -18839,7 +18839,7 @@ index 58e4d7abb576..ee7767cc1c9e 100644
  
  	BT_DBG("intf %p", intf);
  
-@@ -4266,11 +4260,6 @@ static int btusb_suspend(struct usb_interface *intf, pm_message_t message)
+@@ -4271,11 +4265,6 @@ static int btusb_suspend(struct usb_interface *intf, pm_message_t message)
  	if (data->suspend_count++)
  		return 0;
  
@@ -18851,7 +18851,7 @@ index 58e4d7abb576..ee7767cc1c9e 100644
  	spin_lock_irq(&data->txlock);
  	if (!(PMSG_IS_AUTO(message) && data->tx_in_flight)) {
  		set_bit(BTUSB_SUSPENDING, &data->flags);
-@@ -4398,11 +4387,6 @@ static int btusb_resume(struct usb_interface *intf)
+@@ -4403,11 +4392,6 @@ static int btusb_resume(struct usb_interface *intf)
  	spin_unlock_irq(&data->txlock);
  	schedule_work(&data->work);
  
@@ -19024,7 +19024,7 @@ index c3641331d4de..23112becbb4c 100644
  
  	bool				ram_is_direct_mapped;
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
-index f8b3e04d71ed..078ec689134a 100644
+index 95124a4a0a67..d6828c5ff051 100644
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
 @@ -82,6 +82,7 @@
@@ -19035,7 +19035,7 @@ index f8b3e04d71ed..078ec689134a 100644
  
  #if IS_ENABLED(CONFIG_X86)
  #include <asm/intel-family.h>
-@@ -4046,6 +4047,17 @@ bool amdgpu_device_has_dc_support(struct amdgpu_device *adev)
+@@ -4052,6 +4053,17 @@ bool amdgpu_device_has_dc_support(struct amdgpu_device *adev)
  	return amdgpu_device_asic_has_dc_support(adev->asic_type);
  }
  
@@ -19053,7 +19053,7 @@ index f8b3e04d71ed..078ec689134a 100644
  static void amdgpu_device_xgmi_reset_func(struct work_struct *__work)
  {
  	struct amdgpu_device *adev =
-@@ -4356,6 +4368,7 @@ int amdgpu_device_init(struct amdgpu_device *adev,
+@@ -4362,6 +4374,7 @@ int amdgpu_device_init(struct amdgpu_device *adev,
  	}
  
  	INIT_WORK(&adev->xgmi_reset_work, amdgpu_device_xgmi_reset_func);
@@ -19061,7 +19061,7 @@ index f8b3e04d71ed..078ec689134a 100644
  
  	adev->gfx.gfx_off_req_count = 1;
  	adev->gfx.gfx_off_residency = 0;
-@@ -5630,6 +5643,20 @@ int amdgpu_device_reinit_after_reset(struct amdgpu_reset_context *reset_context)
+@@ -5636,6 +5649,20 @@ int amdgpu_device_reinit_after_reset(struct amdgpu_reset_context *reset_context)
  				if (!test_bit(AMDGPU_SKIP_COREDUMP, &reset_context->flags))
  					amdgpu_coredump(tmp_adev, false, vram_lost, reset_context->job);
  
@@ -19202,10 +19202,10 @@ index 1522fd2b517d..77a162cde108 100644
  };
  ATTRIBUTE_GROUPS(mmc_std);
 diff --git a/drivers/mmc/core/quirks.h b/drivers/mmc/core/quirks.h
-index 89b512905be1..20c022419de1 100644
+index 7f893bafaa60..ed7eec6e27ce 100644
 --- a/drivers/mmc/core/quirks.h
 +++ b/drivers/mmc/core/quirks.h
-@@ -254,4 +254,6 @@ static inline void mmc_fixup_device(struct mmc_card *card,
+@@ -264,4 +264,6 @@ static inline void mmc_fixup_device(struct mmc_card *card,
  		dev_dbg(&card->dev, "calling %ps\n", f->vendor_fixup);
  		f->vendor_fixup(card, f->data);
  	}
@@ -19213,10 +19213,10 @@ index 89b512905be1..20c022419de1 100644
 +	card->safe_trim_quirk_version = 1;
  }
 diff --git a/drivers/mmc/core/sd.c b/drivers/mmc/core/sd.c
-index 8eba697d3d86..c3e193ef5f42 100644
+index 6847b3fe8887..85914b4d7c46 100644
 --- a/drivers/mmc/core/sd.c
 +++ b/drivers/mmc/core/sd.c
-@@ -714,6 +714,7 @@ MMC_DEV_ATTR(oemid, "0x%04x\n", card->cid.oemid);
+@@ -730,6 +730,7 @@ MMC_DEV_ATTR(oemid, "0x%04x\n", card->cid.oemid);
  MMC_DEV_ATTR(serial, "0x%08x\n", card->cid.serial);
  MMC_DEV_ATTR(ocr, "0x%08x\n", card->ocr);
  MMC_DEV_ATTR(rca, "0x%04x\n", card->rca);
@@ -19224,7 +19224,7 @@ index 8eba697d3d86..c3e193ef5f42 100644
  
  
  static ssize_t mmc_dsr_show(struct device *dev, struct device_attribute *attr,
-@@ -776,6 +777,7 @@ static struct attribute *sd_std_attrs[] = {
+@@ -792,6 +793,7 @@ static struct attribute *sd_std_attrs[] = {
  	&dev_attr_ocr.attr,
  	&dev_attr_rca.attr,
  	&dev_attr_dsr.attr,
@@ -19233,7 +19233,7 @@ index 8eba697d3d86..c3e193ef5f42 100644
  };
  
 diff --git a/include/linux/mmc/card.h b/include/linux/mmc/card.h
-index 526fce581657..722812713ec0 100644
+index ddcdf23d731c..a01c02681776 100644
 --- a/include/linux/mmc/card.h
 +++ b/include/linux/mmc/card.h
 @@ -309,6 +309,7 @@ struct mmc_card {
@@ -19824,10 +19824,10 @@ Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
  1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 0fe8bd19ecd1..f52a820b42ab 100644
+index 96118a0e1ffe..7e65c43c432a 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -6349,8 +6349,7 @@ static void fill_stream_properties_from_drm_display_mode(
+@@ -6203,8 +6203,7 @@ static void fill_stream_properties_from_drm_display_mode(
  	timing_out->v_border_top = 0;
  	timing_out->v_border_bottom = 0;
  	/* TODO: un-hardcode */
@@ -19860,10 +19860,10 @@ Signed-off-by: Gabriel Krisman Bertazi <krisman@collabora.com>
  1 file changed, 19 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index f52a820b42ab..ec31df752cab 100644
+index 7e65c43c432a..9cf2a286069c 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4738,6 +4738,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
+@@ -4592,6 +4592,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
  	return 0;
  }
  
@@ -19871,7 +19871,7 @@ index f52a820b42ab..ec31df752cab 100644
  #define AMDGPU_DM_DEFAULT_MIN_BACKLIGHT 12
  #define AMDGPU_DM_DEFAULT_MAX_BACKLIGHT 255
  #define AMDGPU_DM_MIN_SPREAD ((AMDGPU_DM_DEFAULT_MAX_BACKLIGHT - AMDGPU_DM_DEFAULT_MIN_BACKLIGHT) / 2)
-@@ -4769,14 +4770,30 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
+@@ -4623,14 +4624,30 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
  	}
  
  	if (!caps->caps_valid) {
@@ -19902,7 +19902,7 @@ index f52a820b42ab..ec31df752cab 100644
  	caps->min_input_signal = AMDGPU_DM_DEFAULT_MIN_BACKLIGHT;
  	caps->max_input_signal = AMDGPU_DM_DEFAULT_MAX_BACKLIGHT;
  	caps->caps_valid = true;
-@@ -4837,7 +4854,7 @@ static u32 convert_brightness_from_user(const struct amdgpu_dm_backlight_caps *c
+@@ -4691,7 +4708,7 @@ static u32 convert_brightness_from_user(const struct amdgpu_dm_backlight_caps *c
  		break;
  	}
  
@@ -19911,7 +19911,7 @@ index f52a820b42ab..ec31df752cab 100644
  	return min + DIV_ROUND_CLOSEST((max - min) * brightness,
  				       AMDGPU_MAX_BL_LEVEL);
  }
-@@ -4852,7 +4869,7 @@ static u32 convert_brightness_to_user(const struct amdgpu_dm_backlight_caps *cap
+@@ -4706,7 +4723,7 @@ static u32 convert_brightness_to_user(const struct amdgpu_dm_backlight_caps *cap
  
  	if (brightness < min)
  		return 0;
@@ -19939,10 +19939,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 41 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index ec31df752cab..96e2948da46a 100644
+index 9cf2a286069c..ac2d2d1a8b3d 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4738,12 +4738,45 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
+@@ -4592,12 +4592,45 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
  	return 0;
  }
  
@@ -19989,7 +19989,7 @@ index ec31df752cab..96e2948da46a 100644
  static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
  					    int bl_idx)
  {
-@@ -4780,9 +4813,13 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
+@@ -4634,9 +4667,13 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
  		printk(KERN_NOTICE"VLV Successfully queried backlight range over ACPI: %d %d\n",
  		       (int) caps->min_input_signal, (int) caps->max_input_signal);
  
@@ -20034,10 +20034,10 @@ Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
  1 file changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 96e2948da46a..7f2d1d146830 100644
+index ac2d2d1a8b3d..4f4706a700fa 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -8406,7 +8406,12 @@ static int amdgpu_dm_connector_get_modes(struct drm_connector *connector)
+@@ -8260,7 +8260,12 @@ static int amdgpu_dm_connector_get_modes(struct drm_connector *connector)
  				drm_add_modes_noedid(connector, 1920, 1080);
  	} else {
  		amdgpu_dm_connector_ddc_get_modes(connector, drm_edid);
@@ -20507,10 +20507,10 @@ index abd3b6564373..46937e6fa78d 100644
 +
  endmenu
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 7f2d1d146830..ccfcf140944f 100644
+index 4f4706a700fa..cbae89bf5da5 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4720,7 +4720,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
+@@ -4574,7 +4574,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
  		return r;
  	}
  
@@ -20648,7 +20648,7 @@ Cherry-picked-for: https://bugs.archlinux.org/task/73720
  1 file changed, 17 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/firmware/sysfb.c b/drivers/firmware/sysfb.c
-index 7c5c03f274b9..a60b0a4faf29 100644
+index 889e5b05c739..676f363d536c 100644
 --- a/drivers/firmware/sysfb.c
 +++ b/drivers/firmware/sysfb.c
 @@ -35,6 +35,22 @@
@@ -20674,7 +20674,7 @@ index 7c5c03f274b9..a60b0a4faf29 100644
  static struct platform_device *pd;
  static DEFINE_MUTEX(disable_lock);
  static bool disabled;
-@@ -164,7 +180,7 @@ static __init int sysfb_init(void)
+@@ -165,7 +181,7 @@ static __init int sysfb_init(void)
  
  	/* try to create a simple-framebuffer device */
  	compatible = sysfb_parse_mode(si, &mode);
@@ -21328,7 +21328,7 @@ index 000000000000..23aeb5649479
 +#endif // CONFIG_SYSCTL
 +#endif // CONFIG_SCHED_BORE
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index d593d6612ba0..97964b8d7a02 100644
+index 39fac649aa14..3f0b9d2d3930 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -96,6 +96,8 @@
@@ -21460,7 +21460,7 @@ index 56ae54e0ce6a..4302a4d60ab7 100644
  	P(se.avg.runnable_sum);
  	P(se.avg.util_sum);
 diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
-index 0c04ed414852..2a1dab92a63c 100644
+index 138d9f4658d5..5146ba681894 100644
 --- a/kernel/sched/fair.c
 +++ b/kernel/sched/fair.c
 @@ -58,6 +58,8 @@
@@ -21584,7 +21584,7 @@ index 0c04ed414852..2a1dab92a63c 100644
  			    unsigned long weight)
  {
  	bool curr = cfs_rq->curr == se;
-@@ -5290,7 +5326,11 @@ place_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
+@@ -5292,7 +5328,11 @@ place_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
  		se->rel_deadline = 0;
  		return;
  	}
@@ -21597,7 +21597,7 @@ index 0c04ed414852..2a1dab92a63c 100644
  	/*
  	 * When joining the competition; the existing tasks will be,
  	 * on average, halfway through their slice, as such start tasks
-@@ -7185,6 +7225,15 @@ static bool dequeue_task_fair(struct rq *rq, struct task_struct *p, int flags)
+@@ -7187,6 +7227,15 @@ static bool dequeue_task_fair(struct rq *rq, struct task_struct *p, int flags)
  		util_est_dequeue(&rq->cfs, p);
  
  	util_est_update(&rq->cfs, p, flags & DEQUEUE_SLEEP);
@@ -21613,7 +21613,7 @@ index 0c04ed414852..2a1dab92a63c 100644
  	if (dequeue_entities(rq, &p->se, flags) < 0)
  		return false;
  
-@@ -9014,16 +9063,25 @@ static void yield_task_fair(struct rq *rq)
+@@ -9016,16 +9065,25 @@ static void yield_task_fair(struct rq *rq)
  	/*
  	 * Are we the only task in the tree?
  	 */
@@ -21639,7 +21639,7 @@ index 0c04ed414852..2a1dab92a63c 100644
  	/*
  	 * Tell update_rq_clock() that we've just updated,
  	 * so we don't do microscopic update in schedule()
-@@ -13136,6 +13194,9 @@ static void task_tick_fair(struct rq *rq, struct task_struct *curr, int queued)
+@@ -13138,6 +13196,9 @@ static void task_tick_fair(struct rq *rq, struct task_struct *curr, int queued)
  static void task_fork_fair(struct task_struct *p)
  {
  	set_task_max_allowed_capacity(p);
@@ -21649,7 +21649,7 @@ index 0c04ed414852..2a1dab92a63c 100644
  }
  
  /*
-@@ -13246,6 +13307,10 @@ static void attach_task_cfs_rq(struct task_struct *p)
+@@ -13248,6 +13309,10 @@ static void attach_task_cfs_rq(struct task_struct *p)
  
  static void switched_from_fair(struct rq *rq, struct task_struct *p)
  {
@@ -21711,10 +21711,10 @@ https://web.git.kernel.org/pub/scm/linux/kernel/git/arighi/linux.git/commit/?h=s
  1 file changed, 31 insertions(+), 38 deletions(-)
 
 diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
-index 2a1dab92a63c..fb6c3765a974 100644
+index 5146ba681894..a2c787cb2174 100644
 --- a/kernel/sched/fair.c
 +++ b/kernel/sched/fair.c
-@@ -7603,9 +7603,14 @@ static inline int sched_balance_find_dst_cpu(struct sched_domain *sd, struct tas
+@@ -7605,9 +7605,14 @@ static inline int sched_balance_find_dst_cpu(struct sched_domain *sd, struct tas
  	return new_cpu;
  }
  
@@ -21730,7 +21730,7 @@ index 2a1dab92a63c..fb6c3765a974 100644
  	    sched_cpu_cookie_match(cpu_rq(cpu), p))
  		return cpu;
  
-@@ -7616,6 +7621,24 @@ static inline int __select_idle_cpu(int cpu, struct task_struct *p)
+@@ -7618,6 +7623,24 @@ static inline int __select_idle_cpu(int cpu, struct task_struct *p)
  DEFINE_STATIC_KEY_FALSE(sched_smt_present);
  EXPORT_SYMBOL_GPL(sched_smt_present);
  
@@ -21755,7 +21755,7 @@ index 2a1dab92a63c..fb6c3765a974 100644
  static inline void set_idle_cores(int cpu, int val)
  {
  	struct sched_domain_shared *sds;
-@@ -7698,29 +7721,6 @@ static int select_idle_core(struct task_struct *p, int core, struct cpumask *cpu
+@@ -7700,29 +7723,6 @@ static int select_idle_core(struct task_struct *p, int core, struct cpumask *cpu
  	return -1;
  }
  
@@ -21785,7 +21785,7 @@ index 2a1dab92a63c..fb6c3765a974 100644
  #else /* CONFIG_SCHED_SMT */
  
  static inline void set_idle_cores(int cpu, int val)
-@@ -7737,9 +7737,9 @@ static inline int select_idle_core(struct task_struct *p, int core, struct cpuma
+@@ -7739,9 +7739,9 @@ static inline int select_idle_core(struct task_struct *p, int core, struct cpuma
  	return __select_idle_cpu(core, p);
  }
  
@@ -21797,7 +21797,7 @@ index 2a1dab92a63c..fb6c3765a974 100644
  }
  
  #endif /* CONFIG_SCHED_SMT */
-@@ -7836,7 +7836,7 @@ select_idle_capacity(struct task_struct *p, struct sched_domain *sd, int target)
+@@ -7838,7 +7838,7 @@ select_idle_capacity(struct task_struct *p, struct sched_domain *sd, int target)
  	for_each_cpu_wrap(cpu, cpus, target) {
  		unsigned long cpu_cap = capacity_of(cpu);
  
@@ -21806,7 +21806,7 @@ index 2a1dab92a63c..fb6c3765a974 100644
  			continue;
  
  		fits = util_fits_cpu(task_util, util_min, util_max, cpu);
-@@ -7907,7 +7907,7 @@ static int select_idle_sibling(struct task_struct *p, int prev, int target)
+@@ -7909,7 +7909,7 @@ static int select_idle_sibling(struct task_struct *p, int prev, int target)
  	 */
  	lockdep_assert_irqs_disabled();
  
@@ -21815,7 +21815,7 @@ index 2a1dab92a63c..fb6c3765a974 100644
  	    asym_fits_cpu(task_util, util_min, util_max, target))
  		return target;
  
-@@ -7915,7 +7915,7 @@ static int select_idle_sibling(struct task_struct *p, int prev, int target)
+@@ -7917,7 +7917,7 @@ static int select_idle_sibling(struct task_struct *p, int prev, int target)
  	 * If the previous CPU is cache affine and idle, don't be stupid:
  	 */
  	if (prev != target && cpus_share_cache(prev, target) &&
@@ -21824,7 +21824,7 @@ index 2a1dab92a63c..fb6c3765a974 100644
  	    asym_fits_cpu(task_util, util_min, util_max, prev)) {
  
  		if (!static_branch_unlikely(&sched_cluster_active) ||
-@@ -7947,7 +7947,7 @@ static int select_idle_sibling(struct task_struct *p, int prev, int target)
+@@ -7949,7 +7949,7 @@ static int select_idle_sibling(struct task_struct *p, int prev, int target)
  	if (recent_used_cpu != prev &&
  	    recent_used_cpu != target &&
  	    cpus_share_cache(recent_used_cpu, target) &&
@@ -21833,7 +21833,7 @@ index 2a1dab92a63c..fb6c3765a974 100644
  	    cpumask_test_cpu(recent_used_cpu, p->cpus_ptr) &&
  	    asym_fits_cpu(task_util, util_min, util_max, recent_used_cpu)) {
  
-@@ -7983,16 +7983,9 @@ static int select_idle_sibling(struct task_struct *p, int prev, int target)
+@@ -7985,16 +7985,9 @@ static int select_idle_sibling(struct task_struct *p, int prev, int target)
  	if (!sd)
  		return target;
  
@@ -22855,10 +22855,10 @@ index 8f75ec177399..303ac22bcfe0 100644
  				Safety option to keep boot IRQs enabled. This
  				should never be necessary.
 diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
-index 242d5a940110..6677ce3b26ca 100644
+index cfeea1282929..3ac33602905d 100644
 --- a/drivers/pci/quirks.c
 +++ b/drivers/pci/quirks.c
-@@ -5042,6 +5042,106 @@ static int  pci_quirk_wangxun_nic_acs(struct pci_dev *dev, u16 acs_flags)
+@@ -5054,6 +5054,106 @@ static int  pci_quirk_wangxun_nic_acs(struct pci_dev *dev, u16 acs_flags)
  	return false;
  }
  
@@ -22965,7 +22965,7 @@ index 242d5a940110..6677ce3b26ca 100644
  static const struct pci_dev_acs_enabled {
  	u16 vendor;
  	u16 device;
-@@ -5195,6 +5295,8 @@ static const struct pci_dev_acs_enabled {
+@@ -5218,6 +5318,8 @@ static const struct pci_dev_acs_enabled {
  	{ PCI_VENDOR_ID_ZHAOXIN, PCI_ANY_ID, pci_quirk_zhaoxin_pcie_ports_acs },
  	/* Wangxun nics */
  	{ PCI_VENDOR_ID_WANGXUN, PCI_ANY_ID, pci_quirk_wangxun_nic_acs },
@@ -22992,10 +22992,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 9 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
-index 6677ce3b26ca..7da3de31d21e 100644
+index 3ac33602905d..d1dc9214a5b7 100644
 --- a/drivers/pci/quirks.c
 +++ b/drivers/pci/quirks.c
-@@ -5042,6 +5042,7 @@ static int  pci_quirk_wangxun_nic_acs(struct pci_dev *dev, u16 acs_flags)
+@@ -5054,6 +5054,7 @@ static int  pci_quirk_wangxun_nic_acs(struct pci_dev *dev, u16 acs_flags)
  	return false;
  }
  
@@ -23003,7 +23003,7 @@ index 6677ce3b26ca..7da3de31d21e 100644
  static bool acs_on_downstream;
  static bool acs_on_multifunction;
  
-@@ -5104,8 +5105,10 @@ static __init int pcie_acs_override_setup(char *p)
+@@ -5116,8 +5117,10 @@ static __init int pcie_acs_override_setup(char *p)
  			p++;
  	}
  
@@ -23015,7 +23015,7 @@ index 6677ce3b26ca..7da3de31d21e 100644
  
  	return 0;
  }
-@@ -5115,6 +5118,11 @@ static int pcie_acs_overrides(struct pci_dev *dev, u16 acs_flags)
+@@ -5127,6 +5130,11 @@ static int pcie_acs_overrides(struct pci_dev *dev, u16 acs_flags)
  {
  	int i;
  
@@ -23091,7 +23091,7 @@ This reverts commit 907830b0fc9e374d00f3c83de5e426157b482c01.
  1 file changed, 1 insertion(+), 7 deletions(-)
 
 diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index 4d84ed412484..f4be9e1df4d2 100644
+index 027a71c9c06f..3eb084cc0cbe 100644
 --- a/drivers/pci/pci.c
 +++ b/drivers/pci/pci.c
 @@ -3782,14 +3782,8 @@ u32 pci_rebar_get_possible_sizes(struct pci_dev *pdev, int bar)
@@ -23752,6 +23752,171 @@ index 0a040364b512..f81bf8dc4f72 100644
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Tue, 1 Jul 2025 21:56:39 +0200
+Subject: Revert "hid-asus: check ROG Ally MCU version and warn"
+
+This reverts commit 02d5431198f10e7c6e31f4138c14cfe400ec55a7.
+---
+ drivers/hid/hid-asus.c | 107 +----------------------------------------
+ 1 file changed, 2 insertions(+), 105 deletions(-)
+
+diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
+index 1e3ae6ef8f4e..2df6a1ca57ba 100644
+--- a/drivers/hid/hid-asus.c
++++ b/drivers/hid/hid-asus.c
+@@ -52,10 +52,6 @@ MODULE_DESCRIPTION("Asus HID Keyboard and TouchPad");
+ #define FEATURE_KBD_LED_REPORT_ID1 0x5d
+ #define FEATURE_KBD_LED_REPORT_ID2 0x5e
+ 
+-#define ROG_ALLY_REPORT_SIZE 64
+-#define ROG_ALLY_X_MIN_MCU 313
+-#define ROG_ALLY_MIN_MCU 319
+-
+ #define SUPPORT_KBD_BACKLIGHT BIT(0)
+ 
+ #define MAX_TOUCH_MAJOR 8
+@@ -88,7 +84,6 @@ MODULE_DESCRIPTION("Asus HID Keyboard and TouchPad");
+ #define QUIRK_MEDION_E1239T		BIT(10)
+ #define QUIRK_ROG_NKEY_KEYBOARD		BIT(11)
+ #define QUIRK_ROG_CLAYMORE_II_KEYBOARD BIT(12)
+-#define QUIRK_ROG_ALLY_XPAD		BIT(13)
+ 
+ #define I2C_KEYBOARD_QUIRKS			(QUIRK_FIX_NOTEBOOK_REPORT | \
+ 						 QUIRK_NO_INIT_REPORTS | \
+@@ -539,99 +534,9 @@ static bool asus_kbd_wmi_led_control_present(struct hid_device *hdev)
+ 	return !!(value & ASUS_WMI_DSTS_PRESENCE_BIT);
+ }
+ 
+-/*
+- * We don't care about any other part of the string except the version section.
+- * Example strings: FGA80100.RC72LA.312_T01, FGA80100.RC71LS.318_T01
+- * The bytes "5a 05 03 31 00 1a 13" and possibly more come before the version
+- * string, and there may be additional bytes after the version string such as
+- * "75 00 74 00 65 00" or a postfix such as "_T01"
+- */
+-static int mcu_parse_version_string(const u8 *response, size_t response_size)
+-{
+-	const u8 *end = response + response_size;
+-	const u8 *p = response;
+-	int dots, err, version;
+-	char buf[4];
+-
+-	dots = 0;
+-	while (p < end && dots < 2) {
+-		if (*p++ == '.')
+-			dots++;
+-	}
+-
+-	if (dots != 2 || p >= end || (p + 3) >= end)
+-		return -EINVAL;
+-
+-	memcpy(buf, p, 3);
+-	buf[3] = '\0';
+-
+-	err = kstrtoint(buf, 10, &version);
+-	if (err || version < 0)
+-		return -EINVAL;
+-
+-	return version;
+-}
+-
+-static int mcu_request_version(struct hid_device *hdev)
+-{
+-	u8 *response __free(kfree) = kzalloc(ROG_ALLY_REPORT_SIZE, GFP_KERNEL);
+-	const u8 request[] = { 0x5a, 0x05, 0x03, 0x31, 0x00, 0x20 };
+-	int ret;
+-
+-	if (!response)
+-		return -ENOMEM;
+-
+-	ret = asus_kbd_set_report(hdev, request, sizeof(request));
+-	if (ret < 0)
+-		return ret;
+-
+-	ret = hid_hw_raw_request(hdev, FEATURE_REPORT_ID, response,
+-				ROG_ALLY_REPORT_SIZE, HID_FEATURE_REPORT,
+-				HID_REQ_GET_REPORT);
+-	if (ret < 0)
+-		return ret;
+-
+-	ret = mcu_parse_version_string(response, ROG_ALLY_REPORT_SIZE);
+-	if (ret < 0) {
+-		pr_err("Failed to parse MCU version: %d\n", ret);
+-		print_hex_dump(KERN_ERR, "MCU: ", DUMP_PREFIX_NONE,
+-			      16, 1, response, ROG_ALLY_REPORT_SIZE, false);
+-	}
+-
+-	return ret;
+-}
+-
+-static void validate_mcu_fw_version(struct hid_device *hdev, int idProduct)
+-{
+-	int min_version, version;
+-
+-	version = mcu_request_version(hdev);
+-	if (version < 0)
+-		return;
+-
+-	switch (idProduct) {
+-	case USB_DEVICE_ID_ASUSTEK_ROG_NKEY_ALLY:
+-		min_version = ROG_ALLY_MIN_MCU;
+-		break;
+-	case USB_DEVICE_ID_ASUSTEK_ROG_NKEY_ALLY_X:
+-		min_version = ROG_ALLY_X_MIN_MCU;
+-		break;
+-	default:
+-		min_version = 0;
+-	}
+-
+-	if (version < min_version) {
+-		hid_warn(hdev,
+-			"The MCU firmware version must be %d or greater to avoid issues with suspend.\n",
+-			min_version);
+-	}
+-}
+-
+ static int asus_kbd_register_leds(struct hid_device *hdev)
+ {
+ 	struct asus_drvdata *drvdata = hid_get_drvdata(hdev);
+-	struct usb_interface *intf;
+-	struct usb_device *udev;
+ 	unsigned char kbd_func;
+ 	int ret;
+ 
+@@ -655,14 +560,6 @@ static int asus_kbd_register_leds(struct hid_device *hdev)
+ 			if (ret < 0)
+ 				return ret;
+ 		}
+-
+-		if (drvdata->quirks & QUIRK_ROG_ALLY_XPAD) {
+-			intf = to_usb_interface(hdev->dev.parent);
+-			udev = interface_to_usbdev(intf);
+-			validate_mcu_fw_version(hdev,
+-				le16_to_cpu(udev->descriptor.idProduct));
+-		}
+-
+ 	} else {
+ 		/* Initialize keyboard */
+ 		ret = asus_kbd_init(hdev, FEATURE_KBD_REPORT_ID);
+@@ -1383,10 +1280,10 @@ static const struct hid_device_id asus_devices[] = {
+ 	  QUIRK_USE_KBD_BACKLIGHT | QUIRK_ROG_NKEY_KEYBOARD },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_ASUSTEK,
+ 	    USB_DEVICE_ID_ASUSTEK_ROG_NKEY_ALLY),
+-	  QUIRK_USE_KBD_BACKLIGHT | QUIRK_ROG_NKEY_KEYBOARD | QUIRK_ROG_ALLY_XPAD},
++	  QUIRK_USE_KBD_BACKLIGHT | QUIRK_ROG_NKEY_KEYBOARD },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_ASUSTEK,
+ 	    USB_DEVICE_ID_ASUSTEK_ROG_NKEY_ALLY_X),
+-	  QUIRK_USE_KBD_BACKLIGHT | QUIRK_ROG_NKEY_KEYBOARD | QUIRK_ROG_ALLY_XPAD },
++	  QUIRK_USE_KBD_BACKLIGHT | QUIRK_ROG_NKEY_KEYBOARD },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_ASUSTEK,
+ 	    USB_DEVICE_ID_ASUSTEK_ROG_CLAYMORE_II_KEYBOARD),
+ 	  QUIRK_ROG_CLAYMORE_II_KEYBOARD },
+-- 
+2.50.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <git@antheas.dev>
 Date: Sat, 12 Oct 2024 19:07:48 +0200
 Subject: [NOT FOR UPSTREAM] remove ally quirk from asus_hid
@@ -23796,7 +23961,7 @@ Patch is originally by Jonathan LoBue <jlobue10@gmail.com>.
  1 file changed, 38 insertions(+), 1 deletion(-)
 
 diff --git a/sound/pci/hda/cs35l41_hda_property.c b/sound/pci/hda/cs35l41_hda_property.c
-index 61d2314834e7..34463cc398eb 100644
+index d8249d997c2a..88a7e611300e 100644
 --- a/sound/pci/hda/cs35l41_hda_property.c
 +++ b/sound/pci/hda/cs35l41_hda_property.c
 @@ -6,8 +6,10 @@
@@ -23850,9 +24015,9 @@ index 61d2314834e7..34463cc398eb 100644
 +}
 +
  static const struct cs35l41_config cs35l41_config_table[] = {
- 	{ "10280B27", 2, INTERNAL, { CS35L41_LEFT, CS35L41_RIGHT, 0, 0 }, 1, 2, 0, 1000, 4500, 24 },
- 	{ "10280B28", 2, INTERNAL, { CS35L41_LEFT, CS35L41_RIGHT, 0, 0 }, 1, 2, 0, 1000, 4500, 24 },
-@@ -512,7 +549,7 @@ static const struct cs35l41_prop_model cs35l41_prop_model_table[] = {
+ 	{ "10251826", 2, EXTERNAL, { CS35L41_LEFT, CS35L41_RIGHT, 0, 0 }, 0, -1, -1, 0, 0, 0 },
+ 	{ "1025182C", 2, EXTERNAL, { CS35L41_LEFT, CS35L41_RIGHT, 0, 0 }, 0, -1, -1, 0, 0, 0 },
+@@ -518,7 +555,7 @@ static const struct cs35l41_prop_model cs35l41_prop_model_table[] = {
  	{ "CSC3551", "104316A3", generic_dsd_config },
  	{ "CSC3551", "104316D3", generic_dsd_config },
  	{ "CSC3551", "104316F3", generic_dsd_config },
@@ -28852,7 +29017,7 @@ Subject: drm: panel-orientation-quirks: Add Aya Neo 2S orientation quirk
  1 file changed, 6 insertions(+)
 
 diff --git a/drivers/gpu/drm/drm_panel_orientation_quirks.c b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-index c554ad8f246b..96ab9242b5a0 100644
+index 7ac0fd5391fe..4942f6951e01 100644
 --- a/drivers/gpu/drm/drm_panel_orientation_quirks.c
 +++ b/drivers/gpu/drm/drm_panel_orientation_quirks.c
 @@ -202,6 +202,12 @@ static const struct dmi_system_id orientation_data[] = {
@@ -28882,7 +29047,7 @@ Subject: drm: panel-orientation-quirks: Add AYANEO FLIP DS quirk
  1 file changed, 6 insertions(+)
 
 diff --git a/drivers/gpu/drm/drm_panel_orientation_quirks.c b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-index 96ab9242b5a0..913b1c0b8d90 100644
+index 4942f6951e01..02fbbc490536 100644
 --- a/drivers/gpu/drm/drm_panel_orientation_quirks.c
 +++ b/drivers/gpu/drm/drm_panel_orientation_quirks.c
 @@ -208,6 +208,12 @@ static const struct dmi_system_id orientation_data[] = {
@@ -28917,7 +29082,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 18 insertions(+)
 
 diff --git a/drivers/gpu/drm/drm_panel_orientation_quirks.c b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-index 913b1c0b8d90..c96a4aa6dabc 100644
+index 02fbbc490536..c8f784de565d 100644
 --- a/drivers/gpu/drm/drm_panel_orientation_quirks.c
 +++ b/drivers/gpu/drm/drm_panel_orientation_quirks.c
 @@ -497,6 +497,24 @@ static const struct dmi_system_id orientation_data[] = {
@@ -28964,7 +29129,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 6 insertions(+)
 
 diff --git a/drivers/gpu/drm/drm_panel_orientation_quirks.c b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-index c96a4aa6dabc..570e1d90d2c6 100644
+index c8f784de565d..798ce34abfab 100644
 --- a/drivers/gpu/drm/drm_panel_orientation_quirks.c
 +++ b/drivers/gpu/drm/drm_panel_orientation_quirks.c
 @@ -515,6 +515,12 @@ static const struct dmi_system_id orientation_data[] = {
@@ -28995,7 +29160,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 6 insertions(+)
 
 diff --git a/drivers/gpu/drm/drm_panel_orientation_quirks.c b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-index 570e1d90d2c6..bb45e396221b 100644
+index 798ce34abfab..0ea006fac651 100644
 --- a/drivers/gpu/drm/drm_panel_orientation_quirks.c
 +++ b/drivers/gpu/drm/drm_panel_orientation_quirks.c
 @@ -521,6 +521,12 @@ static const struct dmi_system_id orientation_data[] = {
@@ -29031,7 +29196,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 12 insertions(+)
 
 diff --git a/drivers/gpu/drm/drm_panel_orientation_quirks.c b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-index bb45e396221b..bb5c59684461 100644
+index 0ea006fac651..1c4fc6d9f4ba 100644
 --- a/drivers/gpu/drm/drm_panel_orientation_quirks.c
 +++ b/drivers/gpu/drm/drm_panel_orientation_quirks.c
 @@ -527,6 +527,18 @@ static const struct dmi_system_id orientation_data[] = {
@@ -29115,7 +29280,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 6 insertions(+)
 
 diff --git a/drivers/gpu/drm/drm_panel_orientation_quirks.c b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-index bb5c59684461..16225dc081ae 100644
+index 1c4fc6d9f4ba..e64e7535f3ea 100644
 --- a/drivers/gpu/drm/drm_panel_orientation_quirks.c
 +++ b/drivers/gpu/drm/drm_panel_orientation_quirks.c
 @@ -539,6 +539,12 @@ static const struct dmi_system_id orientation_data[] = {
@@ -29146,7 +29311,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 7 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/drm_panel_orientation_quirks.c b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-index 16225dc081ae..3c282050fb69 100644
+index e64e7535f3ea..7f5632e8939a 100644
 --- a/drivers/gpu/drm/drm_panel_orientation_quirks.c
 +++ b/drivers/gpu/drm/drm_panel_orientation_quirks.c
 @@ -527,7 +527,7 @@ static const struct dmi_system_id orientation_data[] = {
@@ -29189,7 +29354,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 12 insertions(+)
 
 diff --git a/drivers/gpu/drm/drm_panel_orientation_quirks.c b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-index 3c282050fb69..eafbdaa08dc5 100644
+index 7f5632e8939a..ad296f3fb89d 100644
 --- a/drivers/gpu/drm/drm_panel_orientation_quirks.c
 +++ b/drivers/gpu/drm/drm_panel_orientation_quirks.c
 @@ -545,6 +545,18 @@ static const struct dmi_system_id orientation_data[] = {
@@ -29228,7 +29393,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 6 insertions(+)
 
 diff --git a/drivers/gpu/drm/drm_panel_orientation_quirks.c b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-index eafbdaa08dc5..f63a0d021dc4 100644
+index ad296f3fb89d..fd349089cc7f 100644
 --- a/drivers/gpu/drm/drm_panel_orientation_quirks.c
 +++ b/drivers/gpu/drm/drm_panel_orientation_quirks.c
 @@ -320,6 +320,12 @@ static const struct dmi_system_id orientation_data[] = {
@@ -29259,7 +29424,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 25 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/drm_panel_orientation_quirks.c b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-index f63a0d021dc4..b62712aa6cee 100644
+index fd349089cc7f..d3898b7ef3c4 100644
 --- a/drivers/gpu/drm/drm_panel_orientation_quirks.c
 +++ b/drivers/gpu/drm/drm_panel_orientation_quirks.c
 @@ -178,6 +178,12 @@ static const struct dmi_system_id orientation_data[] = {
@@ -49811,7 +49976,7 @@ Co-developed-by: linh1987
  1 file changed, 10 insertions(+)
 
 diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
-index 20ab1fb2195f..ab3638520823 100644
+index 02a424b7a992..d8fa38b1a760 100644
 --- a/sound/pci/hda/patch_realtek.c
 +++ b/sound/pci/hda/patch_realtek.c
 @@ -7779,6 +7779,7 @@ enum {
@@ -49822,7 +49987,7 @@ index 20ab1fb2195f..ab3638520823 100644
  	ALC269_FIXUP_LIMIT_INT_MIC_BOOST_MUTE_LED,
  	ALC269VB_FIXUP_ORDISSIMO_EVE2,
  	ALC283_FIXUP_CHROME_BOOK,
-@@ -8498,6 +8499,13 @@ static const struct hda_fixup alc269_fixups[] = {
+@@ -8499,6 +8500,13 @@ static const struct hda_fixup alc269_fixups[] = {
  		.chained = true,
  		.chain_id = ALC269_FIXUP_HEADSET_MIC
  	},
@@ -49836,7 +50001,7 @@ index 20ab1fb2195f..ab3638520823 100644
  	[ALC269_FIXUP_LIMIT_INT_MIC_BOOST_MUTE_LED] = {
  		.type = HDA_FIXUP_FUNC,
  		.v.func = alc269_fixup_limit_int_mic_boost,
-@@ -11378,6 +11386,7 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
+@@ -11393,6 +11401,7 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
  	SND_PCI_QUIRK(0x2782, 0x1705, "MEDION E15433", ALC269VC_FIXUP_INFINIX_Y4_MAX),
  	SND_PCI_QUIRK(0x2782, 0x1707, "Vaio VJFE-ADL", ALC298_FIXUP_SPK_VOLUME),
  	SND_PCI_QUIRK(0x2782, 0x4900, "MEDION E15443", ALC233_FIXUP_MEDION_MTL_SPK),
@@ -49844,7 +50009,7 @@ index 20ab1fb2195f..ab3638520823 100644
  	SND_PCI_QUIRK(0x8086, 0x2074, "Intel NUC 8", ALC233_FIXUP_INTEL_NUC8_DMIC),
  	SND_PCI_QUIRK(0x8086, 0x2080, "Intel NUC 8 Rugged", ALC256_FIXUP_INTEL_NUC8_RUGGED),
  	SND_PCI_QUIRK(0x8086, 0x2081, "Intel NUC 10", ALC256_FIXUP_INTEL_NUC10),
-@@ -11502,6 +11511,7 @@ static const struct hda_model_fixup alc269_fixup_models[] = {
+@@ -11517,6 +11526,7 @@ static const struct hda_model_fixup alc269_fixup_models[] = {
  	{.id = ALC269VB_FIXUP_ASUS_ZENBOOK, .name = "asus-zenbook"},
  	{.id = ALC269VB_FIXUP_ASUS_ZENBOOK_UX31A, .name = "asus-zenbook-ux31a"},
  	{.id = ALC269VB_FIXUP_ORDISSIMO_EVE2, .name = "ordissimo"},
@@ -49868,7 +50033,7 @@ Co-developed-by: Bouke Sybren Haarsma <boukehaarsma23@gmail.com>
  1 file changed, 50 insertions(+), 1 deletion(-)
 
 diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
-index ab3638520823..3b63c098d3d2 100644
+index d8fa38b1a760..1ea6bf9379ad 100644
 --- a/sound/pci/hda/patch_realtek.c
 +++ b/sound/pci/hda/patch_realtek.c
 @@ -6860,6 +6860,20 @@ static void alc294_gx502_toggle_output(struct hda_codec *codec,
@@ -49901,8 +50066,8 @@ index ab3638520823..3b63c098d3d2 100644
  	ALC269_FIXUP_HEADSET_MODE_NO_HP_MIC,
  	ALC269_FIXUP_ASPIRE_HEADSET_MIC,
  	ALC269_FIXUP_ASUS_X101_FUNC,
-@@ -8032,6 +8048,30 @@ enum {
- 	ALC274_FIXUP_HP_AIO_BIND_DACS,
+@@ -8033,6 +8049,30 @@ enum {
+ 	ALC287_FIXUP_PREDATOR_SPK_CS35L41_I2C_2,
  };
  
 +/* A special fixup for AYN and AYANEO handhelds as both
@@ -49932,7 +50097,7 @@ index ab3638520823..3b63c098d3d2 100644
  /* A special fixup for Lenovo C940 and Yoga Duet 7;
   * both have the very same PCI SSID, and we need to apply different fixups
   * depending on the codec ID
-@@ -9302,6 +9342,14 @@ static const struct hda_fixup alc269_fixups[] = {
+@@ -9303,6 +9343,14 @@ static const struct hda_fixup alc269_fixups[] = {
  			{ 0x1b, 0x90170152 } /* use as internal speaker (back) */
  		}
  	},
@@ -49947,7 +50112,7 @@ index ab3638520823..3b63c098d3d2 100644
  	[ALC299_FIXUP_PREDATOR_SPK] = {
  		.type = HDA_FIXUP_PINS,
  		.v.pins = (const struct hda_pintbl[]) {
-@@ -11385,8 +11433,9 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
+@@ -11400,8 +11448,9 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
  	SND_PCI_QUIRK(0x2782, 0x1701, "Infinix Y4 Max", ALC269VC_FIXUP_INFINIX_Y4_MAX),
  	SND_PCI_QUIRK(0x2782, 0x1705, "MEDION E15433", ALC269VC_FIXUP_INFINIX_Y4_MAX),
  	SND_PCI_QUIRK(0x2782, 0x1707, "Vaio VJFE-ADL", ALC298_FIXUP_SPK_VOLUME),
@@ -54483,10 +54648,10 @@ Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
  1 file changed, 12 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
-index 078ec689134a..ad6faaf9491b 100644
+index d6828c5ff051..7cddd06cad51 100644
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
-@@ -4927,10 +4927,21 @@ static int amdgpu_device_pm_notifier(struct notifier_block *nb, unsigned long mo
+@@ -4933,10 +4933,21 @@ static int amdgpu_device_pm_notifier(struct notifier_block *nb, unsigned long mo
  				     void *data)
  {
  	struct amdgpu_device *adev = container_of(nb, struct amdgpu_device, pm_nb);
@@ -54641,10 +54806,10 @@ This reverts commit 9f5595d5f03fd4dc640607a71e89a1daa68fd19d.
  1 file changed, 4 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/platform/x86/amd/pmc/pmc.c b/drivers/platform/x86/amd/pmc/pmc.c
-index 0329fafe14eb..d789d6cab794 100644
+index f45525bbd154..54d9bc8f7357 100644
 --- a/drivers/platform/x86/amd/pmc/pmc.c
 +++ b/drivers/platform/x86/amd/pmc/pmc.c
-@@ -644,9 +644,10 @@ static void amd_pmc_s2idle_check(void)
+@@ -646,9 +646,10 @@ static void amd_pmc_s2idle_check(void)
  	struct smu_metrics table;
  	int rc;
  
@@ -54732,6 +54897,115 @@ index f645cb7831a0..2a484f7373bb 100644
  			return -EINVAL;
  	} else if (plane->type != DRM_PLANE_TYPE_CURSOR) {
  		return -EINVAL;
+-- 
+2.50.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Filipe Manana <fdmanana@suse.com>
+Date: Tue, 3 Jun 2025 22:19:57 +0100
+Subject: btrfs: fix invalid inode pointer dereferences during log replay
+
+In a few places where we call read_one_inode(), if we get a NULL pointer
+we end up jumping into an error path, or fallthrough in case of
+__add_inode_ref(), where we then do something like this:
+
+   iput(&inode->vfs_inode);
+
+which results in an invalid inode pointer that triggers an invalid memory
+access, resulting in a crash.
+
+Fix this by making sure we don't do such dereferences.
+
+Fixes: b4c50cbb01a1 ("btrfs: return a btrfs_inode from read_one_inode()")
+CC: stable@vger.kernel.org # 6.15+
+Signed-off-by: Filipe Manana <fdmanana@suse.com>
+Reviewed-by: David Sterba <dsterba@suse.com>
+---
+ fs/btrfs/tree-log.c | 14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
+
+diff --git a/fs/btrfs/tree-log.c b/fs/btrfs/tree-log.c
+index f5af11565b87..ef9660eabf0c 100644
+--- a/fs/btrfs/tree-log.c
++++ b/fs/btrfs/tree-log.c
+@@ -668,15 +668,12 @@ static noinline int replay_one_extent(struct btrfs_trans_handle *trans,
+ 		extent_end = ALIGN(start + size,
+ 				   fs_info->sectorsize);
+ 	} else {
+-		ret = 0;
+-		goto out;
++		return 0;
+ 	}
+ 
+ 	inode = read_one_inode(root, key->objectid);
+-	if (!inode) {
+-		ret = -EIO;
+-		goto out;
+-	}
++	if (!inode)
++		return -EIO;
+ 
+ 	/*
+ 	 * first check to see if we already have this extent in the
+@@ -961,7 +958,8 @@ static noinline int drop_one_dir_item(struct btrfs_trans_handle *trans,
+ 	ret = unlink_inode_for_log_replay(trans, dir, inode, &name);
+ out:
+ 	kfree(name.name);
+-	iput(&inode->vfs_inode);
++	if (inode)
++		iput(&inode->vfs_inode);
+ 	return ret;
+ }
+ 
+@@ -1176,8 +1174,8 @@ static inline int __add_inode_ref(struct btrfs_trans_handle *trans,
+ 					ret = unlink_inode_for_log_replay(trans,
+ 							victim_parent,
+ 							inode, &victim_name);
++					iput(&victim_parent->vfs_inode);
+ 				}
+-				iput(&victim_parent->vfs_inode);
+ 				kfree(victim_name.name);
+ 				if (ret)
+ 					return ret;
+-- 
+2.50.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Filipe Manana <fdmanana@suse.com>
+Date: Tue, 3 Jun 2025 22:19:58 +0100
+Subject: btrfs: don't silently ignore unexpected extent type when replaying
+ log
+
+If there's an unexpected (invalid) extent type, we just silently ignore
+it. This means a corruption or some bug somewhere, so instead return
+-EUCLEAN to the caller, making log replay fail, and print an error message
+with relevant information.
+
+Signed-off-by: Filipe Manana <fdmanana@suse.com>
+Reviewed-by: David Sterba <dsterba@suse.com>
+Reviewed-by: Boris Burkov <boris@bur.io>
+---
+ fs/btrfs/tree-log.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/fs/btrfs/tree-log.c b/fs/btrfs/tree-log.c
+index ef9660eabf0c..f8e8d6fe042f 100644
+--- a/fs/btrfs/tree-log.c
++++ b/fs/btrfs/tree-log.c
+@@ -668,7 +668,10 @@ static noinline int replay_one_extent(struct btrfs_trans_handle *trans,
+ 		extent_end = ALIGN(start + size,
+ 				   fs_info->sectorsize);
+ 	} else {
+-		return 0;
++		btrfs_err(fs_info,
++		  "unexpected extent type=%d root=%llu inode=%llu offset=%llu",
++			  found_type, btrfs_root_id(root), key->objectid, key->offset);
++		return -EUCLEAN;
+ 	}
+ 
+ 	inode = read_one_inode(root, key->objectid);
 -- 
 2.50.0
 
