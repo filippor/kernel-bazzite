@@ -19935,14 +19935,22 @@ min to the F1 Pro, as it seems to have issues with 1% brightness.
 
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 45 +++++++++++++++++--
- 1 file changed, 41 insertions(+), 4 deletions(-)
+ .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 46 +++++++++++++++++--
+ 1 file changed, 42 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 9cf2a286069c..ac2d2d1a8b3d 100644
+index 9cf2a286069c..7e57da7bb2ab 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4592,12 +4592,45 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
+@@ -72,6 +72,7 @@
+ #include "ivsrcid/ivsrcid_vislands30.h"
+ 
+ #include <linux/backlight.h>
++#include <linux/dmi.h>
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+ #include <linux/types.h>
+@@ -4592,12 +4593,45 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
  	return 0;
  }
  
@@ -19989,7 +19997,7 @@ index 9cf2a286069c..ac2d2d1a8b3d 100644
  static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
  					    int bl_idx)
  {
-@@ -4634,9 +4667,13 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
+@@ -4634,9 +4668,13 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
  		printk(KERN_NOTICE"VLV Successfully queried backlight range over ACPI: %d %d\n",
  		       (int) caps->min_input_signal, (int) caps->max_input_signal);
  
@@ -20034,10 +20042,10 @@ Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
  1 file changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index ac2d2d1a8b3d..4f4706a700fa 100644
+index 7e57da7bb2ab..aeaca5638b70 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -8260,7 +8260,12 @@ static int amdgpu_dm_connector_get_modes(struct drm_connector *connector)
+@@ -8261,7 +8261,12 @@ static int amdgpu_dm_connector_get_modes(struct drm_connector *connector)
  				drm_add_modes_noedid(connector, 1920, 1080);
  	} else {
  		amdgpu_dm_connector_ddc_get_modes(connector, drm_edid);
@@ -20507,10 +20515,10 @@ index abd3b6564373..46937e6fa78d 100644
 +
  endmenu
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 4f4706a700fa..cbae89bf5da5 100644
+index aeaca5638b70..ce894f94a4c5 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4574,7 +4574,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
+@@ -4575,7 +4575,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
  		return r;
  	}
  
