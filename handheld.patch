@@ -19928,18 +19928,19 @@ From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
 Date: Mon, 2 Dec 2024 19:13:08 +0100
 Subject: amd/drm: apply backlight override only to the Steam Deck models and
- add F1 Pro
+ add F1 Pro, Zotac Zone
 
 Should not be on by default for all devices. In addition, add a larger
-min to the F1 Pro, as it seems to have issues with 1% brightness.
+min to the F1 Pro/Zotac Zone, as it seems to have issues with
+<10% brightness.
 
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 46 +++++++++++++++++--
- 1 file changed, 42 insertions(+), 4 deletions(-)
+ .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 53 +++++++++++++++++--
+ 1 file changed, 49 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 9cf2a286069c..7c6787e811dc 100644
+index 9cf2a286069c..5e5bef90bf5d 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -72,6 +72,7 @@
@@ -19950,7 +19951,7 @@ index 9cf2a286069c..7c6787e811dc 100644
  #include <linux/module.h>
  #include <linux/moduleparam.h>
  #include <linux/types.h>
-@@ -4592,12 +4593,45 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
+@@ -4592,12 +4593,52 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
  	return 0;
  }
  
@@ -19982,14 +19983,21 @@ index 9cf2a286069c..7c6787e811dc 100644
 +		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "ONE-NETBOOK"),
 +		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "ONEXPLAYER F1Pro"),
 +		},
-+		.driver_data = (void *)24,
++		.driver_data = (void *)40,
 +	},
 +	{	/* F1 Pro Limited Edition */
 +		.matches = {
 +		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "ONE-NETBOOK"),
 +		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "ONEXPLAYER F1 EVA-02"),
 +		},
-+		.driver_data = (void *)24,
++		.driver_data = (void *)40,
++	},
++	{	/* Zotac Gaming Zone */
++		.matches = {
++			DMI_EXACT_MATCH(DMI_SYS_VENDOR, "ZOTAC"),
++			DMI_EXACT_MATCH(DMI_BOARD_NAME, "G0A1W"),
++		},
++		.driver_data = (void *)40,
 +	},
 +	{}
 +};
@@ -19997,7 +20005,7 @@ index 9cf2a286069c..7c6787e811dc 100644
  static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
  					    int bl_idx)
  {
-@@ -4634,9 +4668,13 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
+@@ -4634,9 +4675,13 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
  		printk(KERN_NOTICE"VLV Successfully queried backlight range over ACPI: %d %d\n",
  		       (int) caps->min_input_signal, (int) caps->max_input_signal);
  
@@ -20042,10 +20050,10 @@ Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
  1 file changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 7c6787e811dc..afe601444beb 100644
+index 5e5bef90bf5d..5d6cf76f4b6c 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -8261,7 +8261,12 @@ static int amdgpu_dm_connector_get_modes(struct drm_connector *connector)
+@@ -8268,7 +8268,12 @@ static int amdgpu_dm_connector_get_modes(struct drm_connector *connector)
  				drm_add_modes_noedid(connector, 1920, 1080);
  	} else {
  		amdgpu_dm_connector_ddc_get_modes(connector, drm_edid);
@@ -20515,7 +20523,7 @@ index abd3b6564373..46937e6fa78d 100644
 +
  endmenu
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index afe601444beb..803b10d11822 100644
+index 5d6cf76f4b6c..299671fa1a03 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -4575,7 +4575,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
@@ -55078,10 +55086,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 28 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 803b10d11822..3d394ba741c6 100644
+index 299671fa1a03..fd31b452c577 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4714,38 +4714,10 @@ static u32 convert_brightness_from_user(const struct amdgpu_dm_backlight_caps *c
+@@ -4721,38 +4721,10 @@ static u32 convert_brightness_from_user(const struct amdgpu_dm_backlight_caps *c
  					uint32_t brightness)
  {
  	unsigned int min, max;
