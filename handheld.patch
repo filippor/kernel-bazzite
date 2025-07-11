@@ -184,7 +184,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/scsi/sd.c b/drivers/scsi/sd.c
-index 77ac6f8c1805..bcd5add4d9f4 100644
+index 8cc874715933..d22a07e6d77a 100644
 --- a/drivers/scsi/sd.c
 +++ b/drivers/scsi/sd.c
 @@ -121,7 +121,7 @@ static const char *sd_cache_types[] = {
@@ -934,7 +934,7 @@ Patchset: ipts
  1 file changed, 29 insertions(+)
 
 diff --git a/drivers/iommu/intel/iommu.c b/drivers/iommu/intel/iommu.c
-index 9d2d34c1b2ff..a2db1548864e 100644
+index ff07ee2940f5..a5e75c91734c 100644
 --- a/drivers/iommu/intel/iommu.c
 +++ b/drivers/iommu/intel/iommu.c
 @@ -39,6 +39,11 @@
@@ -984,7 +984,7 @@ index 9d2d34c1b2ff..a2db1548864e 100644
  	check_tylersburg_isoch();
  
  	/*
-@@ -4441,6 +4454,18 @@ static void quirk_iommu_igfx(struct pci_dev *dev)
+@@ -4450,6 +4463,18 @@ static void quirk_iommu_igfx(struct pci_dev *dev)
  	disable_igfx_iommu = 1;
  }
  
@@ -1003,7 +1003,7 @@ index 9d2d34c1b2ff..a2db1548864e 100644
  /* G4x/GM45 integrated gfx dmar support is totally busted. */
  DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x2a40, quirk_iommu_igfx);
  DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x2e00, quirk_iommu_igfx);
-@@ -4479,6 +4504,10 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x1632, quirk_iommu_igfx);
+@@ -4488,6 +4513,10 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x1632, quirk_iommu_igfx);
  DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x163A, quirk_iommu_igfx);
  DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x163D, quirk_iommu_igfx);
  
@@ -7375,7 +7375,7 @@ Patchset: surface-typecover
  1 file changed, 3 insertions(+)
 
 diff --git a/drivers/usb/core/quirks.c b/drivers/usb/core/quirks.c
-index 53d68d20fb62..cf85b30b1d60 100644
+index 0cf94c7a2c9c..115d2628cdb6 100644
 --- a/drivers/usb/core/quirks.c
 +++ b/drivers/usb/core/quirks.c
 @@ -223,6 +223,9 @@ static const struct usb_device_id usb_quirk_list[] = {
@@ -8180,7 +8180,7 @@ Patchset: cameras
  1 file changed, 30 insertions(+)
 
 diff --git a/drivers/iommu/intel/iommu.c b/drivers/iommu/intel/iommu.c
-index a2db1548864e..71ffdb90cea9 100644
+index a5e75c91734c..e5d707a10905 100644
 --- a/drivers/iommu/intel/iommu.c
 +++ b/drivers/iommu/intel/iommu.c
 @@ -44,6 +44,13 @@
@@ -8232,7 +8232,7 @@ index a2db1548864e..71ffdb90cea9 100644
  	if (!dmar_map_ipts)
  		iommu_identity_mapping |= IDENTMAP_IPTS;
  
-@@ -4454,6 +4469,18 @@ static void quirk_iommu_igfx(struct pci_dev *dev)
+@@ -4463,6 +4478,18 @@ static void quirk_iommu_igfx(struct pci_dev *dev)
  	disable_igfx_iommu = 1;
  }
  
@@ -8251,7 +8251,7 @@ index a2db1548864e..71ffdb90cea9 100644
  static void quirk_iommu_ipts(struct pci_dev *dev)
  {
  	if (!IS_IPTS(dev))
-@@ -4504,6 +4531,9 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x1632, quirk_iommu_igfx);
+@@ -4513,6 +4540,9 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x1632, quirk_iommu_igfx);
  DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x163A, quirk_iommu_igfx);
  DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x163D, quirk_iommu_igfx);
  
@@ -17982,10 +17982,10 @@ index 521a9d0acac6..1d534db2d5f9 100644
  #define HCI_ACL_CONN_TIMEOUT	msecs_to_jiffies(20000)	/* 20 seconds */
  #define HCI_LE_CONN_TIMEOUT	msecs_to_jiffies(20000)	/* 20 seconds */
 diff --git a/include/net/bluetooth/hci_core.h b/include/net/bluetooth/hci_core.h
-index d15316bffd70..85bc037e815d 100644
+index 6e9d2a856a6b..2c27bdfc4176 100644
 --- a/include/net/bluetooth/hci_core.h
 +++ b/include/net/bluetooth/hci_core.h
-@@ -486,7 +486,7 @@ struct hci_dev {
+@@ -488,7 +488,7 @@ struct hci_dev {
  	struct workqueue_struct	*workqueue;
  	struct workqueue_struct	*req_workqueue;
  
@@ -17995,10 +17995,10 @@ index d15316bffd70..85bc037e815d 100644
  	struct work_struct	error_reset;
  	struct work_struct	cmd_sync_work;
 diff --git a/net/bluetooth/hci_core.c b/net/bluetooth/hci_core.c
-index af30a420bab7..973490cdb455 100644
+index abff4690cb88..33899edc0b39 100644
 --- a/net/bluetooth/hci_core.c
 +++ b/net/bluetooth/hci_core.c
-@@ -501,7 +501,7 @@ int hci_dev_close(__u16 dev)
+@@ -519,7 +519,7 @@ int hci_dev_close(__u16 dev)
  		goto done;
  	}
  
@@ -18007,7 +18007,7 @@ index af30a420bab7..973490cdb455 100644
  	if (hci_dev_test_and_clear_flag(hdev, HCI_AUTO_OFF))
  		cancel_delayed_work(&hdev->power_off);
  
-@@ -924,7 +924,7 @@ static const struct rfkill_ops hci_rfkill_ops = {
+@@ -942,7 +942,7 @@ static const struct rfkill_ops hci_rfkill_ops = {
  
  static void hci_power_on(struct work_struct *work)
  {
@@ -18016,7 +18016,7 @@ index af30a420bab7..973490cdb455 100644
  	int err;
  
  	BT_DBG("%s", hdev->name);
-@@ -2512,7 +2512,7 @@ struct hci_dev *hci_alloc_dev_priv(int sizeof_priv)
+@@ -2535,7 +2535,7 @@ struct hci_dev *hci_alloc_dev_priv(int sizeof_priv)
  	INIT_WORK(&hdev->rx_work, hci_rx_work);
  	INIT_WORK(&hdev->cmd_work, hci_cmd_work);
  	INIT_WORK(&hdev->tx_work, hci_tx_work);
@@ -18025,7 +18025,7 @@ index af30a420bab7..973490cdb455 100644
  	INIT_WORK(&hdev->error_reset, hci_error_reset);
  
  	hci_cmd_sync_init(hdev);
-@@ -2633,7 +2633,7 @@ int hci_register_dev(struct hci_dev *hdev)
+@@ -2656,7 +2656,7 @@ int hci_register_dev(struct hci_dev *hdev)
  	if (error)
  		BT_WARN("register suspend notifier failed error:%d\n", error);
  
@@ -18034,7 +18034,7 @@ index af30a420bab7..973490cdb455 100644
  
  	idr_init(&hdev->adv_monitors_idr);
  	msft_register(hdev);
-@@ -2667,7 +2667,7 @@ void hci_unregister_dev(struct hci_dev *hdev)
+@@ -2693,7 +2693,7 @@ void hci_unregister_dev(struct hci_dev *hdev)
  	disable_work_sync(&hdev->rx_work);
  	disable_work_sync(&hdev->cmd_work);
  	disable_work_sync(&hdev->tx_work);
@@ -18044,10 +18044,10 @@ index af30a420bab7..973490cdb455 100644
  
  	hci_cmd_sync_clear(hdev);
 diff --git a/net/bluetooth/mgmt.c b/net/bluetooth/mgmt.c
-index d540f7b4f75f..bf7f4223d4e5 100644
+index 1485b455ade4..b60672ad80c4 100644
 --- a/net/bluetooth/mgmt.c
 +++ b/net/bluetooth/mgmt.c
-@@ -7939,7 +7939,7 @@ static int set_external_config(struct sock *sk, struct hci_dev *hdev,
+@@ -7962,7 +7962,7 @@ static int set_external_config(struct sock *sk, struct hci_dev *hdev,
  			hci_dev_set_flag(hdev, HCI_CONFIG);
  			hci_dev_set_flag(hdev, HCI_AUTO_OFF);
  
@@ -18056,7 +18056,7 @@ index d540f7b4f75f..bf7f4223d4e5 100644
  		} else {
  			set_bit(HCI_RAW, &hdev->flags);
  			mgmt_index_added(hdev);
-@@ -7995,7 +7995,7 @@ static int set_public_address(struct sock *sk, struct hci_dev *hdev,
+@@ -8018,7 +8018,7 @@ static int set_public_address(struct sock *sk, struct hci_dev *hdev,
  		hci_dev_set_flag(hdev, HCI_CONFIG);
  		hci_dev_set_flag(hdev, HCI_AUTO_OFF);
  
@@ -18118,10 +18118,10 @@ Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/net/bluetooth/hci_sync.c b/net/bluetooth/hci_sync.c
-index 83de3847c8ea..32029deea48b 100644
+index 9955d6cd7b76..0a8cb1a042f5 100644
 --- a/net/bluetooth/hci_sync.c
 +++ b/net/bluetooth/hci_sync.c
-@@ -6128,7 +6128,7 @@ int hci_suspend_sync(struct hci_dev *hdev)
+@@ -6172,7 +6172,7 @@ int hci_suspend_sync(struct hci_dev *hdev)
  
  	if (hci_conn_count(hdev)) {
  		/* Soft disconnect everything (power off) */
@@ -18166,10 +18166,10 @@ Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
  1 file changed, 10 insertions(+)
 
 diff --git a/net/bluetooth/hci_sync.c b/net/bluetooth/hci_sync.c
-index 32029deea48b..7ebcdd0cdb42 100644
+index 0a8cb1a042f5..a95c0e4835b0 100644
 --- a/net/bluetooth/hci_sync.c
 +++ b/net/bluetooth/hci_sync.c
-@@ -2677,6 +2677,7 @@ static u8 hci_update_accept_list_sync(struct hci_dev *hdev)
+@@ -2721,6 +2721,7 @@ static u8 hci_update_accept_list_sync(struct hci_dev *hdev)
  	struct bdaddr_list *b, *t;
  	u8 num_entries = 0;
  	bool pend_conn, pend_report;
@@ -18177,7 +18177,7 @@ index 32029deea48b..7ebcdd0cdb42 100644
  	u8 filter_policy;
  	size_t i, n;
  	int err;
-@@ -2754,6 +2755,15 @@ static u8 hci_update_accept_list_sync(struct hci_dev *hdev)
+@@ -2798,6 +2799,15 @@ static u8 hci_update_accept_list_sync(struct hci_dev *hdev)
  			continue;
  		}
  
@@ -18877,7 +18877,7 @@ Subject: [HACK] Add 2s delay before enabling DP link for dock
  1 file changed, 9 insertions(+)
 
 diff --git a/drivers/gpu/drm/amd/display/dc/hwss/dce110/dce110_hwseq.c b/drivers/gpu/drm/amd/display/dc/hwss/dce110/dce110_hwseq.c
-index 5656d10368ad..01b6df2972da 100644
+index a998c498a477..f4ef774e07e0 100644
 --- a/drivers/gpu/drm/amd/display/dc/hwss/dce110/dce110_hwseq.c
 +++ b/drivers/gpu/drm/amd/display/dc/hwss/dce110/dce110_hwseq.c
 @@ -96,6 +96,8 @@
@@ -18889,7 +18889,7 @@ index 5656d10368ad..01b6df2972da 100644
  struct dce110_hw_seq_reg_offsets {
  	uint32_t crtc;
  };
-@@ -3245,6 +3247,13 @@ void dce110_enable_dp_link_output(
+@@ -3246,6 +3248,13 @@ void dce110_enable_dp_link_output(
  			link->dc->res_pool->dp_clock_source;
  	const struct link_hwss *link_hwss = get_link_hwss(link, link_res);
  	unsigned int i;
@@ -19024,7 +19024,7 @@ index c3641331d4de..23112becbb4c 100644
  
  	bool				ram_is_direct_mapped;
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
-index 95124a4a0a67..d6828c5ff051 100644
+index 82a22a62b99b..d18b631ad8c8 100644
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
 @@ -82,6 +82,7 @@
@@ -19202,7 +19202,7 @@ index 1522fd2b517d..77a162cde108 100644
  };
  ATTRIBUTE_GROUPS(mmc_std);
 diff --git a/drivers/mmc/core/quirks.h b/drivers/mmc/core/quirks.h
-index 7f893bafaa60..ed7eec6e27ce 100644
+index c417ed34c057..e6c5eca9d508 100644
 --- a/drivers/mmc/core/quirks.h
 +++ b/drivers/mmc/core/quirks.h
 @@ -264,4 +264,6 @@ static inline void mmc_fixup_device(struct mmc_card *card,
@@ -19338,10 +19338,10 @@ Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
  1 file changed, 22 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/dc/hwss/dce110/dce110_hwseq.c b/drivers/gpu/drm/amd/display/dc/hwss/dce110/dce110_hwseq.c
-index 01b6df2972da..aefcd8803354 100644
+index f4ef774e07e0..a98b32e56043 100644
 --- a/drivers/gpu/drm/amd/display/dc/hwss/dce110/dce110_hwseq.c
 +++ b/drivers/gpu/drm/amd/display/dc/hwss/dce110/dce110_hwseq.c
-@@ -1947,9 +1947,29 @@ void dce110_enable_accelerated_mode(struct dc *dc, struct dc_state *context)
+@@ -1948,9 +1948,29 @@ void dce110_enable_accelerated_mode(struct dc *dc, struct dc_state *context)
  				break;
  			}
  		}
@@ -19460,7 +19460,7 @@ Subject: drm/amd/display: Enable 3 overlay planes for Steam Deck
  2 files changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/dc/dc.h b/drivers/gpu/drm/amd/display/dc/dc.h
-index 7c2ee0526926..d9170dc1877b 100644
+index 0761fc95a158..2081f0f5b907 100644
 --- a/drivers/gpu/drm/amd/display/dc/dc.h
 +++ b/drivers/gpu/drm/amd/display/dc/dc.h
 @@ -58,7 +58,7 @@ struct dmub_notification;
@@ -19824,10 +19824,10 @@ Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
  1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 96118a0e1ffe..7e65c43c432a 100644
+index 87c2bc5f64a6..a164655f2a87 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -6203,8 +6203,7 @@ static void fill_stream_properties_from_drm_display_mode(
+@@ -6234,8 +6234,7 @@ static void fill_stream_properties_from_drm_display_mode(
  	timing_out->v_border_top = 0;
  	timing_out->v_border_bottom = 0;
  	/* TODO: un-hardcode */
@@ -19856,18 +19856,18 @@ Device defaults provided by ACPI/ATIF are logged, but ignored.
 [Merge, add line breaks]
 Signed-off-by: Gabriel Krisman Bertazi <krisman@collabora.com>
 ---
- .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 21 +++++++++++++++++--
- 1 file changed, 19 insertions(+), 2 deletions(-)
+ .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c   | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 7e65c43c432a..9cf2a286069c 100644
+index a164655f2a87..cbba0dce4a00 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -4592,6 +4592,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
  	return 0;
  }
  
-+#define AMDGPU_DM_DEFAULT_MIN_BACKLIGHT_VLV 12
++#define AMDGPU_DM_DEFAULT_MIN_BACKLIGHT_VLV 0
  #define AMDGPU_DM_DEFAULT_MIN_BACKLIGHT 12
  #define AMDGPU_DM_DEFAULT_MAX_BACKLIGHT 255
  #define AMDGPU_DM_MIN_SPREAD ((AMDGPU_DM_DEFAULT_MAX_BACKLIGHT - AMDGPU_DM_DEFAULT_MIN_BACKLIGHT) / 2)
@@ -19885,7 +19885,7 @@ index 7e65c43c432a..9cf2a286069c 100644
 +		printk(KERN_NOTICE"VLV Successfully queried backlight range over ACPI: %d %d\n",
 +		       (int) caps->min_input_signal, (int) caps->max_input_signal);
 +
-+		if ( caps->min_input_signal > AMDGPU_DM_DEFAULT_MIN_BACKLIGHT_VLV )
++		if ( caps->min_input_signal != AMDGPU_DM_DEFAULT_MIN_BACKLIGHT_VLV )
 +		{
 +			caps->min_input_signal = AMDGPU_DM_DEFAULT_MIN_BACKLIGHT_VLV;
 +			printk(KERN_NOTICE"VLV OVERRIDE backlight range (min only): %d %d\n",
@@ -19902,24 +19902,6 @@ index 7e65c43c432a..9cf2a286069c 100644
  	caps->min_input_signal = AMDGPU_DM_DEFAULT_MIN_BACKLIGHT;
  	caps->max_input_signal = AMDGPU_DM_DEFAULT_MAX_BACKLIGHT;
  	caps->caps_valid = true;
-@@ -4691,7 +4708,7 @@ static u32 convert_brightness_from_user(const struct amdgpu_dm_backlight_caps *c
- 		break;
- 	}
- 
--	// Rescale 0..255 to min..max
-+	// Rescale 0..AMDGPU_MAX_BL_LEVEL to min..max
- 	return min + DIV_ROUND_CLOSEST((max - min) * brightness,
- 				       AMDGPU_MAX_BL_LEVEL);
- }
-@@ -4706,7 +4723,7 @@ static u32 convert_brightness_to_user(const struct amdgpu_dm_backlight_caps *cap
- 
- 	if (brightness < min)
- 		return 0;
--	// Rescale min..max to 0..255
-+	// Rescale min..max to 0..AMDGPU_MAX_BL_LEVEL
- 	return DIV_ROUND_CLOSEST(AMDGPU_MAX_BL_LEVEL * (brightness - min),
- 				 max - min);
- }
 -- 
 2.50.0
 
@@ -19940,7 +19922,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 49 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 9cf2a286069c..5e5bef90bf5d 100644
+index cbba0dce4a00..63a980dd3835 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -72,6 +72,7 @@
@@ -19955,7 +19937,7 @@ index 9cf2a286069c..5e5bef90bf5d 100644
  	return 0;
  }
  
--#define AMDGPU_DM_DEFAULT_MIN_BACKLIGHT_VLV 12
+-#define AMDGPU_DM_DEFAULT_MIN_BACKLIGHT_VLV 0
  #define AMDGPU_DM_DEFAULT_MIN_BACKLIGHT 12
  #define AMDGPU_DM_DEFAULT_MAX_BACKLIGHT 255
  #define AMDGPU_DM_MIN_SPREAD ((AMDGPU_DM_DEFAULT_MAX_BACKLIGHT - AMDGPU_DM_DEFAULT_MIN_BACKLIGHT) / 2)
@@ -20009,7 +19991,7 @@ index 9cf2a286069c..5e5bef90bf5d 100644
  		printk(KERN_NOTICE"VLV Successfully queried backlight range over ACPI: %d %d\n",
  		       (int) caps->min_input_signal, (int) caps->max_input_signal);
  
--		if ( caps->min_input_signal > AMDGPU_DM_DEFAULT_MIN_BACKLIGHT_VLV )
+-		if ( caps->min_input_signal != AMDGPU_DM_DEFAULT_MIN_BACKLIGHT_VLV )
 -		{
 -			caps->min_input_signal = AMDGPU_DM_DEFAULT_MIN_BACKLIGHT_VLV;
 +		const struct dmi_system_id *override_sysid =
@@ -20050,10 +20032,10 @@ Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
  1 file changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 5e5bef90bf5d..5d6cf76f4b6c 100644
+index 63a980dd3835..04cc2fe96bb3 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -8268,7 +8268,12 @@ static int amdgpu_dm_connector_get_modes(struct drm_connector *connector)
+@@ -8299,7 +8299,12 @@ static int amdgpu_dm_connector_get_modes(struct drm_connector *connector)
  				drm_add_modes_noedid(connector, 1920, 1080);
  	} else {
  		amdgpu_dm_connector_ddc_get_modes(connector, drm_edid);
@@ -20523,7 +20505,7 @@ index abd3b6564373..46937e6fa78d 100644
 +
  endmenu
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 5d6cf76f4b6c..299671fa1a03 100644
+index 04cc2fe96bb3..acb13bd60380 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -4575,7 +4575,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
@@ -22099,7 +22081,7 @@ Reviewed-by: Wayne Lin <Wayne.Lin@amd.com>
  3 files changed, 7 insertions(+)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_helpers.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_helpers.c
-index 1395a748d726..9b5746daf823 100644
+index 72dc9d5e5c00..d2b56f95fc9e 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_helpers.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_helpers.c
 @@ -138,6 +138,8 @@ enum dc_edid_status dm_helpers_parse_edid_caps(
@@ -22852,7 +22834,7 @@ Subject: PCI: Add ACI override to allow GPU passthrough in older motherboards
  2 files changed, 110 insertions(+)
 
 diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-index 8f75ec177399..303ac22bcfe0 100644
+index 76a34e0aef76..2c3401de2762 100644
 --- a/Documentation/admin-guide/kernel-parameters.txt
 +++ b/Documentation/admin-guide/kernel-parameters.txt
 @@ -4689,6 +4689,14 @@
@@ -23384,10 +23366,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  4 files changed, 180 insertions(+), 1 deletion(-)
 
 diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-index 303ac22bcfe0..96ee201e96db 100644
+index 2c3401de2762..b43a98b7cc16 100644
 --- a/Documentation/admin-guide/kernel-parameters.txt
 +++ b/Documentation/admin-guide/kernel-parameters.txt
-@@ -7688,6 +7688,14 @@
+@@ -7701,6 +7701,14 @@
  					request from 5000 ms to 500 ms);
  			Example: quirks=0781:5580:bk,0a5c:5834:gij
  
@@ -23603,10 +23585,10 @@ index 13bd4ec4ea5f..c1e0ef4e48be 100644
 +	mutex_unlock(&interrupt_interval_override_mutex);
 +}
 diff --git a/drivers/usb/core/usb.c b/drivers/usb/core/usb.c
-index 0b4685aad2d5..730331689a42 100644
+index 118fa4c93a79..829dcb40ba4c 100644
 --- a/drivers/usb/core/usb.c
 +++ b/drivers/usb/core/usb.c
-@@ -1135,6 +1135,7 @@ static void __exit usb_exit(void)
+@@ -1141,6 +1141,7 @@ static void __exit usb_exit(void)
  		return;
  
  	usb_release_quirk_list();
@@ -49992,7 +49974,7 @@ Co-developed-by: linh1987
  1 file changed, 10 insertions(+)
 
 diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
-index 02a424b7a992..d8fa38b1a760 100644
+index 03ffaec49998..234addf0863a 100644
 --- a/sound/pci/hda/patch_realtek.c
 +++ b/sound/pci/hda/patch_realtek.c
 @@ -7779,6 +7779,7 @@ enum {
@@ -50017,7 +49999,7 @@ index 02a424b7a992..d8fa38b1a760 100644
  	[ALC269_FIXUP_LIMIT_INT_MIC_BOOST_MUTE_LED] = {
  		.type = HDA_FIXUP_FUNC,
  		.v.func = alc269_fixup_limit_int_mic_boost,
-@@ -11393,6 +11401,7 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
+@@ -11394,6 +11402,7 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
  	SND_PCI_QUIRK(0x2782, 0x1705, "MEDION E15433", ALC269VC_FIXUP_INFINIX_Y4_MAX),
  	SND_PCI_QUIRK(0x2782, 0x1707, "Vaio VJFE-ADL", ALC298_FIXUP_SPK_VOLUME),
  	SND_PCI_QUIRK(0x2782, 0x4900, "MEDION E15443", ALC233_FIXUP_MEDION_MTL_SPK),
@@ -50025,7 +50007,7 @@ index 02a424b7a992..d8fa38b1a760 100644
  	SND_PCI_QUIRK(0x8086, 0x2074, "Intel NUC 8", ALC233_FIXUP_INTEL_NUC8_DMIC),
  	SND_PCI_QUIRK(0x8086, 0x2080, "Intel NUC 8 Rugged", ALC256_FIXUP_INTEL_NUC8_RUGGED),
  	SND_PCI_QUIRK(0x8086, 0x2081, "Intel NUC 10", ALC256_FIXUP_INTEL_NUC10),
-@@ -11517,6 +11526,7 @@ static const struct hda_model_fixup alc269_fixup_models[] = {
+@@ -11518,6 +11527,7 @@ static const struct hda_model_fixup alc269_fixup_models[] = {
  	{.id = ALC269VB_FIXUP_ASUS_ZENBOOK, .name = "asus-zenbook"},
  	{.id = ALC269VB_FIXUP_ASUS_ZENBOOK_UX31A, .name = "asus-zenbook-ux31a"},
  	{.id = ALC269VB_FIXUP_ORDISSIMO_EVE2, .name = "ordissimo"},
@@ -50049,7 +50031,7 @@ Co-developed-by: Bouke Sybren Haarsma <boukehaarsma23@gmail.com>
  1 file changed, 50 insertions(+), 1 deletion(-)
 
 diff --git a/sound/pci/hda/patch_realtek.c b/sound/pci/hda/patch_realtek.c
-index d8fa38b1a760..1ea6bf9379ad 100644
+index 234addf0863a..d426cf38db73 100644
 --- a/sound/pci/hda/patch_realtek.c
 +++ b/sound/pci/hda/patch_realtek.c
 @@ -6860,6 +6860,20 @@ static void alc294_gx502_toggle_output(struct hda_codec *codec,
@@ -50128,7 +50110,7 @@ index d8fa38b1a760..1ea6bf9379ad 100644
  	[ALC299_FIXUP_PREDATOR_SPK] = {
  		.type = HDA_FIXUP_PINS,
  		.v.pins = (const struct hda_pintbl[]) {
-@@ -11400,8 +11448,9 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
+@@ -11401,8 +11449,9 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
  	SND_PCI_QUIRK(0x2782, 0x1701, "Infinix Y4 Max", ALC269VC_FIXUP_INFINIX_Y4_MAX),
  	SND_PCI_QUIRK(0x2782, 0x1705, "MEDION E15433", ALC269VC_FIXUP_INFINIX_Y4_MAX),
  	SND_PCI_QUIRK(0x2782, 0x1707, "Vaio VJFE-ADL", ALC298_FIXUP_SPK_VOLUME),
@@ -54664,7 +54646,7 @@ Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
  1 file changed, 12 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
-index d6828c5ff051..7cddd06cad51 100644
+index d18b631ad8c8..4d9b134b119b 100644
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
 @@ -4933,10 +4933,21 @@ static int amdgpu_device_pm_notifier(struct notifier_block *nb, unsigned long mo
@@ -54919,77 +54901,6 @@ index f645cb7831a0..2a484f7373bb 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Filipe Manana <fdmanana@suse.com>
-Date: Tue, 3 Jun 2025 22:19:57 +0100
-Subject: btrfs: fix invalid inode pointer dereferences during log replay
-
-In a few places where we call read_one_inode(), if we get a NULL pointer
-we end up jumping into an error path, or fallthrough in case of
-__add_inode_ref(), where we then do something like this:
-
-   iput(&inode->vfs_inode);
-
-which results in an invalid inode pointer that triggers an invalid memory
-access, resulting in a crash.
-
-Fix this by making sure we don't do such dereferences.
-
-Fixes: b4c50cbb01a1 ("btrfs: return a btrfs_inode from read_one_inode()")
-CC: stable@vger.kernel.org # 6.15+
-Signed-off-by: Filipe Manana <fdmanana@suse.com>
-Reviewed-by: David Sterba <dsterba@suse.com>
----
- fs/btrfs/tree-log.c | 14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
-
-diff --git a/fs/btrfs/tree-log.c b/fs/btrfs/tree-log.c
-index f5af11565b87..ef9660eabf0c 100644
---- a/fs/btrfs/tree-log.c
-+++ b/fs/btrfs/tree-log.c
-@@ -668,15 +668,12 @@ static noinline int replay_one_extent(struct btrfs_trans_handle *trans,
- 		extent_end = ALIGN(start + size,
- 				   fs_info->sectorsize);
- 	} else {
--		ret = 0;
--		goto out;
-+		return 0;
- 	}
- 
- 	inode = read_one_inode(root, key->objectid);
--	if (!inode) {
--		ret = -EIO;
--		goto out;
--	}
-+	if (!inode)
-+		return -EIO;
- 
- 	/*
- 	 * first check to see if we already have this extent in the
-@@ -961,7 +958,8 @@ static noinline int drop_one_dir_item(struct btrfs_trans_handle *trans,
- 	ret = unlink_inode_for_log_replay(trans, dir, inode, &name);
- out:
- 	kfree(name.name);
--	iput(&inode->vfs_inode);
-+	if (inode)
-+		iput(&inode->vfs_inode);
- 	return ret;
- }
- 
-@@ -1176,8 +1174,8 @@ static inline int __add_inode_ref(struct btrfs_trans_handle *trans,
- 					ret = unlink_inode_for_log_replay(trans,
- 							victim_parent,
- 							inode, &victim_name);
-+					iput(&victim_parent->vfs_inode);
- 				}
--				iput(&victim_parent->vfs_inode);
- 				kfree(victim_name.name);
- 				if (ret)
- 					return ret;
--- 
-2.50.0
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Filipe Manana <fdmanana@suse.com>
 Date: Tue, 3 Jun 2025 22:19:58 +0100
 Subject: btrfs: don't silently ignore unexpected extent type when replaying
  log
@@ -55007,10 +54918,10 @@ Reviewed-by: Boris Burkov <boris@bur.io>
  1 file changed, 4 insertions(+), 1 deletion(-)
 
 diff --git a/fs/btrfs/tree-log.c b/fs/btrfs/tree-log.c
-index ef9660eabf0c..f8e8d6fe042f 100644
+index e05140ce95be..e5562db7f003 100644
 --- a/fs/btrfs/tree-log.c
 +++ b/fs/btrfs/tree-log.c
-@@ -668,7 +668,10 @@ static noinline int replay_one_extent(struct btrfs_trans_handle *trans,
+@@ -656,7 +656,10 @@ static noinline int replay_one_extent(struct btrfs_trans_handle *trans,
  		extent_end = ALIGN(start + size,
  				   fs_info->sectorsize);
  	} else {
@@ -55021,7 +54932,7 @@ index ef9660eabf0c..f8e8d6fe042f 100644
 +		return -EUCLEAN;
  	}
  
- 	inode = read_one_inode(root, key->objectid);
+ 	inode = btrfs_iget_logging(key->objectid, root);
 -- 
 2.50.0
 
@@ -55073,61 +54984,26 @@ index 93bb1f7d9098..6760330a8af5 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Tue, 8 Jul 2025 11:47:46 +0200
-Subject: Revert "drm/amd/display: Add support for custom brightness curve"
-
-Math on the low end crunches the brightness curve.
-
-This reverts commit 578df37b1b6a5bc41602cdab3d982072e5688222.
+Date: Fri, 11 Jul 2025 21:43:49 +0200
+Subject: drm/amd: completely disable custom brightness
 
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 28 -------------------
- 1 file changed, 28 deletions(-)
+ drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 299671fa1a03..fd31b452c577 100644
+index acb13bd60380..8e629b85a413 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4721,38 +4721,10 @@ static u32 convert_brightness_from_user(const struct amdgpu_dm_backlight_caps *c
- 					uint32_t brightness)
+@@ -4733,6 +4733,7 @@ static void convert_custom_brightness(const struct amdgpu_dm_backlight_caps *cap
+ 				      unsigned int min, unsigned int max,
+ 				      uint32_t *user_brightness)
  {
- 	unsigned int min, max;
--	u8 prev_signal = 0, prev_lum = 0;
- 
- 	if (!get_brightness_range(caps, &min, &max))
- 		return brightness;
- 
--	for (int i = 0; i < caps->data_points; i++) {
--		u8 signal, lum;
--
--		if (amdgpu_dc_debug_mask & DC_DISABLE_CUSTOM_BRIGHTNESS_CURVE)
--			break;
--
--		signal = caps->luminance_data[i].input_signal;
--		lum = caps->luminance_data[i].luminance;
--
--		/*
--		 * brightness == signal: luminance is percent numerator
--		 * brightness < signal: interpolate between previous and current luminance numerator
--		 * brightness > signal: find next data point
--		 */
--		if (brightness < signal)
--			lum = prev_lum + DIV_ROUND_CLOSEST((lum - prev_lum) *
--							   (brightness - prev_signal),
--							   signal - prev_signal);
--		else if (brightness > signal) {
--			prev_signal = signal;
--			prev_lum = lum;
--			continue;
--		}
--		brightness = DIV_ROUND_CLOSEST(lum * brightness, 101);
--		break;
--	}
--
- 	// Rescale 0..AMDGPU_MAX_BL_LEVEL to min..max
- 	return min + DIV_ROUND_CLOSEST((max - min) * brightness,
- 				       AMDGPU_MAX_BL_LEVEL);
++	return;
+ 	u32 brightness = scale_input_to_fw(min, max, *user_brightness);
+ 	u8 prev_signal = 0, prev_lum = 0;
+ 	int i = 0;
 -- 
 2.50.0
 
