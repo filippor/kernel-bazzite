@@ -160,18 +160,18 @@ Summary: The Linux kernel
 %define debugbuildsenabled 1
 %define buildid .bazzite
 # define buildid .local
-%define specrpmversion 6.15.4
-%define specversion 6.15.4
+%define specrpmversion 6.15.6
+%define specversion 6.15.6
 %define patchversion 6.15
 %define pkgrelease 200
 %define kversion 6
-%define tarfile_release 6.15.4
+%define tarfile_release 6.15.6
 # This is needed to do merge window version magic
 %define patchlevel 15
 # This allows pkg_release to have configurable %%{?dist} tag
 %define specrelease 106%{?buildid}%{?dist}
 # This defines the kabi tarball version
-%define kabiversion 6.15.4
+%define kabiversion 6.15.6
 
 # If this variable is set to 1, a bpf selftests build failure will cause a
 # fatal kernel package build error
@@ -4267,6 +4267,15 @@ fi\
 #
 #
 %changelog
+* Thu Jul 10 2025 Augusto Caringi <acaringi@redhat.com> [6.15.6-0]
+- Turn on MITIGATION_TSA for RHEL configs (Augusto Caringi)
+- Turn on TSA Mitigation for Fedora (Justin M. Forbes)
+- Linux v6.15.6
+
+* Sun Jul 06 2025 Justin M. Forbes <jforbes@fedoraproject.org> [6.15.5-0]
+- io_uring: gate REQ_F_ISREG on !S_ANON_INODE as well (Jens Axboe)
+- Linux v6.15.5
+
 * Fri Jun 27 2025 Justin M. Forbes <jforbes@fedoraproject.org> [6.15.4-0]
 - redhat: Restore the status quo wrt memory onlining (Vitaly Kuznetsov) [2375049]
 - Linux v6.15.4
