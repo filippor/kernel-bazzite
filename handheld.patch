@@ -55080,7 +55080,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  2 files changed, 4 insertions(+)
 
 diff --git a/drivers/hid/hid-ids.h b/drivers/hid/hid-ids.h
-index ea4806a3b3fa..e0205ecab13c 100644
+index ea4806a3b3fa..13d125d2e84d 100644
 --- a/drivers/hid/hid-ids.h
 +++ b/drivers/hid/hid-ids.h
 @@ -827,6 +827,8 @@
@@ -55088,7 +55088,7 @@ index ea4806a3b3fa..e0205ecab13c 100644
  #define USB_DEVICE_ID_LENOVO_PIXART_USB_MOUSE_602E	0x602e
  #define USB_DEVICE_ID_LENOVO_PIXART_USB_MOUSE_6093	0x6093
 +#define USB_DEVICE_ID_LENOVO_LEGION_GO_DUAL_DINPUT	0x6184
-+#define USB_DEVICE_ID_LENOVO_LEGION_GO2_DUAL_DINPUT	0x61ED
++#define USB_DEVICE_ID_LENOVO_LEGION_GO2_DUAL_DINPUT	0x61ed
  
  #define USB_VENDOR_ID_LETSKETCH		0x6161
  #define USB_DEVICE_ID_WP9620N		0x4d15
