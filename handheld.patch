@@ -54900,44 +54900,6 @@ index f645cb7831a0..2a484f7373bb 100644
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Filipe Manana <fdmanana@suse.com>
-Date: Tue, 3 Jun 2025 22:19:58 +0100
-Subject: btrfs: don't silently ignore unexpected extent type when replaying
- log
-
-If there's an unexpected (invalid) extent type, we just silently ignore
-it. This means a corruption or some bug somewhere, so instead return
--EUCLEAN to the caller, making log replay fail, and print an error message
-with relevant information.
-
-Signed-off-by: Filipe Manana <fdmanana@suse.com>
-Reviewed-by: David Sterba <dsterba@suse.com>
-Reviewed-by: Boris Burkov <boris@bur.io>
----
- fs/btrfs/tree-log.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/fs/btrfs/tree-log.c b/fs/btrfs/tree-log.c
-index e05140ce95be..e5562db7f003 100644
---- a/fs/btrfs/tree-log.c
-+++ b/fs/btrfs/tree-log.c
-@@ -656,7 +656,10 @@ static noinline int replay_one_extent(struct btrfs_trans_handle *trans,
- 		extent_end = ALIGN(start + size,
- 				   fs_info->sectorsize);
- 	} else {
--		return 0;
-+		btrfs_err(fs_info,
-+		  "unexpected extent type=%d root=%llu inode=%llu offset=%llu",
-+			  found_type, btrfs_root_id(root), key->objectid, key->offset);
-+		return -EUCLEAN;
- 	}
- 
- 	inode = btrfs_iget_logging(key->objectid, root);
--- 
-2.50.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
 Date: Thu, 3 Jul 2025 19:48:21 +0200
 Subject: Revert "ACPI: battery: negate current when discharging"
@@ -55349,6 +55311,33 @@ index 949d307c66a8..e08ec3abd51d 100644
  		rcu_read_lock();
  		input = rcu_dereference(steam->input);
  		if (likely(input))
+-- 
+2.50.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Thu, 17 Jul 2025 13:28:12 +0200
+Subject: watchdog: reduce error message level to maintain plymouth
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/watchdog/watchdog_dev.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/watchdog/watchdog_dev.c b/drivers/watchdog/watchdog_dev.c
+index 8369fd94fc1a..be8d00e0d171 100644
+--- a/drivers/watchdog/watchdog_dev.c
++++ b/drivers/watchdog/watchdog_dev.c
+@@ -965,7 +965,7 @@ static int watchdog_release(struct inode *inode, struct file *file)
+ 
+ 	/* If the watchdog was not stopped, send a keepalive ping */
+ 	if (err < 0) {
+-		pr_crit("watchdog%d: watchdog did not stop!\n", wdd->id);
++		pr_err("watchdog%d: watchdog did not stop!\n", wdd->id);
+ 		watchdog_ping(wdd);
+ 	}
+ 
 -- 
 2.50.1
 
