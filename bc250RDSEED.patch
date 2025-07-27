@@ -1,0 +1,41 @@
+index e7d2f460fcc699..2333f4e7bc2f1a 100644
+--- a/arch/x86/include/asm/msr-index.h
++++ b/arch/x86/include/asm/msr-index.h
+@@ -624,6 +624,7 @@
+ #define MSR_AMD64_OSVW_STATUS		0xc0010141
+ #define MSR_AMD_PPIN_CTL		0xc00102f0
+ #define MSR_AMD_PPIN			0xc00102f1
++#define MSR_AMD64_CPUID_FN_7		0xc0011002
+ #define MSR_AMD64_CPUID_FN_1		0xc0011004
+ #define MSR_AMD64_LS_CFG		0xc0011020
+ #define MSR_AMD64_DC_CFG		0xc0011022
+diff --git a/arch/x86/kernel/cpu/amd.c b/arch/x86/kernel/cpu/amd.c
+index 2c5003f05920b8..832967a61b406b 100644
+--- a/arch/x86/kernel/cpu/amd.c
++++ b/arch/x86/kernel/cpu/amd.c
+@@ -972,6 +972,13 @@ static void init_amd_zen2(struct cpuinfo_x86 *c)
+ 	init_spectral_chicken(c);
+ 	fix_erratum_1386(c);
+ 	zen2_zenbleed_check(c);
++
++	/* Disable RDSEED on AMD Cyan Skillfish because of an error. */
++	if (c->x86_model == 0x47 && c->x86_stepping == 0x0) {
++		clear_cpu_cap(c, X86_FEATURE_RDSEED);
++		msr_clear_bit(MSR_AMD64_CPUID_FN_7, 18);
++		pr_emerg("RDSEED is not reliable on this platform; disabling.\n");
++	}
+ }
+ 
+ static void init_amd_zen3(struct cpuinfo_x86 *c)
+diff --git a/tools/arch/x86/include/asm/msr-index.h b/tools/arch/x86/include/asm/msr-index.h
+index e6134ef2263d50..8b48a54b627a3d 100644
+--- a/tools/arch/x86/include/asm/msr-index.h
++++ b/tools/arch/x86/include/asm/msr-index.h
+@@ -616,6 +616,7 @@
+ #define MSR_AMD64_OSVW_STATUS		0xc0010141
+ #define MSR_AMD_PPIN_CTL		0xc00102f0
+ #define MSR_AMD_PPIN			0xc00102f1
++#define MSR_AMD64_CPUID_FN_7		0xc0011002
+ #define MSR_AMD64_CPUID_FN_1		0xc0011004
+ #define MSR_AMD64_LS_CFG		0xc0011020
+ #define MSR_AMD64_DC_CFG		0xc0011022

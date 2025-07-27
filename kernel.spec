@@ -169,7 +169,7 @@ Summary: The Linux kernel
 # This is needed to do merge window version magic
 %define patchlevel 15
 # This allows pkg_release to have configurable %%{?dist} tag
-%define specrelease 113%{?buildid}%{?dist}
+%define specrelease 114%{?buildid}%{?dist}
 # This defines the kabi tarball version
 %define kabiversion 6.15.6
 
@@ -1118,6 +1118,9 @@ Source4002: gating.yaml
 
 Patch1: patch-%{patchversion}-redhat.patch
 Patch2: handheld.patch
+Patch3: bc250RDSEED.patch
+Patch4: bc250INVLPGB.patch
+Patch5: linux-6.12-bc250-freq.mypatch
 %endif
 
 # empty final patch to facilitate testing of kernel patches
@@ -1946,6 +1949,9 @@ cp -a %{SOURCE1} .
 
 ApplyOptionalPatch patch-%{patchversion}-redhat.patch
 ApplyOptionalPatch handheld.patch
+ApplyOptionalPatch bc250RDSEED.patch
+ApplyOptionalPatch bc250INVLPGB.patch
+ApplyOptionalPatch linux-6.12-bc250-freq.mypatch
 %endif
 
 ApplyOptionalPatch linux-kernel-test.patch

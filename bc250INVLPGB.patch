@@ -1,0 +1,13 @@
+index 832967a61b406b..6f9a6185df7f60 100644
+--- a/arch/x86/kernel/cpu/amd.c
++++ b/arch/x86/kernel/cpu/amd.c
+@@ -979,6 +979,9 @@ static void init_amd_zen2(struct cpuinfo_x86 *c)
+ 		msr_clear_bit(MSR_AMD64_CPUID_FN_7, 18);
+ 		pr_emerg("RDSEED is not reliable on this platform; disabling.\n");
+ 	}
++
++	/* Correct misconfigured CPUID on some clients. */
++	clear_cpu_cap(c, X86_FEATURE_INVLPGB);
+ }
+ 
+ static void init_amd_zen3(struct cpuinfo_x86 *c)
