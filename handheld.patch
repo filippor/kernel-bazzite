@@ -54704,12 +54704,12 @@ should be introduced in a separate patch alongside the Z13.
 
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- drivers/platform/x86/asus-nb-wmi.c | 28 ++++++++++++++++++++--------
+ drivers/platform/x86/asus-nb-wmi.c | 30 +++++++++++++++++++++---------
  drivers/platform/x86/asus-wmi.h    |  3 ++-
- 2 files changed, 22 insertions(+), 9 deletions(-)
+ 2 files changed, 23 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/platform/x86/asus-nb-wmi.c b/drivers/platform/x86/asus-nb-wmi.c
-index f84c3d03c1de..b3026e731cc8 100644
+index f84c3d03c1de..7d3e01effec4 100644
 --- a/drivers/platform/x86/asus-nb-wmi.c
 +++ b/drivers/platform/x86/asus-nb-wmi.c
 @@ -146,8 +146,12 @@ static struct quirk_entry quirk_asus_ignore_fan = {
@@ -54727,9 +54727,18 @@ index f84c3d03c1de..b3026e731cc8 100644
  };
  
  static int dmi_matched(const struct dmi_system_id *dmi)
-@@ -528,7 +532,16 @@ static const struct dmi_system_id asus_quirks[] = {
+@@ -528,7 +532,7 @@ static const struct dmi_system_id asus_quirks[] = {
  			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
  			DMI_MATCH(DMI_PRODUCT_NAME, "UX8406MA"),
+ 		},
+-		.driver_data = &quirk_asus_zenbook_duo_kbd,
++		.driver_data = &quirk_asus_wlan_ignore,
+ 	},
+ 	{
+ 		.callback = dmi_matched,
+@@ -537,7 +541,16 @@ static const struct dmi_system_id asus_quirks[] = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "UX8406CA"),
  		},
 -		.driver_data = &quirk_asus_zenbook_duo_kbd,
 +		.driver_data = &quirk_asus_wlan_ignore,
@@ -54743,8 +54752,8 @@ index f84c3d03c1de..b3026e731cc8 100644
 +		},
 +		.driver_data = &quirk_asus_wlan_armoury,
  	},
- 	{
- 		.callback = dmi_matched,
+ 	{},
+ };
 @@ -636,6 +649,7 @@ static const struct key_entry asus_nb_wmi_keymap[] = {
  	{ KE_IGNORE, 0xCF, },	/* AC mode */
  	{ KE_KEY, 0xFA, { KEY_PROG2 } },           /* Lid flip action */
