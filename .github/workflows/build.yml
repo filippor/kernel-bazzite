@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: ${{ github.event.inputs.arm == 'true' && fromJSON('["aarch64"]') || fromJSON('["aarch64", "x86_64"]') }}
+        arch: ${{ fromJSON('["x86_64"]') }}
         fedora_version: [42]
         # exclude:
         #   - arch: aarch64
@@ -177,11 +177,4 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             https://api.github.com/repos/$repo_owner/$repo_name/dispatches \
             -d "{\"event_type\": \"$event_type\", \"client_payload\": {\"release_tag\": \"$release_tag\"}}"
-  update_aur:
-    uses: ./.github/workflows/publish-aur.yml
-    needs: build_kernel
-    secrets: inherit
-    if: github.event_name == 'release' && github.event.release.prerelease == false
-    with:
-      relver: ${{ github.event.release.tag_name }}
-      fedora_version: 42 #arch_fedora
+
