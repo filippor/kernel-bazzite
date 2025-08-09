@@ -1,3 +1,4 @@
+Patched for bc-250  to allow GPU frequencies between 350 and 2230
 Bazzite Kernel
 ==============
 

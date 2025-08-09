@@ -1118,6 +1118,7 @@ Source4002: gating.yaml
 
 Patch1: patch-%{patchversion}-redhat.patch
 Patch2: handheld.patch
+Patch3: linux-6.12-bc250-freq.mypatch
 %endif
 
 # empty final patch to facilitate testing of kernel patches
@@ -1946,6 +1947,7 @@ cp -a %{SOURCE1} .
 
 ApplyOptionalPatch patch-%{patchversion}-redhat.patch
 ApplyOptionalPatch handheld.patch
+ApplyOptionalPatch linux-6.12-bc250-freq.mypatch
 %endif
 
 ApplyOptionalPatch linux-kernel-test.patch
