@@ -1,16 +1,6 @@
 # This file is intentionally left empty in the stock kernel. Its a nicety
 # added for those wanting to do custom rebuilds with altered config opts.
 
-# Schedulers
-CONFIG_SCHED_CLASS_EXT=y
-CONFIG_GROUP_SCHED_WEIGHT=y
-CONFIG_EXT_GROUP_SCHED=y
-CONFIG_SCHED_BORE=y
-CONFIG_MIN_BASE_SLICE_NS=2000000
-CONFIG_ACPI_EC_DEBUGFS=m
-# CONFIG_ARCH_MMAP_RND_BITS=32
-# CONFIG_ARCH_MMAP_RND_COMPAT_BITS=16
-
 # Steamdeck
 CONFIG_SENSORS_STEAMDECK=m
 CONFIG_LEDS_STEAMDECK=m
@@ -148,8 +138,9 @@ CONFIG_ASUS_ARMOURY=m
 # ntsync backport
 CONFIG_NTSYNC=m
 
-# add OxpSensors new place
+# add OxpSensors new place and Ayaneo EC
 CONFIG_OXP_EC=m
+CONFIG_AYANEO_EC=m
 # CONFIG_SENSORS_OXP is not set
 
 # Add AMDXDNA options

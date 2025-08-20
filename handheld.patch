@@ -20686,1174 +20686,6 @@ index 889e5b05c739..676f363d536c 100644
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Masahito S <firelzrd@gmail.com>
-Date: Sun, 30 Mar 2025 19:06:05 +0900
-Subject: linux6.15.0-bore5.9.6
-
----
- include/linux/sched.h      |  18 ++
- include/linux/sched/bore.h |  40 ++++
- init/Kconfig               |  17 ++
- kernel/Kconfig.hz          |  17 ++
- kernel/fork.c              |   6 +
- kernel/sched/Makefile      |   1 +
- kernel/sched/bore.c        | 443 +++++++++++++++++++++++++++++++++++++
- kernel/sched/core.c        |   6 +
- kernel/sched/debug.c       |  61 ++++-
- kernel/sched/fair.c        |  73 +++++-
- kernel/sched/sched.h       |   9 +
- 11 files changed, 686 insertions(+), 5 deletions(-)
- create mode 100644 include/linux/sched/bore.h
- create mode 100644 kernel/sched/bore.c
-
-diff --git a/include/linux/sched.h b/include/linux/sched.h
-index f96ac1982893..c8f5d491d77a 100644
---- a/include/linux/sched.h
-+++ b/include/linux/sched.h
-@@ -566,6 +566,15 @@ struct sched_statistics {
- #endif /* CONFIG_SCHEDSTATS */
- } ____cacheline_aligned;
- 
-+#ifdef CONFIG_SCHED_BORE
-+struct sched_burst_cache {
-+	u8				score;
-+	u32				count;
-+	u64				timestamp;
-+    spinlock_t		lock;
-+};
-+#endif // CONFIG_SCHED_BORE
-+
- struct sched_entity {
- 	/* For load-balancing: */
- 	struct load_weight		load;
-@@ -585,6 +594,15 @@ struct sched_entity {
- 	u64				sum_exec_runtime;
- 	u64				prev_sum_exec_runtime;
- 	u64				vruntime;
-+#ifdef CONFIG_SCHED_BORE
-+	u64				burst_time;
-+	u8				prev_burst_penalty;
-+	u8				curr_burst_penalty;
-+	u8				burst_penalty;
-+	u8				burst_score;
-+	struct sched_burst_cache child_burst;
-+	struct sched_burst_cache group_burst;
-+#endif // CONFIG_SCHED_BORE
- 	s64				vlag;
- 	u64				slice;
- 
-diff --git a/include/linux/sched/bore.h b/include/linux/sched/bore.h
-new file mode 100644
-index 000000000000..a8faabc2885e
---- /dev/null
-+++ b/include/linux/sched/bore.h
-@@ -0,0 +1,40 @@
-+
-+#include <linux/sched.h>
-+#include <linux/sched/cputime.h>
-+
-+#ifndef _LINUX_SCHED_BORE_H
-+#define _LINUX_SCHED_BORE_H
-+#define SCHED_BORE_VERSION "5.9.6"
-+
-+#ifdef CONFIG_SCHED_BORE
-+extern u8   __read_mostly sched_bore;
-+extern u8   __read_mostly sched_burst_exclude_kthreads;
-+extern u8   __read_mostly sched_burst_smoothness_long;
-+extern u8   __read_mostly sched_burst_smoothness_short;
-+extern u8   __read_mostly sched_burst_fork_atavistic;
-+extern u8   __read_mostly sched_burst_parity_threshold;
-+extern u8   __read_mostly sched_burst_penalty_offset;
-+extern uint __read_mostly sched_burst_penalty_scale;
-+extern uint __read_mostly sched_burst_cache_stop_count;
-+extern uint __read_mostly sched_burst_cache_lifetime;
-+extern uint __read_mostly sched_deadline_boost_mask;
-+
-+extern void update_burst_score(struct sched_entity *se);
-+extern void update_burst_penalty(struct sched_entity *se);
-+
-+extern void restart_burst(struct sched_entity *se);
-+extern void restart_burst_rescale_deadline(struct sched_entity *se);
-+
-+extern int sched_bore_update_handler(const struct ctl_table *table, int write,
-+	void __user *buffer, size_t *lenp, loff_t *ppos);
-+
-+extern void sched_clone_bore(
-+	struct task_struct *p, struct task_struct *parent, u64 clone_flags, u64 now);
-+
-+extern void reset_task_bore(struct task_struct *p);
-+extern void sched_bore_init(void);
-+
-+extern void reweight_entity(
-+	struct cfs_rq *cfs_rq, struct sched_entity *se, unsigned long weight);
-+#endif // CONFIG_SCHED_BORE
-+#endif // _LINUX_SCHED_BORE_H
-diff --git a/init/Kconfig b/init/Kconfig
-index bf3a920064be..5efa0ec37e7d 100644
---- a/init/Kconfig
-+++ b/init/Kconfig
-@@ -1362,6 +1362,23 @@ config CHECKPOINT_RESTORE
- 
- 	  If unsure, say N here.
- 
-+config SCHED_BORE
-+	bool "Burst-Oriented Response Enhancer"
-+	default y
-+	help
-+	  In Desktop and Mobile computing, one might prefer interactive
-+	  tasks to keep responsive no matter what they run in the background.
-+
-+	  Enabling this kernel feature modifies the scheduler to discriminate
-+	  tasks by their burst time (runtime since it last went sleeping or
-+	  yielding state) and prioritize those that run less bursty.
-+	  Such tasks usually include window compositor, widgets backend,
-+	  terminal emulator, video playback, games and so on.
-+	  With a little impact to scheduling fairness, it may improve
-+	  responsiveness especially under heavy background workload.
-+
-+	  If unsure, say Y here.
-+
- config SCHED_AUTOGROUP
- 	bool "Automatic process group scheduling"
- 	select CGROUPS
-diff --git a/kernel/Kconfig.hz b/kernel/Kconfig.hz
-index ce1435cb08b1..b93d1f657a5a 100644
---- a/kernel/Kconfig.hz
-+++ b/kernel/Kconfig.hz
-@@ -55,5 +55,22 @@ config HZ
- 	default 300 if HZ_300
- 	default 1000 if HZ_1000
- 
-+config MIN_BASE_SLICE_NS
-+	int "Default value for min_base_slice_ns"
-+	default 2000000
-+	help
-+	 The BORE Scheduler automatically calculates the optimal base
-+	 slice for the configured HZ using the following equation:
-+	 
-+	 base_slice_ns =
-+	 	1000000000/HZ * DIV_ROUNDUP(min_base_slice_ns, 1000000000/HZ)
-+	 
-+	 This option sets the default lower bound limit of the base slice
-+	 to prevent the loss of task throughput due to overscheduling.
-+	 
-+	 Setting this value too high can cause the system to boot with
-+	 an unnecessarily large base slice, resulting in high scheduling
-+	 latency and poor system responsiveness.
-+
- config SCHED_HRTICK
- 	def_bool HIGH_RES_TIMERS
-diff --git a/kernel/fork.c b/kernel/fork.c
-index 168681fc4b25..74d2b1a4c5e6 100644
---- a/kernel/fork.c
-+++ b/kernel/fork.c
-@@ -112,6 +112,8 @@
- #include <asm/cacheflush.h>
- #include <asm/tlbflush.h>
- 
-+#include <linux/sched/bore.h>
-+
- #include <trace/events/sched.h>
- 
- #define CREATE_TRACE_POINTS
-@@ -2554,6 +2556,10 @@ __latent_entropy struct task_struct *copy_process(
- 	p->start_time = ktime_get_ns();
- 	p->start_boottime = ktime_get_boottime_ns();
- 
-+#ifdef CONFIG_SCHED_BORE
-+	if (likely(p->pid))
-+		sched_clone_bore(p, current, clone_flags, p->start_time);
-+#endif // CONFIG_SCHED_BORE
- 	/*
- 	 * Make it visible to the rest of the system, but dont wake it up yet.
- 	 * Need tasklist lock for parent etc handling!
-diff --git a/kernel/sched/Makefile b/kernel/sched/Makefile
-index 8ae86371ddcd..ab9ad886a1e9 100644
---- a/kernel/sched/Makefile
-+++ b/kernel/sched/Makefile
-@@ -37,3 +37,4 @@ obj-y += core.o
- obj-y += fair.o
- obj-y += build_policy.o
- obj-y += build_utility.o
-+obj-y += bore.o
-diff --git a/kernel/sched/bore.c b/kernel/sched/bore.c
-new file mode 100644
-index 000000000000..23aeb5649479
---- /dev/null
-+++ b/kernel/sched/bore.c
-@@ -0,0 +1,443 @@
-+/*
-+ *  Burst-Oriented Response Enhancer (BORE) CPU Scheduler
-+ *  Copyright (C) 2021-2024 Masahito Suzuki <firelzrd@gmail.com>
-+ */
-+#include <linux/cpuset.h>
-+#include <linux/sched/task.h>
-+#include <linux/sched/bore.h>
-+#include "sched.h"
-+
-+#ifdef CONFIG_SCHED_BORE
-+u8   __read_mostly sched_bore                   = 1;
-+u8   __read_mostly sched_burst_exclude_kthreads = 1;
-+u8   __read_mostly sched_burst_smoothness_long  = 1;
-+u8   __read_mostly sched_burst_smoothness_short = 0;
-+u8   __read_mostly sched_burst_fork_atavistic   = 2;
-+u8   __read_mostly sched_burst_parity_threshold = 2;
-+u8   __read_mostly sched_burst_penalty_offset   = 24;
-+uint __read_mostly sched_burst_penalty_scale    = 1280;
-+uint __read_mostly sched_burst_cache_stop_count = 64;
-+uint __read_mostly sched_burst_cache_lifetime   = 75000000;
-+uint __read_mostly sched_deadline_boost_mask    = ENQUEUE_INITIAL
-+                                                | ENQUEUE_WAKEUP;
-+static int __maybe_unused sixty_four     = 64;
-+static int __maybe_unused maxval_u8      = 255;
-+static int __maybe_unused maxval_12_bits = 4095;
-+
-+#define MAX_BURST_PENALTY (39U <<2)
-+
-+static inline u32 log2plus1_u64_u32f8(u64 v) {
-+	u32 integral = fls64(v);
-+	u8  fractional = v << (64 - integral) >> 55;
-+	return integral << 8 | fractional;
-+}
-+
-+static inline u32 calc_burst_penalty(u64 burst_time) {
-+	u32 greed, tolerance, penalty, scaled_penalty;
-+	
-+	greed = log2plus1_u64_u32f8(burst_time);
-+	tolerance = sched_burst_penalty_offset << 8;
-+	penalty = max(0, (s32)(greed - tolerance));
-+	scaled_penalty = penalty * sched_burst_penalty_scale >> 16;
-+
-+	return min(MAX_BURST_PENALTY, scaled_penalty);
-+}
-+
-+static inline u64 __scale_slice(u64 delta, u8 score)
-+{return mul_u64_u32_shr(delta, sched_prio_to_wmult[score], 22);}
-+
-+static inline u64 __unscale_slice(u64 delta, u8 score)
-+{return mul_u64_u32_shr(delta, sched_prio_to_weight[score], 10);}
-+
-+static void reweight_task_by_prio(struct task_struct *p, int prio) {
-+	struct sched_entity *se = &p->se;
-+	unsigned long weight = scale_load(sched_prio_to_weight[prio]);
-+
-+	reweight_entity(cfs_rq_of(se), se, weight);
-+	se->load.inv_weight = sched_prio_to_wmult[prio];
-+}
-+
-+static inline u8 effective_prio(struct task_struct *p) {
-+	u8 prio = p->static_prio - MAX_RT_PRIO;
-+	if (likely(sched_bore))
-+		prio += p->se.burst_score;
-+	return min(39, prio);
-+}
-+
-+void update_burst_score(struct sched_entity *se) {
-+	if (!entity_is_task(se)) return;
-+	struct task_struct *p = task_of(se);
-+	u8 prev_prio = effective_prio(p);
-+
-+	u8 burst_score = 0;
-+	if (!((p->flags & PF_KTHREAD) && likely(sched_burst_exclude_kthreads)))
-+		burst_score = se->burst_penalty >> 2;
-+	se->burst_score = burst_score;
-+
-+	u8 new_prio = effective_prio(p);
-+	if (new_prio != prev_prio)
-+		reweight_task_by_prio(p, new_prio);
-+}
-+
-+void update_burst_penalty(struct sched_entity *se) {
-+	se->curr_burst_penalty = calc_burst_penalty(se->burst_time);
-+	se->burst_penalty = max(se->prev_burst_penalty, se->curr_burst_penalty);
-+	update_burst_score(se);
-+}
-+
-+static inline u32 binary_smooth(u32 new, u32 old) {
-+	int increment = new - old;
-+	return (0 <= increment)?
-+		old + ( increment >> (int)sched_burst_smoothness_long):
-+		old - (-increment >> (int)sched_burst_smoothness_short);
-+}
-+
-+static void revolve_burst_penalty(struct sched_entity *se) {
-+	se->prev_burst_penalty =
-+		binary_smooth(se->curr_burst_penalty, se->prev_burst_penalty);
-+	se->burst_time = 0;
-+	se->curr_burst_penalty = 0;
-+}
-+
-+inline void restart_burst(struct sched_entity *se) {
-+	revolve_burst_penalty(se);
-+	se->burst_penalty = se->prev_burst_penalty;
-+	update_burst_score(se);
-+}
-+
-+void restart_burst_rescale_deadline(struct sched_entity *se) {
-+	s64 vscaled, wremain, vremain = se->deadline - se->vruntime;
-+	struct task_struct *p = task_of(se);
-+	u8 prev_prio = effective_prio(p);
-+	restart_burst(se);
-+	u8 new_prio = effective_prio(p);
-+	if (prev_prio > new_prio) {
-+		wremain = __unscale_slice(abs(vremain), prev_prio);
-+		vscaled = __scale_slice(wremain, new_prio);
-+		if (unlikely(vremain < 0))
-+			vscaled = -vscaled;
-+		se->deadline = se->vruntime + vscaled;
-+	}
-+}
-+
-+static inline bool task_is_bore_eligible(struct task_struct *p)
-+{return p && p->sched_class == &fair_sched_class && !p->exit_state;}
-+
-+static void reset_task_weights_bore(void) {
-+	struct task_struct *task;
-+	struct rq *rq;
-+	struct rq_flags rf;
-+
-+	write_lock_irq(&tasklist_lock);
-+	for_each_process(task) {
-+		if (!task_is_bore_eligible(task)) continue;
-+		rq = task_rq(task);
-+		rq_pin_lock(rq, &rf);
-+		update_rq_clock(rq);
-+		reweight_task_by_prio(task, effective_prio(task));
-+		rq_unpin_lock(rq, &rf);
-+	}
-+	write_unlock_irq(&tasklist_lock);
-+}
-+
-+int sched_bore_update_handler(const struct ctl_table *table, int write,
-+	void __user *buffer, size_t *lenp, loff_t *ppos) {
-+	int ret = proc_dou8vec_minmax(table, write, buffer, lenp, ppos);
-+	if (ret || !write)
-+		return ret;
-+
-+	reset_task_weights_bore();
-+
-+	return 0;
-+}
-+
-+#define for_each_child(p, t) \
-+	list_for_each_entry(t, &(p)->children, sibling)
-+
-+static u32 count_entries_upto2(struct list_head *head) {
-+	struct list_head *next = head->next;
-+	return (next != head) + (next->next != head);
-+}
-+
-+static inline void init_task_burst_cache_lock(struct task_struct *p) {
-+	spin_lock_init(&p->se.child_burst.lock);
-+	spin_lock_init(&p->se.group_burst.lock);
-+}
-+
-+static inline bool burst_cache_expired(struct sched_burst_cache *bc, u64 now)
-+{return (s64)(bc->timestamp + sched_burst_cache_lifetime - now) < 0;}
-+
-+static void update_burst_cache(struct sched_burst_cache *bc,
-+	struct task_struct *p, u32 cnt, u32 sum, u64 now) {
-+	u8 avg = cnt ? sum / cnt : 0;
-+	bc->score = max(avg, p->se.burst_penalty);
-+	bc->count = cnt;
-+	bc->timestamp = now;
-+}
-+
-+static inline void update_child_burst_direct(struct task_struct *p, u64 now) {
-+	u32 cnt = 0, sum = 0;
-+	struct task_struct *child;
-+
-+	for_each_child(p, child) {
-+		if (!task_is_bore_eligible(child)) continue;
-+		cnt++;
-+		sum += child->se.burst_penalty;
-+	}
-+
-+	update_burst_cache(&p->se.child_burst, p, cnt, sum, now);
-+}
-+
-+static inline u8 inherit_burst_direct(
-+	struct task_struct *p, u64 now, u64 clone_flags) {
-+	struct task_struct *parent = p;
-+	struct sched_burst_cache *bc;
-+
-+	if (clone_flags & CLONE_PARENT)
-+		parent = parent->real_parent;
-+
-+	bc = &parent->se.child_burst;
-+	guard(spinlock)(&bc->lock);
-+	if (burst_cache_expired(bc, now))
-+		update_child_burst_direct(parent, now);
-+
-+	return bc->score;
-+}
-+
-+static void update_child_burst_topological(
-+	struct task_struct *p, u64 now, u32 depth, u32 *acnt, u32 *asum) {
-+	u32 cnt = 0, dcnt = 0, sum = 0;
-+	struct task_struct *child, *dec;
-+	struct sched_burst_cache *bc __maybe_unused;
-+
-+	for_each_child(p, child) {
-+		dec = child;
-+		while ((dcnt = count_entries_upto2(&dec->children)) == 1)
-+			dec = list_first_entry(&dec->children, struct task_struct, sibling);
-+		
-+		if (!dcnt || !depth) {
-+			if (!task_is_bore_eligible(dec)) continue;
-+			cnt++;
-+			sum += dec->se.burst_penalty;
-+			continue;
-+		}
-+		bc = &dec->se.child_burst;
-+		spin_lock(&bc->lock);
-+		if (!burst_cache_expired(bc, now)) {
-+			cnt += bc->count;
-+			sum += (u32)bc->score * bc->count;
-+			if (sched_burst_cache_stop_count <= cnt) {
-+				spin_unlock(&bc->lock);
-+				break;
-+			}
-+			spin_unlock(&bc->lock);
-+			continue;
-+		}
-+		update_child_burst_topological(dec, now, depth - 1, &cnt, &sum);
-+		spin_unlock(&bc->lock);
-+	}
-+
-+	update_burst_cache(&p->se.child_burst, p, cnt, sum, now);
-+	*acnt += cnt;
-+	*asum += sum;
-+}
-+
-+static inline u8 inherit_burst_topological(
-+	struct task_struct *p, u64 now, u64 clone_flags) {
-+	struct task_struct *anc = p;
-+	struct sched_burst_cache *bc;
-+	u32 cnt = 0, sum = 0;
-+	u32 base_child_cnt = 0;
-+
-+	if (clone_flags & CLONE_PARENT) {
-+		anc = anc->real_parent;
-+		base_child_cnt = 1;
-+	}
-+
-+	for (struct task_struct *next;
-+		 anc != (next = anc->real_parent) &&
-+		 	count_entries_upto2(&anc->children) <= base_child_cnt;) {
-+		anc = next;
-+		base_child_cnt = 1;
-+	}
-+
-+	bc = &anc->se.child_burst;
-+	guard(spinlock)(&bc->lock);
-+	if (burst_cache_expired(bc, now))
-+		update_child_burst_topological(
-+			anc, now, sched_burst_fork_atavistic - 1, &cnt, &sum);
-+
-+	return bc->score;
-+}
-+
-+static inline void update_tg_burst(struct task_struct *p, u64 now) {
-+	struct task_struct *task;
-+	u32 cnt = 0, sum = 0;
-+
-+	for_each_thread(p, task) {
-+		if (!task_is_bore_eligible(task)) continue;
-+		cnt++;
-+		sum += task->se.burst_penalty;
-+	}
-+
-+	update_burst_cache(&p->se.group_burst, p, cnt, sum, now);
-+}
-+
-+static inline u8 inherit_burst_tg(struct task_struct *p, u64 now) {
-+	struct task_struct *parent = rcu_dereference(p->group_leader);
-+	struct sched_burst_cache *bc = &parent->se.group_burst;
-+	guard(spinlock)(&bc->lock);
-+	if (burst_cache_expired(bc, now))
-+		update_tg_burst(parent, now);
-+
-+	return bc->score;
-+}
-+
-+void sched_clone_bore(struct task_struct *p,
-+	struct task_struct *parent, u64 clone_flags, u64 now) {
-+	struct sched_entity *se = &p->se;
-+	u8 penalty;
-+
-+	init_task_burst_cache_lock(p);
-+
-+	if (!task_is_bore_eligible(p)) return;
-+
-+	if (clone_flags & CLONE_THREAD) {
-+		rcu_read_lock();
-+		penalty = inherit_burst_tg(parent, now);
-+		rcu_read_unlock();
-+	} else {
-+		read_lock(&tasklist_lock);
-+		penalty = likely(sched_burst_fork_atavistic) ?
-+			inherit_burst_topological(parent, now, clone_flags):
-+			inherit_burst_direct(parent, now, clone_flags);
-+		read_unlock(&tasklist_lock);
-+	}
-+
-+	revolve_burst_penalty(se);
-+	se->burst_penalty = se->prev_burst_penalty =
-+		max(se->prev_burst_penalty, penalty);
-+	se->child_burst.timestamp = 0;
-+	se->group_burst.timestamp = 0;
-+}
-+
-+void reset_task_bore(struct task_struct *p) {
-+	p->se.burst_time = 0;
-+	p->se.prev_burst_penalty = 0;
-+	p->se.curr_burst_penalty = 0;
-+	p->se.burst_penalty = 0;
-+	p->se.burst_score = 0;
-+	memset(&p->se.child_burst, 0, sizeof(struct sched_burst_cache));
-+	memset(&p->se.group_burst, 0, sizeof(struct sched_burst_cache));
-+}
-+
-+void __init sched_bore_init(void) {
-+	printk(KERN_INFO "BORE (Burst-Oriented Response Enhancer) CPU Scheduler modification %s by Masahito Suzuki", SCHED_BORE_VERSION);
-+	reset_task_bore(&init_task);
-+	init_task_burst_cache_lock(&init_task);
-+}
-+
-+#ifdef CONFIG_SYSCTL
-+static struct ctl_table sched_bore_sysctls[] = {
-+	{
-+		.procname	= "sched_bore",
-+		.data		= &sched_bore,
-+		.maxlen		= sizeof(u8),
-+		.mode		= 0644,
-+		.proc_handler = sched_bore_update_handler,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= SYSCTL_ONE,
-+	},
-+	{
-+		.procname	= "sched_burst_exclude_kthreads",
-+		.data		= &sched_burst_exclude_kthreads,
-+		.maxlen		= sizeof(u8),
-+		.mode		= 0644,
-+		.proc_handler = proc_dou8vec_minmax,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= SYSCTL_ONE,
-+	},
-+	{
-+		.procname	= "sched_burst_smoothness_long",
-+		.data		= &sched_burst_smoothness_long,
-+		.maxlen		= sizeof(u8),
-+		.mode		= 0644,
-+		.proc_handler = proc_dou8vec_minmax,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= SYSCTL_ONE,
-+	},
-+	{
-+		.procname	= "sched_burst_smoothness_short",
-+		.data		= &sched_burst_smoothness_short,
-+		.maxlen		= sizeof(u8),
-+		.mode		= 0644,
-+		.proc_handler = proc_dou8vec_minmax,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= SYSCTL_ONE,
-+	},
-+	{
-+		.procname	= "sched_burst_fork_atavistic",
-+		.data		= &sched_burst_fork_atavistic,
-+		.maxlen		= sizeof(u8),
-+		.mode		= 0644,
-+		.proc_handler = proc_dou8vec_minmax,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= SYSCTL_THREE,
-+	},
-+	{
-+		.procname	= "sched_burst_parity_threshold",
-+		.data		= &sched_burst_parity_threshold,
-+		.maxlen		= sizeof(u8),
-+		.mode		= 0644,
-+		.proc_handler = proc_dou8vec_minmax,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= &maxval_u8,
-+	},
-+	{
-+		.procname	= "sched_burst_penalty_offset",
-+		.data		= &sched_burst_penalty_offset,
-+		.maxlen		= sizeof(u8),
-+		.mode		= 0644,
-+		.proc_handler = proc_dou8vec_minmax,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= &sixty_four,
-+	},
-+	{
-+		.procname	= "sched_burst_penalty_scale",
-+		.data		= &sched_burst_penalty_scale,
-+		.maxlen		= sizeof(uint),
-+		.mode		= 0644,
-+		.proc_handler = proc_douintvec_minmax,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= &maxval_12_bits,
-+	},
-+	{
-+		.procname	= "sched_burst_cache_stop_count",
-+		.data		= &sched_burst_cache_stop_count,
-+		.maxlen		= sizeof(uint),
-+		.mode		= 0644,
-+		.proc_handler = proc_douintvec,
-+	},
-+	{
-+		.procname	= "sched_burst_cache_lifetime",
-+		.data		= &sched_burst_cache_lifetime,
-+		.maxlen		= sizeof(uint),
-+		.mode		= 0644,
-+		.proc_handler = proc_douintvec,
-+	},
-+	{
-+		.procname	= "sched_deadline_boost_mask",
-+		.data		= &sched_deadline_boost_mask,
-+		.maxlen		= sizeof(uint),
-+		.mode		= 0644,
-+		.proc_handler = proc_douintvec,
-+	},
-+};
-+
-+static int __init sched_bore_sysctl_init(void) {
-+	register_sysctl_init("kernel", sched_bore_sysctls);
-+	return 0;
-+}
-+late_initcall(sched_bore_sysctl_init);
-+#endif // CONFIG_SYSCTL
-+#endif // CONFIG_SCHED_BORE
-diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 7d5f51e2f761..36d4778862e7 100644
---- a/kernel/sched/core.c
-+++ b/kernel/sched/core.c
-@@ -96,6 +96,8 @@
- #include "../../io_uring/io-wq.h"
- #include "../smpboot.h"
- 
-+#include <linux/sched/bore.h>
-+
- EXPORT_TRACEPOINT_SYMBOL_GPL(ipi_send_cpu);
- EXPORT_TRACEPOINT_SYMBOL_GPL(ipi_send_cpumask);
- 
-@@ -8554,6 +8556,10 @@ void __init sched_init(void)
- 	BUG_ON(!sched_class_above(&ext_sched_class, &idle_sched_class));
- #endif
- 
-+#ifdef CONFIG_SCHED_BORE
-+	sched_bore_init();
-+#endif // CONFIG_SCHED_BORE
-+
- 	wait_bit_init();
- 
- #ifdef CONFIG_FAIR_GROUP_SCHED
-diff --git a/kernel/sched/debug.c b/kernel/sched/debug.c
-index 56ae54e0ce6a..4302a4d60ab7 100644
---- a/kernel/sched/debug.c
-+++ b/kernel/sched/debug.c
-@@ -167,7 +167,53 @@ static const struct file_operations sched_feat_fops = {
- };
- 
- #ifdef CONFIG_SMP
-+#ifdef CONFIG_SCHED_BORE
-+#define DEFINE_SYSCTL_SCHED_FUNC(name, update_func) \
-+static ssize_t sched_##name##_write(struct file *filp, const char __user *ubuf, size_t cnt, loff_t *ppos) \
-+{ \
-+	char buf[16]; \
-+	unsigned int value; \
-+\
-+	if (cnt > 15) \
-+		cnt = 15; \
-+\
-+	if (copy_from_user(&buf, ubuf, cnt)) \
-+		return -EFAULT; \
-+	buf[cnt] = '\0'; \
-+\
-+	if (kstrtouint(buf, 10, &value)) \
-+		return -EINVAL; \
-+\
-+	sysctl_sched_##name = value; \
-+	sched_update_##update_func(); \
-+\
-+	*ppos += cnt; \
-+	return cnt; \
-+} \
-+\
-+static int sched_##name##_show(struct seq_file *m, void *v) \
-+{ \
-+	seq_printf(m, "%d\n", sysctl_sched_##name); \
-+	return 0; \
-+} \
-+\
-+static int sched_##name##_open(struct inode *inode, struct file *filp) \
-+{ \
-+	return single_open(filp, sched_##name##_show, NULL); \
-+} \
-+\
-+static const struct file_operations sched_##name##_fops = { \
-+	.open		= sched_##name##_open, \
-+	.write		= sched_##name##_write, \
-+	.read		= seq_read, \
-+	.llseek		= seq_lseek, \
-+	.release	= single_release, \
-+};
-+
-+DEFINE_SYSCTL_SCHED_FUNC(min_base_slice, min_base_slice)
- 
-+#undef DEFINE_SYSCTL_SCHED_FUNC
-+#else // !CONFIG_SCHED_BORE
- static ssize_t sched_scaling_write(struct file *filp, const char __user *ubuf,
- 				   size_t cnt, loff_t *ppos)
- {
-@@ -213,7 +259,7 @@ static const struct file_operations sched_scaling_fops = {
- 	.llseek		= seq_lseek,
- 	.release	= single_release,
- };
--
-+#endif // CONFIG_SCHED_BORE
- #endif /* SMP */
- 
- #ifdef CONFIG_PREEMPT_DYNAMIC
-@@ -507,13 +553,20 @@ static __init int sched_init_debug(void)
- 	debugfs_create_file("preempt", 0644, debugfs_sched, NULL, &sched_dynamic_fops);
- #endif
- 
-+#ifdef CONFIG_SCHED_BORE
-+	debugfs_create_file("min_base_slice_ns", 0644, debugfs_sched, NULL, &sched_min_base_slice_fops);
-+	debugfs_create_u32("base_slice_ns", 0444, debugfs_sched, &sysctl_sched_base_slice);
-+#else // !CONFIG_SCHED_BORE
- 	debugfs_create_u32("base_slice_ns", 0644, debugfs_sched, &sysctl_sched_base_slice);
-+#endif // CONFIG_SCHED_BORE
- 
- 	debugfs_create_u32("latency_warn_ms", 0644, debugfs_sched, &sysctl_resched_latency_warn_ms);
- 	debugfs_create_u32("latency_warn_once", 0644, debugfs_sched, &sysctl_resched_latency_warn_once);
- 
- #ifdef CONFIG_SMP
-+#if !defined(CONFIG_SCHED_BORE)
- 	debugfs_create_file("tunable_scaling", 0644, debugfs_sched, NULL, &sched_scaling_fops);
-+#endif // CONFIG_SCHED_BORE
- 	debugfs_create_u32("migration_cost_ns", 0644, debugfs_sched, &sysctl_sched_migration_cost);
- 	debugfs_create_u32("nr_migrate", 0644, debugfs_sched, &sysctl_sched_nr_migrate);
- 
-@@ -758,6 +811,9 @@ print_task(struct seq_file *m, struct rq *rq, struct task_struct *p)
- 		SPLIT_NS(schedstat_val_or_zero(p->stats.sum_sleep_runtime)),
- 		SPLIT_NS(schedstat_val_or_zero(p->stats.sum_block_runtime)));
- 
-+#ifdef CONFIG_SCHED_BORE
-+	SEQ_printf(m, " %2d", p->se.burst_score);
-+#endif // CONFIG_SCHED_BORE
- #ifdef CONFIG_NUMA_BALANCING
- 	SEQ_printf(m, "   %d      %d", task_node(p), task_numa_group_id(p));
- #endif
-@@ -1244,6 +1300,9 @@ void proc_sched_show_task(struct task_struct *p, struct pid_namespace *ns,
- 
- 	P(se.load.weight);
- #ifdef CONFIG_SMP
-+#ifdef CONFIG_SCHED_BORE
-+	P(se.burst_score);
-+#endif // CONFIG_SCHED_BORE
- 	P(se.avg.load_sum);
- 	P(se.avg.runnable_sum);
- 	P(se.avg.util_sum);
-diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
-index 138d9f4658d5..5146ba681894 100644
---- a/kernel/sched/fair.c
-+++ b/kernel/sched/fair.c
-@@ -58,6 +58,8 @@
- #include "stats.h"
- #include "autogroup.h"
- 
-+#include <linux/sched/bore.h>
-+
- /*
-  * The initial- and re-scaling of tunables is configurable
-  *
-@@ -67,17 +69,30 @@
-  *   SCHED_TUNABLESCALING_LOG - scaled logarithmically, *1+ilog(ncpus)
-  *   SCHED_TUNABLESCALING_LINEAR - scaled linear, *ncpus
-  *
-- * (default SCHED_TUNABLESCALING_LOG = *(1+ilog(ncpus))
-+ * BORE : default SCHED_TUNABLESCALING_NONE = *1 constant
-+ * EEVDF: default SCHED_TUNABLESCALING_LOG  = *(1+ilog(ncpus))
-  */
-+#ifdef CONFIG_SCHED_BORE
-+unsigned int sysctl_sched_tunable_scaling = SCHED_TUNABLESCALING_NONE;
-+#else // !CONFIG_SCHED_BORE
- unsigned int sysctl_sched_tunable_scaling = SCHED_TUNABLESCALING_LOG;
-+#endif // CONFIG_SCHED_BORE
- 
- /*
-  * Minimal preemption granularity for CPU-bound tasks:
-  *
-- * (default: 0.70 msec * (1 + ilog(ncpus)), units: nanoseconds)
-+ * BORE : base_slice = minimum multiple of nsecs_per_tick >= min_base_slice
-+ * (default min_base_slice = 2000000 constant, units: nanoseconds)
-+ * EEVDF: default 0.70 msec * (1 + ilog(ncpus)), units: nanoseconds
-  */
-+#ifdef CONFIG_SCHED_BORE
-+static const unsigned int nsecs_per_tick       = 1000000000ULL / HZ;
-+unsigned int sysctl_sched_min_base_slice       = CONFIG_MIN_BASE_SLICE_NS;
-+__read_mostly uint sysctl_sched_base_slice     = nsecs_per_tick;
-+#else // !CONFIG_SCHED_BORE
- unsigned int sysctl_sched_base_slice			= 700000ULL;
- static unsigned int normalized_sysctl_sched_base_slice	= 700000ULL;
-+#endif // CONFIG_SCHED_BORE
- 
- __read_mostly unsigned int sysctl_sched_migration_cost	= 500000UL;
- 
-@@ -191,6 +206,13 @@ static inline void update_load_set(struct load_weight *lw, unsigned long w)
-  *
-  * This idea comes from the SD scheduler of Con Kolivas:
-  */
-+#ifdef CONFIG_SCHED_BORE
-+static void update_sysctl(void) {
-+	sysctl_sched_base_slice = nsecs_per_tick *
-+		max(1UL, DIV_ROUND_UP(sysctl_sched_min_base_slice, nsecs_per_tick));
-+}
-+void sched_update_min_base_slice(void) { update_sysctl(); }
-+#else // !CONFIG_SCHED_BORE
- static unsigned int get_update_sysctl_factor(void)
- {
- 	unsigned int cpus = min_t(unsigned int, num_online_cpus(), 8);
-@@ -221,6 +243,7 @@ static void update_sysctl(void)
- 	SET_SYSCTL(sched_base_slice);
- #undef SET_SYSCTL
- }
-+#endif // CONFIG_SCHED_BORE
- 
- void __init sched_init_granularity(void)
- {
-@@ -700,6 +723,9 @@ static void update_entity_lag(struct cfs_rq *cfs_rq, struct sched_entity *se)
- 
- 	vlag = avg_vruntime(cfs_rq) - se->vruntime;
- 	limit = calc_delta_fair(max_t(u64, 2*se->slice, TICK_NSEC), se);
-+#ifdef CONFIG_SCHED_BORE
-+	limit >>= !!sched_bore;
-+#endif // CONFIG_SCHED_BORE
- 
- 	se->vlag = clamp(vlag, -limit, limit);
- }
-@@ -940,6 +966,10 @@ static struct sched_entity *pick_eevdf(struct cfs_rq *cfs_rq)
- 		curr = NULL;
- 
- 	if (sched_feat(RUN_TO_PARITY) && curr && protect_slice(curr))
-+#ifdef CONFIG_SCHED_BORE
-+		if (!(likely(sched_bore) && likely(sched_burst_parity_threshold) &&
-+			sched_burst_parity_threshold < cfs_rq->nr_queued))
-+#endif // CONFIG_SCHED_BORE
- 		return curr;
- 
- 	/* Pick the leftmost entity if it's eligible */
-@@ -997,6 +1027,7 @@ struct sched_entity *__pick_last_entity(struct cfs_rq *cfs_rq)
-  * Scheduling class statistics methods:
-  */
- #ifdef CONFIG_SMP
-+#if !defined(CONFIG_SCHED_BORE)
- int sched_update_scaling(void)
- {
- 	unsigned int factor = get_update_sysctl_factor();
-@@ -1008,6 +1039,7 @@ int sched_update_scaling(void)
- 
- 	return 0;
- }
-+#endif // CONFIG_SCHED_BORE
- #endif
- 
- static void clear_buddies(struct cfs_rq *cfs_rq, struct sched_entity *se);
-@@ -1237,6 +1269,10 @@ static void update_curr(struct cfs_rq *cfs_rq)
- 	if (unlikely(delta_exec <= 0))
- 		return;
- 
-+#ifdef CONFIG_SCHED_BORE
-+	curr->burst_time += delta_exec;
-+	update_burst_penalty(curr);
-+#endif // CONFIG_SCHED_BORE
- 	curr->vruntime += calc_delta_fair(delta_exec, curr);
- 	resched = update_deadline(cfs_rq, curr);
- 	update_min_vruntime(cfs_rq);
-@@ -3784,7 +3820,7 @@ dequeue_load_avg(struct cfs_rq *cfs_rq, struct sched_entity *se) { }
- 
- static void place_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags);
- 
--static void reweight_entity(struct cfs_rq *cfs_rq, struct sched_entity *se,
-+void reweight_entity(struct cfs_rq *cfs_rq, struct sched_entity *se,
- 			    unsigned long weight)
- {
- 	bool curr = cfs_rq->curr == se;
-@@ -5292,7 +5328,11 @@ place_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
- 		se->rel_deadline = 0;
- 		return;
- 	}
--
-+#ifdef CONFIG_SCHED_BORE
-+	else if (likely(sched_bore))
-+		vslice >>= !!(flags & sched_deadline_boost_mask);
-+	else
-+#endif // CONFIG_SCHED_BORE
- 	/*
- 	 * When joining the competition; the existing tasks will be,
- 	 * on average, halfway through their slice, as such start tasks
-@@ -7187,6 +7227,15 @@ static bool dequeue_task_fair(struct rq *rq, struct task_struct *p, int flags)
- 		util_est_dequeue(&rq->cfs, p);
- 
- 	util_est_update(&rq->cfs, p, flags & DEQUEUE_SLEEP);
-+#ifdef CONFIG_SCHED_BORE
-+	struct cfs_rq *cfs_rq = &rq->cfs;
-+	struct sched_entity *se = &p->se;
-+	if (flags & DEQUEUE_SLEEP && entity_is_task(se)) {
-+		if (cfs_rq->curr == se)
-+			update_curr(cfs_rq);
-+		restart_burst(se);
-+	}
-+#endif // CONFIG_SCHED_BORE
- 	if (dequeue_entities(rq, &p->se, flags) < 0)
- 		return false;
- 
-@@ -9016,16 +9065,25 @@ static void yield_task_fair(struct rq *rq)
- 	/*
- 	 * Are we the only task in the tree?
- 	 */
-+#if !defined(CONFIG_SCHED_BORE)
- 	if (unlikely(rq->nr_running == 1))
- 		return;
- 
- 	clear_buddies(cfs_rq, se);
-+#endif // CONFIG_SCHED_BORE
- 
- 	update_rq_clock(rq);
- 	/*
- 	 * Update run-time statistics of the 'current'.
- 	 */
- 	update_curr(cfs_rq);
-+#ifdef CONFIG_SCHED_BORE
-+	restart_burst_rescale_deadline(se);
-+	if (unlikely(rq->nr_running == 1))
-+		return;
-+
-+	clear_buddies(cfs_rq, se);
-+#endif // CONFIG_SCHED_BORE
- 	/*
- 	 * Tell update_rq_clock() that we've just updated,
- 	 * so we don't do microscopic update in schedule()
-@@ -13138,6 +13196,9 @@ static void task_tick_fair(struct rq *rq, struct task_struct *curr, int queued)
- static void task_fork_fair(struct task_struct *p)
- {
- 	set_task_max_allowed_capacity(p);
-+#ifdef CONFIG_SCHED_BORE
-+	update_burst_score(&p->se);
-+#endif // CONFIG_SCHED_BORE
- }
- 
- /*
-@@ -13248,6 +13309,10 @@ static void attach_task_cfs_rq(struct task_struct *p)
- 
- static void switched_from_fair(struct rq *rq, struct task_struct *p)
- {
-+	p->se.rel_deadline = 0;
-+#ifdef CONFIG_SCHED_BORE
-+	reset_task_bore(p);
-+#endif // CONFIG_SCHED_BORE
- 	detach_task_cfs_rq(p);
- }
- 
-diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index d6f82833f652..a739aafa9145 100644
---- a/kernel/sched/sched.h
-+++ b/kernel/sched/sched.h
-@@ -2100,7 +2100,11 @@ extern int group_balance_cpu(struct sched_group *sg);
- extern void update_sched_domain_debugfs(void);
- extern void dirty_sched_domain_sysctl(int cpu);
- 
-+#ifdef CONFIG_SCHED_BORE
-+extern void sched_update_min_base_slice(void);
-+#else // !CONFIG_SCHED_BORE
- extern int sched_update_scaling(void);
-+#endif // CONFIG_SCHED_BORE
- 
- static inline const struct cpumask *task_user_cpus(struct task_struct *p)
- {
-@@ -2799,7 +2803,12 @@ extern void wakeup_preempt(struct rq *rq, struct task_struct *p, int flags);
- extern __read_mostly unsigned int sysctl_sched_nr_migrate;
- extern __read_mostly unsigned int sysctl_sched_migration_cost;
- 
-+#ifdef CONFIG_SCHED_BORE
-+extern unsigned int sysctl_sched_min_base_slice;
-+extern __read_mostly uint sysctl_sched_base_slice;
-+#else // !CONFIG_SCHED_BORE
- extern unsigned int sysctl_sched_base_slice;
-+#endif // CONFIG_SCHED_BORE
- 
- extern int sysctl_resched_latency_warn_ms;
- extern int sysctl_resched_latency_warn_once;
--- 
-2.50.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Masahito S <firelzrd@gmail.com>
-Date: Sat, 10 May 2025 13:19:56 +0900
-Subject: sched/fair: Prefer full-idle SMT cores
-
-When selecting an idle CPU for a task, always try to prioritize
-full-idle SMT cores (CPUs belonging to an SMT core where all its sibling
-are idle) over partially-idle cores.
-
-Signed-off-by: Andrea Righi <arighi@nvidia.com>
-
-Original patch at:
-https://web.git.kernel.org/pub/scm/linux/kernel/git/arighi/linux.git/commit/?h=sched-smt-idle
----
- kernel/sched/fair.c | 69 ++++++++++++++++++++-------------------------
- 1 file changed, 31 insertions(+), 38 deletions(-)
-
-diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
-index 5146ba681894..a2c787cb2174 100644
---- a/kernel/sched/fair.c
-+++ b/kernel/sched/fair.c
-@@ -7605,9 +7605,14 @@ static inline int sched_balance_find_dst_cpu(struct sched_domain *sd, struct tas
- 	return new_cpu;
- }
- 
-+static inline bool is_idle_cpu(int cpu)
-+{
-+	return available_idle_cpu(cpu) || sched_idle_cpu(cpu);
-+}
-+
- static inline int __select_idle_cpu(int cpu, struct task_struct *p)
- {
--	if ((available_idle_cpu(cpu) || sched_idle_cpu(cpu)) &&
-+	if (is_idle_cpu(cpu) &&
- 	    sched_cpu_cookie_match(cpu_rq(cpu), p))
- 		return cpu;
- 
-@@ -7618,6 +7623,24 @@ static inline int __select_idle_cpu(int cpu, struct task_struct *p)
- DEFINE_STATIC_KEY_FALSE(sched_smt_present);
- EXPORT_SYMBOL_GPL(sched_smt_present);
- 
-+/*
-+ * Return true if all the CPUs in the SMT core where @cpu belongs are idle,
-+ * false otherwise.
-+ */
-+static bool is_idle_core(int cpu)
-+{
-+	int sibling;
-+
-+	if (!sched_smt_active())
-+		return is_idle_cpu(cpu);
-+
-+	for_each_cpu(sibling, cpu_smt_mask(cpu))
-+		if (!is_idle_cpu(sibling))
-+			return false;
-+
-+	return true;
-+}
-+
- static inline void set_idle_cores(int cpu, int val)
- {
- 	struct sched_domain_shared *sds;
-@@ -7700,29 +7723,6 @@ static int select_idle_core(struct task_struct *p, int core, struct cpumask *cpu
- 	return -1;
- }
- 
--/*
-- * Scan the local SMT mask for idle CPUs.
-- */
--static int select_idle_smt(struct task_struct *p, struct sched_domain *sd, int target)
--{
--	int cpu;
--
--	for_each_cpu_and(cpu, cpu_smt_mask(target), p->cpus_ptr) {
--		if (cpu == target)
--			continue;
--		/*
--		 * Check if the CPU is in the LLC scheduling domain of @target.
--		 * Due to isolcpus, there is no guarantee that all the siblings are in the domain.
--		 */
--		if (!cpumask_test_cpu(cpu, sched_domain_span(sd)))
--			continue;
--		if (available_idle_cpu(cpu) || sched_idle_cpu(cpu))
--			return cpu;
--	}
--
--	return -1;
--}
--
- #else /* CONFIG_SCHED_SMT */
- 
- static inline void set_idle_cores(int cpu, int val)
-@@ -7739,9 +7739,9 @@ static inline int select_idle_core(struct task_struct *p, int core, struct cpuma
- 	return __select_idle_cpu(core, p);
- }
- 
--static inline int select_idle_smt(struct task_struct *p, struct sched_domain *sd, int target)
-+static inline bool is_idle_core(int cpu)
- {
--	return -1;
-+	return is_idle_cpu(cpu);
- }
- 
- #endif /* CONFIG_SCHED_SMT */
-@@ -7838,7 +7838,7 @@ select_idle_capacity(struct task_struct *p, struct sched_domain *sd, int target)
- 	for_each_cpu_wrap(cpu, cpus, target) {
- 		unsigned long cpu_cap = capacity_of(cpu);
- 
--		if (!available_idle_cpu(cpu) && !sched_idle_cpu(cpu))
-+		if (!is_idle_cpu(cpu))
- 			continue;
- 
- 		fits = util_fits_cpu(task_util, util_min, util_max, cpu);
-@@ -7909,7 +7909,7 @@ static int select_idle_sibling(struct task_struct *p, int prev, int target)
- 	 */
- 	lockdep_assert_irqs_disabled();
- 
--	if ((available_idle_cpu(target) || sched_idle_cpu(target)) &&
-+	if (is_idle_core(target) &&
- 	    asym_fits_cpu(task_util, util_min, util_max, target))
- 		return target;
- 
-@@ -7917,7 +7917,7 @@ static int select_idle_sibling(struct task_struct *p, int prev, int target)
- 	 * If the previous CPU is cache affine and idle, don't be stupid:
- 	 */
- 	if (prev != target && cpus_share_cache(prev, target) &&
--	    (available_idle_cpu(prev) || sched_idle_cpu(prev)) &&
-+	    is_idle_core(prev) &&
- 	    asym_fits_cpu(task_util, util_min, util_max, prev)) {
- 
- 		if (!static_branch_unlikely(&sched_cluster_active) ||
-@@ -7949,7 +7949,7 @@ static int select_idle_sibling(struct task_struct *p, int prev, int target)
- 	if (recent_used_cpu != prev &&
- 	    recent_used_cpu != target &&
- 	    cpus_share_cache(recent_used_cpu, target) &&
--	    (available_idle_cpu(recent_used_cpu) || sched_idle_cpu(recent_used_cpu)) &&
-+	    is_idle_core(recent_used_cpu) &&
- 	    cpumask_test_cpu(recent_used_cpu, p->cpus_ptr) &&
- 	    asym_fits_cpu(task_util, util_min, util_max, recent_used_cpu)) {
- 
-@@ -7985,16 +7985,9 @@ static int select_idle_sibling(struct task_struct *p, int prev, int target)
- 	if (!sd)
- 		return target;
- 
--	if (sched_smt_active()) {
-+	if (sched_smt_active())
- 		has_idle_core = test_idle_cores(target);
- 
--		if (!has_idle_core && cpus_share_cache(prev, target)) {
--			i = select_idle_smt(p, sd, prev);
--			if ((unsigned int)i < nr_cpumask_bits)
--				return i;
--		}
--	}
--
- 	i = select_idle_cpu(p, sd, has_idle_core, target);
- 	if ((unsigned)i < nr_cpumask_bits)
- 		return i;
--- 
-2.50.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
 Date: Sun, 9 Feb 2025 19:12:10 +0100
 Subject: [BEGIN] VR HMD Fixup for AMD GPUs
@@ -55640,61 +54472,1337 @@ index 3c5f34892734..046417c31b52 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sat, 9 Aug 2025 14:44:43 +0200
-Subject: Input: gpio_keys: Temporarily make KEY_POWER instant
+Date: Mon, 11 Aug 2025 17:43:46 +0200
+Subject: drm/amdgpu/vpe: increase VPE_IDLE_TIMEOUT to fix hang on Strix Halo
 
-Systemd has a bug where it will process the KEY_POWER event that woke
-the system after it woke up, if it was produced by gpio_keys (it supports
-holding the button). This will make the system sleep instantly again and
-crash it.
+On the Asus Z13 2025, which uses a Strix Halo platform, around 8% of the
+suspend resumes result in a soft lock around 1 second after the screen
+turns on (it freezes). This happens due to power gating VPE when it is
+not used, which happens 1 second after inactivity.
 
-Therefore, mute the event on wake-up checks. Power_key should only be reported when driven as an interrupt.
+Specifically, the VPE gating after resume is as follows: an initial
+ungate, followed by a gate in the resume process. Then,
+amdgpu_device_delayed_init_work_handler with a delay of 2s is scheduled
+to run tests, one of which is testing VPE in vpe_ring_test_ib. This
+causes an ungate, After that test, vpe_idle_work_handler is scheduled
+with VPE_IDLE_TIMEOUT (1s).
+
+When vpe_idle_work_handler runs and tries to gate VPE, it causes the
+SMU to hang and partially freezes half of the GPU IPs, with the thread
+that called the command being stuck processing it.
+
+Specifically, after that SMU command tries to run, we get the following:
+
+snd_hda_intel 0000:c4:00.1: Refused to change power state from D0 to D3hot
+...
+xhci_hcd 0000:c4:00.4: Refused to change power state from D0 to D3hot
+...
+amdgpu 0000:c4:00.0: amdgpu: SMU: I'm not done with your previous command: SMN_C2PMSG_66:0x00000032 SMN_C2PMSG_82:0x00000000
+amdgpu 0000:c4:00.0: amdgpu: Failed to power gate VPE!
+[drm:vpe_set_powergating_state [amdgpu]] *ERROR* Dpm disable vpe failed, ret = -62.
+amdgpu 0000:c4:00.0: [drm] *ERROR* [CRTC:93:crtc-0] flip_done timed out
+amdgpu 0000:c4:00.0: amdgpu: SMU: I'm not done with your previous command: SMN_C2PMSG_66:0x00000032 SMN_C2PMSG_82:0x00000000
+amdgpu 0000:c4:00.0: amdgpu: Failed to power gate JPEG!
+[drm:jpeg_v4_0_5_set_powergating_state [amdgpu]] *ERROR* Dpm disable jpeg failed, ret = -62.
+amdgpu 0000:c4:00.0: amdgpu: SMU: I'm not done with your previous command: SMN_C2PMSG_66:0x00000032 SMN_C2PMSG_82:0x00000000
+amdgpu 0000:c4:00.0: amdgpu: Failed to power gate VCN instance 0!
+[drm:vcn_v4_0_5_stop [amdgpu]] *ERROR* Dpm disable uvd failed, ret = -62.
+thunderbolt 0000:c6:00.5: 0: timeout reading config space 1 from 0xd3
+thunderbolt 0000:c6:00.5: 0: timeout reading config space 2 from 0x5
+thunderbolt 0000:c6:00.5: Refused to change power state from D0 to D3hot
+amdgpu 0000:c4:00.0: [drm] *ERROR* [CRTC:97:crtc-1] flip_done timed out
+amdgpu 0000:c4:00.0: amdgpu: SMU: I'm not done with your previous command: SMN_C2PMSG_66:0x00000032 SMN_C2PMSG_82:0x00000000
+amdgpu 0000:c4:00.0: amdgpu: Failed to power gate VCN instance 1!
+
+In addition to e.g., kwin errors in journalctl. 0000:c4.00.0 is the GPU.
+Interestingly, 0000:c4.00.6, which is another HDA block, 0000:c4.00.5,
+a PCI controller, and 0000:c4.00.2, resume normally. 0x00000032 is the
+PowerDownVpe(50) command which is the common failure point in all
+failed resumes.
+
+On a normal resume, we should get the following power gates:
+amdgpu 0000:c4:00.0: amdgpu: smu send message: PowerDownVpe(50) param: 0x00000000, resp: 0x00000001
+amdgpu 0000:c4:00.0: amdgpu: smu send message: PowerDownJpeg0(33) param: 0x00000000, resp: 0x00000001
+amdgpu 0000:c4:00.0: amdgpu: smu send message: PowerDownJpeg1(38) param: 0x00010000, resp: 0x00000001
+amdgpu 0000:c4:00.0: amdgpu: smu send message: PowerDownVcn1(4) param: 0x00010000, resp: 0x00000001
+amdgpu 0000:c4:00.0: amdgpu: smu send message: PowerDownVcn0(6) param: 0x00000000, resp: 0x00000001
+amdgpu 0000:c4:00.0: amdgpu: smu send message: PowerUpVcn0(7) param: 0x00000000, resp: 0x00000001
+amdgpu 0000:c4:00.0: amdgpu: smu send message: PowerUpVcn1(5) param: 0x00010000, resp: 0x00000001
+amdgpu 0000:c4:00.0: amdgpu: smu send message: PowerUpJpeg0(34) param: 0x00000000, resp: 0x00000001
+amdgpu 0000:c4:00.0: amdgpu: smu send message: PowerUpJpeg1(39) param: 0x00010000, resp: 0x00000001
+
+To fix this, increase VPE_IDLE_TIMEOUT to 2 seconds. This increases
+reliability from 4-25 suspends to 200+ (tested) suspends with a cycle
+time of 12s sleep, 8s resume. The suspected reason here is that 1s
+was a borderline delay before, and it does not give enough time for
+VPE to be ready to be gated.
+
+Fixes: 5f82a0c90cca ("drm/amdgpu/vpe: enable vpe dpm")
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/gpu/drm/amd/amdgpu/amdgpu_vpe.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_vpe.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_vpe.c
+index 121ee17b522b..24f09e457352 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_vpe.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_vpe.c
+@@ -34,8 +34,8 @@
+ /* VPE CSA resides in the 4th page of CSA */
+ #define AMDGPU_CSA_VPE_OFFSET 	(4096 * 3)
+ 
+-/* 1 second timeout */
+-#define VPE_IDLE_TIMEOUT	msecs_to_jiffies(1000)
++/* 2 second timeout */
++#define VPE_IDLE_TIMEOUT	msecs_to_jiffies(2000)
+ 
+ #define VPE_MAX_DPM_LEVEL			4
+ #define FIXED1_8_BITS_PER_FRACTIONAL_PART	8
+-- 
+2.50.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Wed, 20 Aug 2025 09:15:05 +0200
+Subject: platform/x86: ayaneo-ec: Add Ayaneo Embedded Controller platform
+ driver
+
+Recent Ayaneo devices feature an ACPI mapped Embedded Controller (EC)
+with standard addresses across models that provides access to fan
+speed, fan control, battery charge limits, and controller power
+controls. Introduce a new driver stub that will handle these driver
+features.
 
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- drivers/input/keyboard/gpio_keys.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ MAINTAINERS                      |  6 +++
+ drivers/platform/x86/Kconfig     |  8 +++
+ drivers/platform/x86/Makefile    |  3 ++
+ drivers/platform/x86/ayaneo-ec.c | 89 ++++++++++++++++++++++++++++++++
+ 4 files changed, 106 insertions(+)
+ create mode 100644 drivers/platform/x86/ayaneo-ec.c
 
-diff --git a/drivers/input/keyboard/gpio_keys.c b/drivers/input/keyboard/gpio_keys.c
-index f9db86da0818..afdf82cf7d91 100644
---- a/drivers/input/keyboard/gpio_keys.c
-+++ b/drivers/input/keyboard/gpio_keys.c
-@@ -357,7 +357,7 @@ static struct attribute *gpio_keys_attrs[] = {
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 94ef0d1187eb..17a73dc46a6a 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -3958,6 +3958,12 @@ W:	https://ez.analog.com/linux-software-drivers
+ F:	Documentation/devicetree/bindings/pwm/adi,axi-pwmgen.yaml
+ F:	drivers/pwm/pwm-axi-pwmgen.c
+ 
++AYANEO PLATFORM EC DRIVER
++M:	Antheas Kapenekakis <lkml@antheas.dev>
++L:	platform-driver-x86@vger.kernel.org
++S:	Maintained
++F:	drivers/platform/x86/ayaneo-ec.c
++
+ AZ6007 DVB DRIVER
+ M:	Mauro Carvalho Chehab <mchehab@kernel.org>
+ L:	linux-media@vger.kernel.org
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index 425bdb0387b1..27f900afc65c 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -338,6 +338,14 @@ config ASUS_TF103C_DOCK
+ 	  If you have an Asus TF103C tablet say Y or M here, for a generic x86
+ 	  distro config say M here.
+ 
++config AYANEO_EC
++	tristate "Ayaneo EC platform control"
++	depends on X86
++	help
++		Enables support for the platform EC of Ayaneo devices. This
++		includes fan control, fan speed, charge limit, and magic
++		module support.
++
+ config MERAKI_MX100
+ 	tristate "Cisco Meraki MX100 Platform Driver"
+ 	depends on GPIOLIB
+diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
+index 3e6993d290f4..f3e8ecf98361 100644
+--- a/drivers/platform/x86/Makefile
++++ b/drivers/platform/x86/Makefile
+@@ -43,6 +43,9 @@ obj-$(CONFIG_ASUS_TF103C_DOCK)	+= asus-tf103c-dock.o
+ obj-$(CONFIG_EEEPC_LAPTOP)	+= eeepc-laptop.o
+ obj-$(CONFIG_EEEPC_WMI)		+= eeepc-wmi.o
+ 
++# Ayaneo
++obj-$(CONFIG_AYANEO_EC)		+= ayaneo-ec.o
++
+ # Cisco/Meraki
+ obj-$(CONFIG_MERAKI_MX100)	+= meraki-mx100.o
+ 
+diff --git a/drivers/platform/x86/ayaneo-ec.c b/drivers/platform/x86/ayaneo-ec.c
+new file mode 100644
+index 000000000000..55ae9a5cbd47
+--- /dev/null
++++ b/drivers/platform/x86/ayaneo-ec.c
+@@ -0,0 +1,89 @@
++// SPDX-License-Identifier: GPL-2.0+
++/*
++ * Platform driver for the Embedded Controller (EC) of Ayaneo devices. Handles
++ * hwmon (fan speed, fan control), battery charge limits, and magic module
++ * control (connected modules, controller disconnection).
++ * 
++ * Copyright (C) 2025 Antheas Kapenekakis <lkml@antheas.dev>
++ */
++
++#include <linux/dmi.h>
++#include <linux/init.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++
++struct ayaneo_ec_quirk {
++};
++
++struct ayaneo_ec_platform_data {
++	struct platform_device *pdev;
++	struct ayaneo_ec_quirk *quirks;
++};
++
++static const struct ayaneo_ec_quirk ayaneo3 = {
++};
++
++static const struct dmi_system_id dmi_table[] = {
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "AYANEO"),
++			DMI_EXACT_MATCH(DMI_BOARD_NAME, "AYANEO 3"),
++		},
++		.driver_data = (void *)&ayaneo3,
++	},
++	{},
++};
++
++static int ayaneo_ec_probe(struct platform_device *pdev)
++{
++	const struct dmi_system_id *dmi_entry;
++	struct ayaneo_ec_platform_data *data;
++
++	dmi_entry = dmi_first_match(dmi_table);
++	if (!dmi_entry)
++		return -ENODEV;
++
++	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	data->pdev = pdev;
++	data->quirks = dmi_entry->driver_data;
++	platform_set_drvdata(pdev, data);
++
++	return 0;
++}
++
++static struct platform_driver ayaneo_platform_driver = {
++	.driver = {
++		.name = "ayaneo-ec",
++	},
++	.probe = ayaneo_ec_probe,
++};
++
++static struct platform_device *ayaneo_platform_device;
++
++static int __init ayaneo_ec_init(void)
++{
++	ayaneo_platform_device =
++		platform_create_bundle(&ayaneo_platform_driver,
++				       ayaneo_ec_probe, NULL, 0, NULL, 0);
++
++	return PTR_ERR_OR_ZERO(ayaneo_platform_device);
++}
++
++static void __exit ayaneo_ec_exit(void)
++{
++	platform_device_unregister(ayaneo_platform_device);
++	platform_driver_unregister(&ayaneo_platform_driver);
++}
++
++MODULE_DEVICE_TABLE(dmi, dmi_table);
++
++module_init(ayaneo_ec_init);
++module_exit(ayaneo_ec_exit);
++
++MODULE_AUTHOR("Antheas Kapenekakis <lkml@antheas.dev>");
++MODULE_DESCRIPTION("Ayaneo Embedded Controller (EC) platform features");
++MODULE_LICENSE("GPL");
+-- 
+2.50.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Wed, 20 Aug 2025 02:39:41 +0200
+Subject: platform/x86: ayaneo-ec: Add hwmon support
+
+Add hwmon single fan sensor reads and control for Ayaneo devices.
+The register and method of access is the same for all devices.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/platform/x86/Kconfig     |   2 +
+ drivers/platform/x86/ayaneo-ec.c | 132 +++++++++++++++++++++++++++++++
+ sync-ko.sh                       |   2 +-
+ 3 files changed, 135 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index 27f900afc65c..8caf575415b0 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -341,6 +341,8 @@ config ASUS_TF103C_DOCK
+ config AYANEO_EC
+ 	tristate "Ayaneo EC platform control"
+ 	depends on X86
++	depends on ACPI_EC
++	depends on HWMON
+ 	help
+ 		Enables support for the platform EC of Ayaneo devices. This
+ 		includes fan control, fan speed, charge limit, and magic
+diff --git a/drivers/platform/x86/ayaneo-ec.c b/drivers/platform/x86/ayaneo-ec.c
+index 55ae9a5cbd47..ede8fa063ef4 100644
+--- a/drivers/platform/x86/ayaneo-ec.c
++++ b/drivers/platform/x86/ayaneo-ec.c
+@@ -7,13 +7,23 @@
+  * Copyright (C) 2025 Antheas Kapenekakis <lkml@antheas.dev>
+  */
+ 
++#include <linux/acpi.h>
+ #include <linux/dmi.h>
++#include <linux/hwmon.h>
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+ 
++#define AYANEO_PWM_ENABLE_REG	 0x4A
++#define AYANEO_PWM_REG		 0x4B
++#define AYANEO_PWM_MODE_AUTO	 0x00
++#define AYANEO_PWM_MODE_MANUAL	 0x01
++
++#define AYANEO_FAN_REG		 0x76
++
+ struct ayaneo_ec_quirk {
++	bool has_fan_control;
  };
- ATTRIBUTE_GROUPS(gpio_keys);
  
--static void gpio_keys_gpio_report_event(struct gpio_button_data *bdata)
-+static void gpio_keys_gpio_report_event(struct gpio_button_data *bdata, bool check)
+ struct ayaneo_ec_platform_data {
+@@ -22,6 +32,7 @@ struct ayaneo_ec_platform_data {
+ };
+ 
+ static const struct ayaneo_ec_quirk ayaneo3 = {
++	.has_fan_control = true,
+ };
+ 
+ static const struct dmi_system_id dmi_table[] = {
+@@ -35,10 +46,124 @@ static const struct dmi_system_id dmi_table[] = {
+ 	{},
+ };
+ 
++/* Callbacks for hwmon interface */
++static umode_t ayaneo_ec_hwmon_is_visible(const void *drvdata,
++				       enum hwmon_sensor_types type, u32 attr,
++				       int channel)
++{
++	switch (type) {
++	case hwmon_fan:
++		return 0444;
++	case hwmon_pwm:
++		return 0644;
++	default:
++		return 0;
++	}
++}
++
++static int ayaneo_ec_read(struct device *dev, enum hwmon_sensor_types type,
++			     u32 attr, int channel, long *val)
++{
++	u8 tmp;
++	int ret;
++
++	switch (type) {
++	case hwmon_fan:
++		switch (attr) {
++		case hwmon_fan_input:
++			ret = ec_read(AYANEO_FAN_REG, &tmp);
++			if (ret)
++				return ret;
++			*val = tmp << 8;
++			ret = ec_read(AYANEO_FAN_REG + 1, &tmp);
++			if (ret)
++				return ret;
++			*val += tmp;
++			return 0;
++		default:
++			break;
++		}
++		break;
++	case hwmon_pwm:
++		switch (attr) {
++		case hwmon_pwm_input:
++			ret = ec_read(AYANEO_PWM_REG, &tmp);
++			if (ret)
++				return ret;
++			*val = (255 * tmp) / 100;
++			if (*val < 0 || *val > 255)
++				return -EINVAL;
++			return 0;
++		case hwmon_pwm_enable:
++			ret = ec_read(AYANEO_PWM_ENABLE_REG, &tmp);
++			if (ret)
++				return ret;
++			if (tmp == AYANEO_PWM_MODE_MANUAL)
++				*val = 1;
++			else
++				*val = 2;
++			return 0;
++		default:
++			break;
++		}
++		break;
++	default:
++		break;
++	}
++	return -EOPNOTSUPP;
++}
++
++static int ayaneo_ec_write(struct device *dev, enum hwmon_sensor_types type,
++			      u32 attr, int channel, long val)
++{
++	switch (type) {
++	case hwmon_pwm:
++		switch (attr) {
++		case hwmon_pwm_enable:
++			if (val == 1)
++				return ec_write(AYANEO_PWM_ENABLE_REG,
++						AYANEO_PWM_MODE_MANUAL);
++			else if (val == 2)
++				return ec_write(AYANEO_PWM_ENABLE_REG,
++						AYANEO_PWM_MODE_AUTO);
++			else
++				return -EINVAL;
++		case hwmon_pwm_input:
++			if (val < 0 || val > 255)
++				return -EINVAL;
++			return ec_write(AYANEO_PWM_REG, (val * 100) / 255);
++		default:
++			break;
++		}
++		break;
++	default:
++		break;
++	}
++	return -EOPNOTSUPP;
++}
++
++static const struct hwmon_ops ayaneo_ec_hwmon_ops = {
++	.is_visible = ayaneo_ec_hwmon_is_visible,
++	.read = ayaneo_ec_read,
++	.write = ayaneo_ec_write,
++};
++
++static const struct hwmon_channel_info *const ayaneo_ec_sensors[] = {
++	HWMON_CHANNEL_INFO(fan, HWMON_F_INPUT),
++	HWMON_CHANNEL_INFO(pwm, HWMON_PWM_INPUT | HWMON_PWM_ENABLE),
++	NULL,
++};
++
++static const struct hwmon_chip_info ayaneo_ec_chip_info = {
++	.ops = &ayaneo_ec_hwmon_ops,
++	.info = ayaneo_ec_sensors,
++};
++
+ static int ayaneo_ec_probe(struct platform_device *pdev)
  {
- 	const struct gpio_keys_button *button = bdata->button;
- 	struct input_dev *input = bdata->input;
-@@ -376,6 +376,8 @@ static void gpio_keys_gpio_report_event(struct gpio_button_data *bdata)
- 	if (type == EV_ABS) {
- 		if (state)
- 			input_event(input, type, button->code, button->value);
-+	} else if (check && type == EV_KEY && *bdata->code == KEY_POWER && state) {
-+		input_event(input, EV_KEY, KEY_POWER, 0);
- 	} else {
- 		input_event(input, type, *bdata->code, state);
- 	}
-@@ -383,7 +385,7 @@ static void gpio_keys_gpio_report_event(struct gpio_button_data *bdata)
+ 	const struct dmi_system_id *dmi_entry;
+ 	struct ayaneo_ec_platform_data *data;
++	struct device *hwdev;
  
- static void gpio_keys_debounce_event(struct gpio_button_data *bdata)
- {
--	gpio_keys_gpio_report_event(bdata);
-+	gpio_keys_gpio_report_event(bdata, false);
- 	input_sync(bdata->input);
+ 	dmi_entry = dmi_first_match(dmi_table);
+ 	if (!dmi_entry)
+@@ -52,6 +177,13 @@ static int ayaneo_ec_probe(struct platform_device *pdev)
+ 	data->quirks = dmi_entry->driver_data;
+ 	platform_set_drvdata(pdev, data);
  
- 	if (bdata->button->wakeup)
-@@ -712,7 +714,7 @@ static void gpio_keys_report_state(struct gpio_keys_drvdata *ddata)
- 	for (i = 0; i < ddata->pdata->nbuttons; i++) {
- 		struct gpio_button_data *bdata = &ddata->data[i];
- 		if (bdata->gpiod)
--			gpio_keys_gpio_report_event(bdata);
-+			gpio_keys_gpio_report_event(bdata, true);
- 	}
- 	input_sync(input);
++	if (data->quirks->has_fan_control) {
++		hwdev = devm_hwmon_device_register_with_info(
++			&pdev->dev, "ayaneo_ec", NULL, &ayaneo_ec_chip_info, NULL);
++		if (IS_ERR(hwdev))
++			return PTR_ERR(hwdev);
++	}
++
+ 	return 0;
  }
+ 
+diff --git a/sync-ko.sh b/sync-ko.sh
+index d11949f53527..5fbe0a4b1c1a 100755
+--- a/sync-ko.sh
++++ b/sync-ko.sh
+@@ -15,7 +15,7 @@ MODULE=$(basename "$1")
+ MODULE=${MODULE%.ko}
+ MPATH=$1
+ 
+-make -C /lib/modules/$(uname -r)/build M=$(pwd)/$DIR modules -j $(expr $(nproc) - 2)
++make -C /lib/modules/$(uname -r)/build M=$(pwd)/$DIR $MODULE.ko -j $(expr $(nproc) - 2)
+ 
+ scp $MPATH $DHOST:/tmp/$MODULE.ko
+ 
+-- 
+2.50.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Wed, 20 Aug 2025 03:01:30 +0200
+Subject: platform/x86: ayaneo-ec: Add charge control support
+
+Ayaneo devices support charge inhibition via the EC. This inhibition
+only works while the device is powered on, and resets between restarts.
+However, it is maintained across suspend/resume cycles.
+
+The EC does not support charge threshold control. Instead, userspace
+software on Windows manually toggles charge inhibition depending on
+battery level.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/platform/x86/Kconfig     |   1 +
+ drivers/platform/x86/ayaneo-ec.c | 110 +++++++++++++++++++++++++++++++
+ 2 files changed, 111 insertions(+)
+
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index 8caf575415b0..d705f5daf235 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -342,6 +342,7 @@ config AYANEO_EC
+ 	tristate "Ayaneo EC platform control"
+ 	depends on X86
+ 	depends on ACPI_EC
++	depends on ACPI_BATTERY
+ 	depends on HWMON
+ 	help
+ 		Enables support for the platform EC of Ayaneo devices. This
+diff --git a/drivers/platform/x86/ayaneo-ec.c b/drivers/platform/x86/ayaneo-ec.c
+index ede8fa063ef4..ec3583e94b99 100644
+--- a/drivers/platform/x86/ayaneo-ec.c
++++ b/drivers/platform/x86/ayaneo-ec.c
+@@ -14,6 +14,7 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
++#include <acpi/battery.h>
+ 
+ #define AYANEO_PWM_ENABLE_REG	 0x4A
+ #define AYANEO_PWM_REG		 0x4B
+@@ -22,17 +23,27 @@
+ 
+ #define AYANEO_FAN_REG		 0x76
+ 
++#define EC_CHARGE_CONTROL_BEHAVIOURS                         \
++	(BIT(POWER_SUPPLY_CHARGE_BEHAVIOUR_AUTO) |           \
++	 BIT(POWER_SUPPLY_CHARGE_BEHAVIOUR_INHIBIT_CHARGE))
++#define AYANEO_CHARGE_REG		0x1e
++#define AYANEO_CHARGE_VAL_AUTO		0xaa
++#define AYANEO_CHARGE_VAL_INHIBIT	0x55
++
+ struct ayaneo_ec_quirk {
+ 	bool has_fan_control;
++	bool has_charge_control;
+ };
+ 
+ struct ayaneo_ec_platform_data {
+ 	struct platform_device *pdev;
+ 	struct ayaneo_ec_quirk *quirks;
++	struct acpi_battery_hook battery_hook;
+ };
+ 
+ static const struct ayaneo_ec_quirk ayaneo3 = {
+ 	.has_fan_control = true,
++	.has_charge_control = true,
+ };
+ 
+ static const struct dmi_system_id dmi_table[] = {
+@@ -159,6 +170,96 @@ static const struct hwmon_chip_info ayaneo_ec_chip_info = {
+ 	.info = ayaneo_ec_sensors,
+ };
+ 
++static int ayaneo_psy_ext_get_prop(struct power_supply *psy,
++				const struct power_supply_ext *ext,
++				void *data,
++				enum power_supply_property psp,
++				union power_supply_propval *val)
++{
++	int ret;
++	u8 tmp;
++
++	switch (psp) {
++	case POWER_SUPPLY_PROP_CHARGE_BEHAVIOUR:
++		ret = ec_read(AYANEO_CHARGE_REG, &tmp);
++		if (ret)
++			return ret;
++
++		if (tmp == AYANEO_CHARGE_VAL_INHIBIT)
++			val->intval = POWER_SUPPLY_CHARGE_BEHAVIOUR_INHIBIT_CHARGE;
++		else
++			val->intval = POWER_SUPPLY_CHARGE_BEHAVIOUR_AUTO;
++		return 0;
++	default:
++		return -EINVAL;
++	}
++}
++
++static int ayaneo_psy_ext_set_prop(struct power_supply *psy,
++				const struct power_supply_ext *ext,
++				void *data,
++				enum power_supply_property psp,
++				const union power_supply_propval *val)
++{
++	u8 raw_val;
++
++	switch (psp) {
++	case POWER_SUPPLY_PROP_CHARGE_BEHAVIOUR:
++		switch (val->intval) {
++		case POWER_SUPPLY_CHARGE_BEHAVIOUR_AUTO:
++			raw_val = AYANEO_CHARGE_VAL_AUTO;
++			break;
++		case POWER_SUPPLY_CHARGE_BEHAVIOUR_INHIBIT_CHARGE:
++			raw_val = AYANEO_CHARGE_VAL_INHIBIT;
++			break;
++		default:
++			return -EINVAL;
++		}
++		return ec_write(AYANEO_CHARGE_REG, raw_val);
++	default:
++		return -EINVAL;
++	}
++}
++
++static int ayaneo_psy_prop_is_writeable(struct power_supply *psy,
++				     const struct power_supply_ext *ext,
++				     void *data,
++				     enum power_supply_property psp)
++{
++	return true;
++}
++
++static const enum power_supply_property ayaneo_psy_ext_props[] = {
++	POWER_SUPPLY_PROP_CHARGE_BEHAVIOUR,
++};
++
++static const struct power_supply_ext ayaneo_psy_ext = {
++	.name			= "ayaneo-charge-control",
++	.properties		= ayaneo_psy_ext_props,
++	.num_properties		= ARRAY_SIZE(ayaneo_psy_ext_props),
++	.charge_behaviours	= EC_CHARGE_CONTROL_BEHAVIOURS,
++	.get_property		= ayaneo_psy_ext_get_prop,
++	.set_property		= ayaneo_psy_ext_set_prop,
++	.property_is_writeable	= ayaneo_psy_prop_is_writeable,
++};
++
++static int ayaneo_add_battery(struct power_supply *battery,
++			   struct acpi_battery_hook *hook)
++{
++	struct ayaneo_ec_platform_data *data =
++		container_of(hook, struct ayaneo_ec_platform_data, battery_hook);
++
++	return power_supply_register_extension(battery, &ayaneo_psy_ext,
++					       &data->pdev->dev, NULL);
++}
++
++static int ayaneo_remove_battery(struct power_supply *battery,
++			      struct acpi_battery_hook *hook)
++{
++	power_supply_unregister_extension(battery, &ayaneo_psy_ext);
++	return 0;
++}
++
+ static int ayaneo_ec_probe(struct platform_device *pdev)
+ {
+ 	const struct dmi_system_id *dmi_entry;
+@@ -184,6 +285,15 @@ static int ayaneo_ec_probe(struct platform_device *pdev)
+ 			return PTR_ERR(hwdev);
+ 	}
+ 
++	if (data->quirks->has_charge_control) {
++		data->battery_hook.add_battery = ayaneo_add_battery;
++		data->battery_hook.remove_battery = ayaneo_remove_battery;
++		data->battery_hook.name = "Ayaneo Battery";
++		int ret = devm_battery_hook_register(&pdev->dev, &data->battery_hook);
++		if (ret)
++			return ret;
++	}
++
+ 	return 0;
+ }
+ 
+-- 
+2.50.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Wed, 20 Aug 2025 10:17:30 +0200
+Subject: platform/x86: ayaneo-ec: Add controller power and modules attributes
+
+The Ayaneo 3 features hot-swappable controller modules. The ejection
+and management is done through HID. However, after ejecting the modules,
+the controller needs to be power cycled via the EC to re-initialize.
+
+For this, the EC provides a variable that holds whether the left or
+right modules are connected, and a power control register to turn
+the controller on or off. After ejecting the modules, the controller
+should be turned off. Then, after both modules are reinserted,
+the controller may be powered on again to re-initialize.
+
+This patch introduces two new firmware attributes:
+ - `controller_modules`: a read-only attribute that indicates whether
+   the left and right modules are connected (none, left, right, both).
+ - `controller_power`: a read-write attribute that allows the user
+   to turn the controller on or off (with 'on'/'off').
+
+Therefore, after ejection is complete, userspace can power off the
+controller, then wait until both modules have been reinserted
+(`controller_modules` will return 'both') to turn on the controller.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/platform/x86/ayaneo-ec.c | 238 ++++++++++++++++++++++++++++++-
+ 1 file changed, 236 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/platform/x86/ayaneo-ec.c b/drivers/platform/x86/ayaneo-ec.c
+index ec3583e94b99..eb19307e5818 100644
+--- a/drivers/platform/x86/ayaneo-ec.c
++++ b/drivers/platform/x86/ayaneo-ec.c
+@@ -16,6 +16,10 @@
+ #include <linux/platform_device.h>
+ #include <acpi/battery.h>
+ 
++#include "firmware_attributes_class.h"
++
++#define DRIVER_NAME "ayaneo-ec" 
++
+ #define AYANEO_PWM_ENABLE_REG	 0x4A
+ #define AYANEO_PWM_REG		 0x4B
+ #define AYANEO_PWM_MODE_AUTO	 0x00
+@@ -30,20 +34,60 @@
+ #define AYANEO_CHARGE_VAL_AUTO		0xaa
+ #define AYANEO_CHARGE_VAL_INHIBIT	0x55
+ 
++#define AYANEO_POWER_REG	0x2d
++#define AYANEO_POWER_OFF	0xfe
++#define AYANEO_POWER_ON		0xff
++#define AYANEO_MODULE_REG	0x2f
++#define AYANEO_MODULE_LEFT	BIT(0)
++#define AYANEO_MODULE_RIGHT	BIT(1)
++
++enum ayaneo_fw_attr_id {
++	AYANEO_ATTR_CONTROLLER_MODULES,
++	AYANEO_ATTR_CONTROLLER_POWER,
++};
++
++static const char *const ayaneo_fw_attr_name[] = {
++	[AYANEO_ATTR_CONTROLLER_MODULES] = "controller_modules",
++	[AYANEO_ATTR_CONTROLLER_POWER] = "controller_power",
++};
++
++static const char *const ayaneo_fw_attr_desc[] = {
++	[AYANEO_ATTR_CONTROLLER_MODULES] =
++		"Which controller Magic Modules are connected (none, left, right, both)",
++	[AYANEO_ATTR_CONTROLLER_POWER] = "Controller power state (on, off)",
++};
++
++#define AYANEO_ATTR_ENUM_MAX_ATTRS 7
++#define AYANEO_ATTR_LANGUAGE_CODE "en_US.UTF-8"
++
+ struct ayaneo_ec_quirk {
+ 	bool has_fan_control;
+ 	bool has_charge_control;
++	bool has_magic_modules;
++	bool has_controller_power;
+ };
+ 
+ struct ayaneo_ec_platform_data {
+ 	struct platform_device *pdev;
+ 	struct ayaneo_ec_quirk *quirks;
+ 	struct acpi_battery_hook battery_hook;
++	struct device *fw_attrs_dev;
++	struct kset *fw_attrs_kset;
++};
++
++struct ayaneo_fw_attr {
++	struct ayaneo_ec_platform_data *data;
++	enum ayaneo_fw_attr_id fw_attr_id;
++	struct attribute_group attr_group;
++	struct kobj_attribute display_name;
++	struct kobj_attribute current_value;
+ };
+ 
+ static const struct ayaneo_ec_quirk ayaneo3 = {
+ 	.has_fan_control = true,
+ 	.has_charge_control = true,
++	.has_magic_modules = true,
++	.has_controller_power = true,
+ };
+ 
+ static const struct dmi_system_id dmi_table[] = {
+@@ -260,11 +304,165 @@ static int ayaneo_remove_battery(struct power_supply *battery,
+ 	return 0;
+ }
+ 
++static void ayaneo_kset_unregister(void *data)
++{
++	struct kset *kset = data;
++
++	kset_unregister(kset);
++}
++
++static void ayaneo_fw_attrs_dev_unregister(void *data)
++{
++	struct device *fw_attrs_dev = data;
++
++	device_unregister(fw_attrs_dev);
++}
++
++static ssize_t display_name_language_code_show(struct kobject *kobj,
++					       struct kobj_attribute *attr,
++					       char *buf)
++{
++	return sysfs_emit(buf, "%s\n", AYANEO_ATTR_LANGUAGE_CODE);
++}
++
++static struct kobj_attribute fw_attr_display_name_language_code =
++	__ATTR_RO(display_name_language_code);
++
++static ssize_t display_name_show(struct kobject *kobj,
++				 struct kobj_attribute *attr, char *buf)
++{
++	struct ayaneo_fw_attr *fw_attr =
++		container_of(attr, struct ayaneo_fw_attr, display_name);
++
++	return sysfs_emit(buf, "%s\n", ayaneo_fw_attr_desc[fw_attr->fw_attr_id]);
++}
++
++static ssize_t current_value_show(struct kobject *kobj,
++				  struct kobj_attribute *attr, char *buf)
++{
++	struct ayaneo_fw_attr *fw_attr =
++		container_of(attr, struct ayaneo_fw_attr, current_value);
++	bool left, right;
++	char *out;
++	int ret;
++	u8 tmp;
++
++	switch (fw_attr->fw_attr_id) {
++	case AYANEO_ATTR_CONTROLLER_MODULES:
++		ret = ec_read(AYANEO_MODULE_REG, &tmp);
++		if (ret)
++			return ret;
++		left = !(tmp & AYANEO_MODULE_LEFT);
++		right = !(tmp & AYANEO_MODULE_RIGHT);
++
++		if (left && right)
++			out = "both";
++		else if (left)
++			out = "left";
++		else if (right)
++			out = "right";
++		else
++			out = "none";
++
++		return sysfs_emit(buf, "%s\n", out);
++	case AYANEO_ATTR_CONTROLLER_POWER:
++		ret = ec_read(AYANEO_POWER_REG, &tmp);
++		if (ret)
++			return ret;
++
++		if (tmp == AYANEO_POWER_OFF)
++			out = "off";
++		else
++			out = "on";
++
++		return sysfs_emit(buf, "%s\n", out);
++	}
++	return -EINVAL;
++}
++
++static ssize_t current_value_store(struct kobject *kobj,
++				   struct kobj_attribute *attr, const char *buf,
++				   size_t count)
++{
++	struct ayaneo_fw_attr *fw_attr =
++		container_of(attr, struct ayaneo_fw_attr, current_value);
++	int ret;
++
++	switch (fw_attr->fw_attr_id) {
++	case AYANEO_ATTR_CONTROLLER_POWER:
++		if (sysfs_streq(buf, "on"))
++			ret = ec_write(AYANEO_POWER_REG, AYANEO_POWER_ON);
++		else if (sysfs_streq(buf, "off"))
++			ret = ec_write(AYANEO_POWER_REG, AYANEO_POWER_OFF);
++		if (ret)
++			return ret;
++		return count;
++	case AYANEO_ATTR_CONTROLLER_MODULES:
++		return -EINVAL;
++	}
++	return -EINVAL;
++}
++
++static ssize_t type_show(struct kobject *kobj, struct kobj_attribute *attr,
++			 char *buf)
++{
++	return sysfs_emit(buf, "string\n");
++}
++
++static struct kobj_attribute fw_attr_type_string = {
++	.attr = { .name = "type", .mode = 0444 },
++	.show = type_show,
++};
++
++static int ayaneo_fw_attr_init(struct ayaneo_ec_platform_data *data,
++			       const enum ayaneo_fw_attr_id fw_attr_id,
++			       bool read_only)
++{
++	struct ayaneo_fw_attr *fw_attr;
++	struct attribute **attrs;
++	int idx = 0;
++
++	fw_attr = devm_kzalloc(&data->pdev->dev, sizeof(*fw_attr), GFP_KERNEL);
++	if (!fw_attr)
++		return -ENOMEM;
++
++	attrs = devm_kcalloc(&data->pdev->dev, AYANEO_ATTR_ENUM_MAX_ATTRS + 1,
++			     sizeof(*attrs), GFP_KERNEL);
++	if (!attrs)
++		return -ENOMEM;
++
++	fw_attr->data = data;
++	fw_attr->fw_attr_id = fw_attr_id;
++	fw_attr->attr_group.name = ayaneo_fw_attr_name[fw_attr_id];
++	fw_attr->attr_group.attrs = attrs;
++
++	attrs[idx++] = &fw_attr_type_string.attr;
++	attrs[idx++] = &fw_attr_display_name_language_code.attr;
++
++	sysfs_attr_init(&fw_attr->display_name.attr);
++	fw_attr->display_name.attr.name = "display_name";
++	fw_attr->display_name.attr.mode = 0444;
++	fw_attr->display_name.show = display_name_show;
++	attrs[idx++] = &fw_attr->display_name.attr;
++
++	sysfs_attr_init(&fw_attr->current_value.attr);
++	fw_attr->current_value.attr.name = "current_value";
++	fw_attr->current_value.attr.mode = read_only ? 0444 : 0644;
++	fw_attr->current_value.show = current_value_show;
++	fw_attr->current_value.store = current_value_store;
++	attrs[idx++] = &fw_attr->current_value.attr;
++
++	attrs[idx] = NULL;
++	return sysfs_create_group(&data->fw_attrs_kset->kobj,
++				  &fw_attr->attr_group);
++}
++
+ static int ayaneo_ec_probe(struct platform_device *pdev)
+ {
+ 	const struct dmi_system_id *dmi_entry;
+ 	struct ayaneo_ec_platform_data *data;
+ 	struct device *hwdev;
++	int ret;
+ 
+ 	dmi_entry = dmi_first_match(dmi_table);
+ 	if (!dmi_entry)
+@@ -289,9 +487,45 @@ static int ayaneo_ec_probe(struct platform_device *pdev)
+ 		data->battery_hook.add_battery = ayaneo_add_battery;
+ 		data->battery_hook.remove_battery = ayaneo_remove_battery;
+ 		data->battery_hook.name = "Ayaneo Battery";
+-		int ret = devm_battery_hook_register(&pdev->dev, &data->battery_hook);
++		ret = devm_battery_hook_register(&pdev->dev, &data->battery_hook);
++		if (ret)
++			return ret;
++	}
++
++	if (data->quirks->has_magic_modules || data->quirks->has_controller_power) {
++		data->fw_attrs_dev = device_create(&firmware_attributes_class, NULL,
++						MKDEV(0, 0), NULL, "%s",
++						DRIVER_NAME);
++		if (IS_ERR(data->fw_attrs_dev))
++			return PTR_ERR(data->fw_attrs_dev);
++
++		ret = devm_add_action_or_reset(&data->pdev->dev,
++					ayaneo_fw_attrs_dev_unregister,
++					data->fw_attrs_dev);
+ 		if (ret)
+ 			return ret;
++
++		data->fw_attrs_kset = kset_create_and_add("attributes", NULL,
++							&data->fw_attrs_dev->kobj);
++		if (!data->fw_attrs_kset)
++			return -ENOMEM;
++
++		ret = devm_add_action_or_reset(&data->pdev->dev, ayaneo_kset_unregister,
++					data->fw_attrs_kset);
++
++		if (data->quirks->has_magic_modules) {
++			ret = ayaneo_fw_attr_init(
++				data, AYANEO_ATTR_CONTROLLER_MODULES, true);
++			if (ret)
++				return ret;
++		}
++
++		if (data->quirks->has_controller_power) {
++			ret = ayaneo_fw_attr_init(
++				data, AYANEO_ATTR_CONTROLLER_POWER, false);
++			if (ret)
++				return ret;
++		}
+ 	}
+ 
+ 	return 0;
+@@ -299,7 +533,7 @@ static int ayaneo_ec_probe(struct platform_device *pdev)
+ 
+ static struct platform_driver ayaneo_platform_driver = {
+ 	.driver = {
+-		.name = "ayaneo-ec",
++		.name = DRIVER_NAME,
+ 	},
+ 	.probe = ayaneo_ec_probe,
+ };
+-- 
+2.50.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Wed, 20 Aug 2025 16:43:53 +0200
+Subject: platform/x86: ayaneo-ec: Move Ayaneo devices from oxpec to ayaneo-ec
+
+Currently, the oxpec driver contains Ayaneo devices. Move them to the
+new ayaneo-ec driver, which is dedicated to them.
+
+As this driver supports charge inhibition for Ayaneo, add support for it
+for the AIR, AIR 1S, AB05-Medoncino, AIR Pro, and Kun, referenced from the
+out-of-tree ayaneo-platform driver.
+
+Link: https://github.com/ShadowBlip/ayaneo-platform
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/platform/x86/Kconfig     |   4 +-
+ drivers/platform/x86/ayaneo-ec.c |  66 ++++++++++++++++++
+ drivers/platform/x86/oxpec.c     | 115 +------------------------------
+ 3 files changed, 68 insertions(+), 117 deletions(-)
+
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index d705f5daf235..bd19b1653668 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -1241,9 +1241,7 @@ config OXP_EC
+ 	help
+ 		Enables support for the platform EC of OneXPlayer and AOKZOE
+ 		handheld devices. This includes fan speed, fan controls, and
+-		disabling the default TDP behavior of the device. Due to legacy
+-		reasons, this driver also provides hwmon functionality to Ayaneo
+-		devices and the OrangePi Neo.
++		disabling the default TDP behavior of the device.
+ 
+ endif # X86_PLATFORM_DEVICES
+ 
+diff --git a/drivers/platform/x86/ayaneo-ec.c b/drivers/platform/x86/ayaneo-ec.c
+index eb19307e5818..189748ae338c 100644
+--- a/drivers/platform/x86/ayaneo-ec.c
++++ b/drivers/platform/x86/ayaneo-ec.c
+@@ -83,6 +83,15 @@ struct ayaneo_fw_attr {
+ 	struct kobj_attribute current_value;
+ };
+ 
++static const struct ayaneo_ec_quirk quirk_fan = {
++	.has_fan_control = true,
++};
++
++static const struct ayaneo_ec_quirk quirk_charge_limit = {
++	.has_fan_control = true,
++	.has_charge_control = true,
++};
++
+ static const struct ayaneo_ec_quirk ayaneo3 = {
+ 	.has_fan_control = true,
+ 	.has_charge_control = true,
+@@ -91,6 +100,63 @@ static const struct ayaneo_ec_quirk ayaneo3 = {
+ };
+ 
+ static const struct dmi_system_id dmi_table[] = {
++
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "AYANEO"),
++			DMI_MATCH(DMI_BOARD_NAME, "AYANEO 2"),
++		},
++		.driver_data = (void *)&quirk_fan,
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "AYANEO"),
++			DMI_MATCH(DMI_BOARD_NAME, "FLIP"),
++		},
++		.driver_data = (void *)&quirk_fan,
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "AYANEO"),
++			DMI_MATCH(DMI_BOARD_NAME, "GEEK"),
++		},
++		.driver_data = (void *)&quirk_fan,
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "AYANEO"),
++			DMI_EXACT_MATCH(DMI_BOARD_NAME, "AIR"),
++		},
++		.driver_data = (void *)&quirk_charge_limit,
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "AYANEO"),
++			DMI_EXACT_MATCH(DMI_BOARD_NAME, "AIR 1S"),
++		},
++		.driver_data = (void *)&quirk_charge_limit,
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "AYANEO"),
++			DMI_EXACT_MATCH(DMI_BOARD_NAME, "AB05-Mendocino"),
++		},
++		.driver_data = (void *)&quirk_charge_limit,
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "AYANEO"),
++			DMI_EXACT_MATCH(DMI_BOARD_NAME, "AIR Pro"),
++		},
++		.driver_data = (void *)&quirk_charge_limit,
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "AYANEO"),
++			DMI_EXACT_MATCH(DMI_BOARD_NAME, "KUN"),
++		},
++		.driver_data = (void *)&quirk_charge_limit,
++	},
+ 	{
+ 		.matches = {
+ 			DMI_MATCH(DMI_BOARD_VENDOR, "AYANEO"),
+diff --git a/drivers/platform/x86/oxpec.c b/drivers/platform/x86/oxpec.c
+index a7002aeb0826..2efea88e7c3d 100644
+--- a/drivers/platform/x86/oxpec.c
++++ b/drivers/platform/x86/oxpec.c
+@@ -1,8 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0+
+ /*
+- * Platform driver for OneXPlayer and AOKZOE devices. For the time being,
+- * it also exposes fan controls for AYANEO, and OrangePi Handhelds via
+- * hwmon sysfs.
++ * Platform driver for OneXPlayer and AOKZOE devices.
+  *
+  * Fan control is provided via pwm interface in the range [0-255].
+  * Old AMD boards use [0-100] as range in the EC, the written value is
+@@ -43,14 +41,6 @@ static bool unlock_global_acpi_lock(void)
+ 
+ enum oxp_board {
+ 	aok_zoe_a1 = 1,
+-	aya_neo_2,
+-	aya_neo_air,
+-	aya_neo_air_1s,
+-	aya_neo_air_plus_mendo,
+-	aya_neo_air_pro,
+-	aya_neo_flip,
+-	aya_neo_geek,
+-	aya_neo_kun,
+ 	orange_pi_neo,
+ 	oxp_2,
+ 	oxp_fly,
+@@ -131,62 +121,6 @@ static const struct dmi_system_id dmi_table[] = {
+ 		},
+ 		.driver_data = (void *)oxp_fly,
+ 	},
+-	{
+-		.matches = {
+-			DMI_MATCH(DMI_BOARD_VENDOR, "AYANEO"),
+-			DMI_MATCH(DMI_BOARD_NAME, "AYANEO 2"),
+-		},
+-		.driver_data = (void *)aya_neo_2,
+-	},
+-	{
+-		.matches = {
+-			DMI_MATCH(DMI_BOARD_VENDOR, "AYANEO"),
+-			DMI_EXACT_MATCH(DMI_BOARD_NAME, "AIR"),
+-		},
+-		.driver_data = (void *)aya_neo_air,
+-	},
+-	{
+-		.matches = {
+-			DMI_MATCH(DMI_BOARD_VENDOR, "AYANEO"),
+-			DMI_EXACT_MATCH(DMI_BOARD_NAME, "AIR 1S"),
+-		},
+-		.driver_data = (void *)aya_neo_air_1s,
+-	},
+-	{
+-		.matches = {
+-			DMI_MATCH(DMI_BOARD_VENDOR, "AYANEO"),
+-			DMI_EXACT_MATCH(DMI_BOARD_NAME, "AB05-Mendocino"),
+-		},
+-		.driver_data = (void *)aya_neo_air_plus_mendo,
+-	},
+-	{
+-		.matches = {
+-			DMI_MATCH(DMI_BOARD_VENDOR, "AYANEO"),
+-			DMI_EXACT_MATCH(DMI_BOARD_NAME, "AIR Pro"),
+-		},
+-		.driver_data = (void *)aya_neo_air_pro,
+-	},
+-	{
+-		.matches = {
+-			DMI_MATCH(DMI_BOARD_VENDOR, "AYANEO"),
+-			DMI_MATCH(DMI_BOARD_NAME, "FLIP"),
+-		},
+-		.driver_data = (void *)aya_neo_flip,
+-	},
+-	{
+-		.matches = {
+-			DMI_MATCH(DMI_BOARD_VENDOR, "AYANEO"),
+-			DMI_MATCH(DMI_BOARD_NAME, "GEEK"),
+-		},
+-		.driver_data = (void *)aya_neo_geek,
+-	},
+-	{
+-		.matches = {
+-			DMI_MATCH(DMI_BOARD_VENDOR, "AYANEO"),
+-			DMI_EXACT_MATCH(DMI_BOARD_NAME, "KUN"),
+-		},
+-		.driver_data = (void *)aya_neo_kun,
+-	},
+ 	{
+ 		.matches = {
+ 			DMI_MATCH(DMI_BOARD_VENDOR, "OrangePi"),
+@@ -672,13 +606,6 @@ static int oxp_pwm_enable(void)
+ 	case orange_pi_neo:
+ 		return write_to_ec(ORANGEPI_SENSOR_PWM_ENABLE_REG, PWM_MODE_MANUAL);
+ 	case aok_zoe_a1:
+-	case aya_neo_2:
+-	case aya_neo_air:
+-	case aya_neo_air_plus_mendo:
+-	case aya_neo_air_pro:
+-	case aya_neo_flip:
+-	case aya_neo_geek:
+-	case aya_neo_kun:
+ 	case oxp_2:
+ 	case oxp_fly:
+ 	case oxp_mini_amd:
+@@ -699,14 +626,6 @@ static int oxp_pwm_disable(void)
+ 	case orange_pi_neo:
+ 		return write_to_ec(ORANGEPI_SENSOR_PWM_ENABLE_REG, PWM_MODE_AUTO);
+ 	case aok_zoe_a1:
+-	case aya_neo_2:
+-	case aya_neo_air:
+-	case aya_neo_air_1s:
+-	case aya_neo_air_plus_mendo:
+-	case aya_neo_air_pro:
+-	case aya_neo_flip:
+-	case aya_neo_geek:
+-	case aya_neo_kun:
+ 	case oxp_2:
+ 	case oxp_fly:
+ 	case oxp_mini_amd:
+@@ -727,14 +646,6 @@ static int oxp_pwm_read(long *val)
+ 	case orange_pi_neo:
+ 		return read_from_ec(ORANGEPI_SENSOR_PWM_ENABLE_REG, 1, val);
+ 	case aok_zoe_a1:
+-	case aya_neo_2:
+-	case aya_neo_air:
+-	case aya_neo_air_1s:
+-	case aya_neo_air_plus_mendo:
+-	case aya_neo_air_pro:
+-	case aya_neo_flip:
+-	case aya_neo_geek:
+-	case aya_neo_kun:
+ 	case oxp_2:
+ 	case oxp_fly:
+ 	case oxp_mini_amd:
+@@ -774,14 +685,6 @@ static int oxp_pwm_fan_speed(long *val)
+ 	case oxp_g1_i:
+ 		return read_from_ec(OXP_2_SENSOR_FAN_REG, 2, val);
+ 	case aok_zoe_a1:
+-	case aya_neo_2:
+-	case aya_neo_air:
+-	case aya_neo_air_1s:
+-	case aya_neo_air_plus_mendo:
+-	case aya_neo_air_pro:
+-	case aya_neo_flip:
+-	case aya_neo_geek:
+-	case aya_neo_kun:
+ 	case oxp_fly:
+ 	case oxp_mini_amd:
+ 	case oxp_mini_amd_a07:
+@@ -810,14 +713,6 @@ static int oxp_pwm_input_write(long val)
+ 		/* scale to range [0-184] */
+ 		val = (val * 184) / 255;
+ 		return write_to_ec(OXP_SENSOR_PWM_REG, val);
+-	case aya_neo_2:
+-	case aya_neo_air:
+-	case aya_neo_air_1s:
+-	case aya_neo_air_plus_mendo:
+-	case aya_neo_air_pro:
+-	case aya_neo_flip:
+-	case aya_neo_geek:
+-	case aya_neo_kun:
+ 	case oxp_mini_amd:
+ 	case oxp_mini_amd_a07:
+ 		/* scale to range [0-100] */
+@@ -854,14 +749,6 @@ static int oxp_pwm_input_read(long *val)
+ 		/* scale from range [0-184] */
+ 		*val = (*val * 255) / 184;
+ 		break;
+-	case aya_neo_2:
+-	case aya_neo_air:
+-	case aya_neo_air_1s:
+-	case aya_neo_air_plus_mendo:
+-	case aya_neo_air_pro:
+-	case aya_neo_flip:
+-	case aya_neo_geek:
+-	case aya_neo_kun:
+ 	case oxp_mini_amd:
+ 	case oxp_mini_amd_a07:
+ 		ret = read_from_ec(OXP_SENSOR_PWM_REG, 1, val);
+-- 
+2.50.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Wed, 20 Aug 2025 16:49:11 +0200
+Subject: [TMP] platform/x86: ayaneo-ec: Remove charge inhibition for other
+ devices
+
+On Bazzite, charge inhibition is currently provided by the oot
+ayaneo-platform driver. To avoid stacking modules, remove the support
+from the ayaneo-ec driver.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/platform/x86/ayaneo-ec.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/platform/x86/ayaneo-ec.c b/drivers/platform/x86/ayaneo-ec.c
+index 189748ae338c..dd62f1f38132 100644
+--- a/drivers/platform/x86/ayaneo-ec.c
++++ b/drivers/platform/x86/ayaneo-ec.c
+@@ -89,7 +89,6 @@ static const struct ayaneo_ec_quirk quirk_fan = {
+ 
+ static const struct ayaneo_ec_quirk quirk_charge_limit = {
+ 	.has_fan_control = true,
+-	.has_charge_control = true,
+ };
+ 
+ static const struct ayaneo_ec_quirk ayaneo3 = {
 -- 
 2.50.1
 
