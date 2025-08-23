@@ -19842,173 +19842,6 @@ index f6d71bf7c89c..ea9d1f61aa97 100644
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Jeremy Selan <jeremys@valvesoftware.com>
-Date: Fri, 12 Nov 2021 10:03:20 -0800
-Subject: amd/drm: override backlight min value from 12 -> 0
-
-This overrides backlight handling to the FULL range of the device {0,max}
-with no additional interpretation / rescaling. This places the burden
-of selecting appropriate device-specific minimum ranges fully on
-userspace.
-
-Device defaults provided by ACPI/ATIF are logged, but ignored.
-
-[Merge, add line breaks]
-Signed-off-by: Gabriel Krisman Bertazi <krisman@collabora.com>
----
- .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c   | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
-
-diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index ea9d1f61aa97..c4477fa5a81d 100644
---- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-+++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4594,6 +4594,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
- 	return 0;
- }
- 
-+#define AMDGPU_DM_DEFAULT_MIN_BACKLIGHT_VLV 0
- #define AMDGPU_DM_DEFAULT_MIN_BACKLIGHT 12
- #define AMDGPU_DM_DEFAULT_MAX_BACKLIGHT 255
- #define AMDGPU_DM_MIN_SPREAD ((AMDGPU_DM_DEFAULT_MAX_BACKLIGHT - AMDGPU_DM_DEFAULT_MIN_BACKLIGHT) / 2)
-@@ -4625,14 +4626,30 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
- 	}
- 
- 	if (!caps->caps_valid) {
-+		printk(KERN_NOTICE"VLV ACPI does not provide backlight range, using defaults: %d %d\n",
-+		       AMDGPU_DM_DEFAULT_MIN_BACKLIGHT, AMDGPU_DM_DEFAULT_MAX_BACKLIGHT);
-+
- 		caps->min_input_signal = AMDGPU_DM_DEFAULT_MIN_BACKLIGHT;
- 		caps->max_input_signal = AMDGPU_DM_DEFAULT_MAX_BACKLIGHT;
- 		caps->caps_valid = true;
-+	} else {
-+		printk(KERN_NOTICE"VLV Successfully queried backlight range over ACPI: %d %d\n",
-+		       (int) caps->min_input_signal, (int) caps->max_input_signal);
-+
-+		if ( caps->min_input_signal != AMDGPU_DM_DEFAULT_MIN_BACKLIGHT_VLV )
-+		{
-+			caps->min_input_signal = AMDGPU_DM_DEFAULT_MIN_BACKLIGHT_VLV;
-+			printk(KERN_NOTICE"VLV OVERRIDE backlight range (min only): %d %d\n",
-+			       (int) caps->min_input_signal, (int) caps->max_input_signal);
-+		}
- 	}
- #else
- 	if (caps->aux_support)
- 		return;
- 
-+	printk(KERN_NOTICE"VLV Kernel built without ACPI. using backlight range defaults: %d %d\n",
-+	       AMDGPU_DM_DEFAULT_MIN_BACKLIGHT, AMDGPU_DM_DEFAULT_MAX_BACKLIGHT);
-+
- 	caps->min_input_signal = AMDGPU_DM_DEFAULT_MIN_BACKLIGHT;
- 	caps->max_input_signal = AMDGPU_DM_DEFAULT_MAX_BACKLIGHT;
- 	caps->caps_valid = true;
--- 
-2.50.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Mon, 2 Dec 2024 19:13:08 +0100
-Subject: amd/drm: apply backlight override only to the Steam Deck models and
- add F1 Pro, Zotac Zone
-
-Should not be on by default for all devices. In addition, add a larger
-min to the F1 Pro/Zotac Zone, as it seems to have issues with
-<10% brightness.
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 53 +++++++++++++++++--
- 1 file changed, 49 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index c4477fa5a81d..3d9425918859 100644
---- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-+++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -72,6 +72,7 @@
- #include "ivsrcid/ivsrcid_vislands30.h"
- 
- #include <linux/backlight.h>
-+#include <linux/dmi.h>
- #include <linux/module.h>
- #include <linux/moduleparam.h>
- #include <linux/types.h>
-@@ -4594,12 +4595,52 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
- 	return 0;
- }
- 
--#define AMDGPU_DM_DEFAULT_MIN_BACKLIGHT_VLV 0
- #define AMDGPU_DM_DEFAULT_MIN_BACKLIGHT 12
- #define AMDGPU_DM_DEFAULT_MAX_BACKLIGHT 255
- #define AMDGPU_DM_MIN_SPREAD ((AMDGPU_DM_DEFAULT_MAX_BACKLIGHT - AMDGPU_DM_DEFAULT_MIN_BACKLIGHT) / 2)
- #define AUX_BL_DEFAULT_TRANSITION_TIME_MS 50
- 
-+static const struct dmi_system_id backlight_override_quirks[] = {
-+	{	/* Valve Steam Deck (Galileo) */
-+		.matches = {
-+		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "Valve"),
-+		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Galileo"),
-+		  DMI_EXACT_MATCH(DMI_PRODUCT_VERSION, "1"),
-+		},
-+		.driver_data = (void *)0,
-+	},
-+	{	/* Valve Steam Deck (Jupiter) */
-+		.matches = {
-+		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "Valve"),
-+		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Jupiter"),
-+		  DMI_EXACT_MATCH(DMI_PRODUCT_VERSION, "1"),
-+		},
-+		.driver_data = (void *)0,
-+	},
-+	{	/* F1 Pro OLED */
-+		.matches = {
-+		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "ONE-NETBOOK"),
-+		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "ONEXPLAYER F1Pro"),
-+		},
-+		.driver_data = (void *)40,
-+	},
-+	{	/* F1 Pro Limited Edition */
-+		.matches = {
-+		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "ONE-NETBOOK"),
-+		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "ONEXPLAYER F1 EVA-02"),
-+		},
-+		.driver_data = (void *)40,
-+	},
-+	{	/* Zotac Gaming Zone */
-+		.matches = {
-+			DMI_EXACT_MATCH(DMI_SYS_VENDOR, "ZOTAC"),
-+			DMI_EXACT_MATCH(DMI_BOARD_NAME, "G0A1W"),
-+		},
-+		.driver_data = (void *)40,
-+	},
-+	{}
-+};
-+
- static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
- 					    int bl_idx)
- {
-@@ -4636,9 +4677,13 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
- 		printk(KERN_NOTICE"VLV Successfully queried backlight range over ACPI: %d %d\n",
- 		       (int) caps->min_input_signal, (int) caps->max_input_signal);
- 
--		if ( caps->min_input_signal != AMDGPU_DM_DEFAULT_MIN_BACKLIGHT_VLV )
--		{
--			caps->min_input_signal = AMDGPU_DM_DEFAULT_MIN_BACKLIGHT_VLV;
-+		const struct dmi_system_id *override_sysid =
-+			dmi_first_match(backlight_override_quirks);
-+
-+		if (override_sysid &&
-+		    caps->min_input_signal != (long) override_sysid->driver_data) {
-+			caps->min_input_signal =
-+				(long)override_sysid->driver_data;
- 			printk(KERN_NOTICE"VLV OVERRIDE backlight range (min only): %d %d\n",
- 			       (int) caps->min_input_signal, (int) caps->max_input_signal);
- 		}
--- 
-2.50.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Hersen Wu <hersenxs.wu@amd.com>
 Date: Thu, 25 May 2023 08:37:40 -0400
 Subject: drm/amd/display: edp do not add non-edid timings
@@ -20032,10 +19865,10 @@ Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
  1 file changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 3d9425918859..c9cc4d5a7e85 100644
+index ea9d1f61aa97..a48fbd09216d 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -8301,7 +8301,12 @@ static int amdgpu_dm_connector_get_modes(struct drm_connector *connector)
+@@ -8239,7 +8239,12 @@ static int amdgpu_dm_connector_get_modes(struct drm_connector *connector)
  				drm_add_modes_noedid(connector, 1920, 1080);
  	} else {
  		amdgpu_dm_connector_ddc_get_modes(connector, drm_edid);
@@ -20505,10 +20338,10 @@ index abd3b6564373..46937e6fa78d 100644
 +
  endmenu
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index c9cc4d5a7e85..c5a193c9a549 100644
+index a48fbd09216d..59d831a1010b 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4577,7 +4577,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
+@@ -4576,7 +4576,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
  		return r;
  	}
  
@@ -53598,10 +53431,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index c5a193c9a549..0159661e1c96 100644
+index 59d831a1010b..06ee623c50ee 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4735,6 +4735,7 @@ static void convert_custom_brightness(const struct amdgpu_dm_backlight_caps *cap
+@@ -4673,6 +4673,7 @@ static void convert_custom_brightness(const struct amdgpu_dm_backlight_caps *cap
  				      unsigned int min, unsigned int max,
  				      uint32_t *user_brightness)
  {
@@ -54433,98 +54266,6 @@ index 3c5f34892734..046417c31b52 100644
  	{ },
  };
  
--- 
-2.50.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Mon, 11 Aug 2025 17:43:46 +0200
-Subject: drm/amdgpu/vpe: increase VPE_IDLE_TIMEOUT to fix hang on Strix Halo
-
-On the Asus Z13 2025, which uses a Strix Halo platform, around 8% of the
-suspend resumes result in a soft lock around 1 second after the screen
-turns on (it freezes). This happens due to power gating VPE when it is
-not used, which happens 1 second after inactivity.
-
-Specifically, the VPE gating after resume is as follows: an initial
-ungate, followed by a gate in the resume process. Then,
-amdgpu_device_delayed_init_work_handler with a delay of 2s is scheduled
-to run tests, one of which is testing VPE in vpe_ring_test_ib. This
-causes an ungate, After that test, vpe_idle_work_handler is scheduled
-with VPE_IDLE_TIMEOUT (1s).
-
-When vpe_idle_work_handler runs and tries to gate VPE, it causes the
-SMU to hang and partially freezes half of the GPU IPs, with the thread
-that called the command being stuck processing it.
-
-Specifically, after that SMU command tries to run, we get the following:
-
-snd_hda_intel 0000:c4:00.1: Refused to change power state from D0 to D3hot
-...
-xhci_hcd 0000:c4:00.4: Refused to change power state from D0 to D3hot
-...
-amdgpu 0000:c4:00.0: amdgpu: SMU: I'm not done with your previous command: SMN_C2PMSG_66:0x00000032 SMN_C2PMSG_82:0x00000000
-amdgpu 0000:c4:00.0: amdgpu: Failed to power gate VPE!
-[drm:vpe_set_powergating_state [amdgpu]] *ERROR* Dpm disable vpe failed, ret = -62.
-amdgpu 0000:c4:00.0: [drm] *ERROR* [CRTC:93:crtc-0] flip_done timed out
-amdgpu 0000:c4:00.0: amdgpu: SMU: I'm not done with your previous command: SMN_C2PMSG_66:0x00000032 SMN_C2PMSG_82:0x00000000
-amdgpu 0000:c4:00.0: amdgpu: Failed to power gate JPEG!
-[drm:jpeg_v4_0_5_set_powergating_state [amdgpu]] *ERROR* Dpm disable jpeg failed, ret = -62.
-amdgpu 0000:c4:00.0: amdgpu: SMU: I'm not done with your previous command: SMN_C2PMSG_66:0x00000032 SMN_C2PMSG_82:0x00000000
-amdgpu 0000:c4:00.0: amdgpu: Failed to power gate VCN instance 0!
-[drm:vcn_v4_0_5_stop [amdgpu]] *ERROR* Dpm disable uvd failed, ret = -62.
-thunderbolt 0000:c6:00.5: 0: timeout reading config space 1 from 0xd3
-thunderbolt 0000:c6:00.5: 0: timeout reading config space 2 from 0x5
-thunderbolt 0000:c6:00.5: Refused to change power state from D0 to D3hot
-amdgpu 0000:c4:00.0: [drm] *ERROR* [CRTC:97:crtc-1] flip_done timed out
-amdgpu 0000:c4:00.0: amdgpu: SMU: I'm not done with your previous command: SMN_C2PMSG_66:0x00000032 SMN_C2PMSG_82:0x00000000
-amdgpu 0000:c4:00.0: amdgpu: Failed to power gate VCN instance 1!
-
-In addition to e.g., kwin errors in journalctl. 0000:c4.00.0 is the GPU.
-Interestingly, 0000:c4.00.6, which is another HDA block, 0000:c4.00.5,
-a PCI controller, and 0000:c4.00.2, resume normally. 0x00000032 is the
-PowerDownVpe(50) command which is the common failure point in all
-failed resumes.
-
-On a normal resume, we should get the following power gates:
-amdgpu 0000:c4:00.0: amdgpu: smu send message: PowerDownVpe(50) param: 0x00000000, resp: 0x00000001
-amdgpu 0000:c4:00.0: amdgpu: smu send message: PowerDownJpeg0(33) param: 0x00000000, resp: 0x00000001
-amdgpu 0000:c4:00.0: amdgpu: smu send message: PowerDownJpeg1(38) param: 0x00010000, resp: 0x00000001
-amdgpu 0000:c4:00.0: amdgpu: smu send message: PowerDownVcn1(4) param: 0x00010000, resp: 0x00000001
-amdgpu 0000:c4:00.0: amdgpu: smu send message: PowerDownVcn0(6) param: 0x00000000, resp: 0x00000001
-amdgpu 0000:c4:00.0: amdgpu: smu send message: PowerUpVcn0(7) param: 0x00000000, resp: 0x00000001
-amdgpu 0000:c4:00.0: amdgpu: smu send message: PowerUpVcn1(5) param: 0x00010000, resp: 0x00000001
-amdgpu 0000:c4:00.0: amdgpu: smu send message: PowerUpJpeg0(34) param: 0x00000000, resp: 0x00000001
-amdgpu 0000:c4:00.0: amdgpu: smu send message: PowerUpJpeg1(39) param: 0x00010000, resp: 0x00000001
-
-To fix this, increase VPE_IDLE_TIMEOUT to 2 seconds. This increases
-reliability from 4-25 suspends to 200+ (tested) suspends with a cycle
-time of 12s sleep, 8s resume. The suspected reason here is that 1s
-was a borderline delay before, and it does not give enough time for
-VPE to be ready to be gated.
-
-Fixes: 5f82a0c90cca ("drm/amdgpu/vpe: enable vpe dpm")
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- drivers/gpu/drm/amd/amdgpu/amdgpu_vpe.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_vpe.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_vpe.c
-index 121ee17b522b..24f09e457352 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_vpe.c
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_vpe.c
-@@ -34,8 +34,8 @@
- /* VPE CSA resides in the 4th page of CSA */
- #define AMDGPU_CSA_VPE_OFFSET 	(4096 * 3)
- 
--/* 1 second timeout */
--#define VPE_IDLE_TIMEOUT	msecs_to_jiffies(1000)
-+/* 2 second timeout */
-+#define VPE_IDLE_TIMEOUT	msecs_to_jiffies(2000)
- 
- #define VPE_MAX_DPM_LEVEL			4
- #define FIXED1_8_BITS_PER_FRACTIONAL_PART	8
 -- 
 2.50.1
 
@@ -55900,6 +55641,568 @@ index 74305bb0b1a4..918e9df73730 100644
  	}, {	/* AYA NEO FLIP DS */
  		.matches = {
  			DMI_EXACT_MATCH(DMI_SYS_VENDOR, "AYANEO"),
+-- 
+2.50.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sat, 23 Aug 2025 13:42:29 +0200
+Subject: drm: panel-backlight-quirks: Make ident optional
+
+Currently, having a valid panel_id match is required to use the quirk
+system. For certain devices, we know that all SKUs need a certain quirk.
+Therefore, allow not specifying ident by only checking for a match
+if panel_id is non-zero.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/gpu/drm/drm_panel_backlight_quirks.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/drm_panel_backlight_quirks.c b/drivers/gpu/drm/drm_panel_backlight_quirks.c
+index c477d98ade2b..99d8b6b2d6bd 100644
+--- a/drivers/gpu/drm/drm_panel_backlight_quirks.c
++++ b/drivers/gpu/drm/drm_panel_backlight_quirks.c
+@@ -49,7 +49,7 @@ static bool drm_panel_min_backlight_quirk_matches(const struct drm_panel_min_bac
+ 	if (!dmi_match(quirk->dmi_match.field, quirk->dmi_match.value))
+ 		return false;
+ 
+-	if (!drm_edid_match(edid, &quirk->ident))
++	if (quirk->ident.panel_id && !drm_edid_match(edid, &quirk->ident))
+ 		return false;
+ 
+ 	return true;
+-- 
+2.50.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sat, 23 Aug 2025 14:15:37 +0200
+Subject: drm: panel-backlight-quirks: Convert brightness quirk to generic
+ structure
+
+Currently, the brightness quirk is limited to minimum brightness only.
+Refactor it to a structure, so that more quirks can be added in the
+future. Reserve 0 value for "no quirk", and use u16 to allow minimum
+brightness up to 255.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 12 ++++--
+ .../link/protocols/link_edp_panel_control.c   |  2 +-
+ drivers/gpu/drm/drm_panel_backlight_quirks.c  | 41 ++++++++++---------
+ include/drm/drm_utils.h                       |  9 +++-
+ 4 files changed, 38 insertions(+), 26 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
+index 06ee623c50ee..1e0ca417461a 100644
+--- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
++++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
+@@ -3514,11 +3514,11 @@ static struct drm_mode_config_helper_funcs amdgpu_dm_mode_config_helperfuncs = {
+ 
+ static void update_connector_ext_caps(struct amdgpu_dm_connector *aconnector)
+ {
++	const struct drm_panel_backlight_quirk *panel_backlight_quirk;
+ 	struct amdgpu_dm_backlight_caps *caps;
+ 	struct drm_connector *conn_base;
+ 	struct amdgpu_device *adev;
+ 	struct drm_luminance_range_info *luminance_range;
+-	int min_input_signal_override;
+ 
+ 	if (aconnector->bl_idx == -1 ||
+ 	    aconnector->dc_link->connector_signal != SIGNAL_TYPE_EDP)
+@@ -3558,9 +3558,13 @@ static void update_connector_ext_caps(struct amdgpu_dm_connector *aconnector)
+ 	else
+ 		caps->aux_min_input_signal = 1;
+ 
+-	min_input_signal_override = drm_get_panel_min_brightness_quirk(aconnector->drm_edid);
+-	if (min_input_signal_override >= 0)
+-		caps->min_input_signal = min_input_signal_override;
++	panel_backlight_quirk =
++		drm_get_panel_backlight_quirk(aconnector->drm_edid);
++	if (!IS_ERR_OR_NULL(panel_backlight_quirk)) {
++		if (panel_backlight_quirk->min_brightness)
++			caps->min_input_signal =
++				panel_backlight_quirk->min_brightness - 1;
++	}
+ }
+ 
+ DEFINE_FREE(sink_release, struct dc_sink *, if (_T) dc_sink_release(_T))
+diff --git a/drivers/gpu/drm/amd/display/dc/link/protocols/link_edp_panel_control.c b/drivers/gpu/drm/amd/display/dc/link/protocols/link_edp_panel_control.c
+index 1e4adbc764ea..e95b23b78267 100644
+--- a/drivers/gpu/drm/amd/display/dc/link/protocols/link_edp_panel_control.c
++++ b/drivers/gpu/drm/amd/display/dc/link/protocols/link_edp_panel_control.c
+@@ -189,7 +189,7 @@ bool edp_set_backlight_level_nits(struct dc_link *link,
+ 			return false;
+ 	} else if (link->backlight_control_type == BACKLIGHT_CONTROL_AMD_AUX) {
+ 		struct dpcd_source_backlight_set dpcd_backlight_set;
+-		*(uint32_t *)&dpcd_backlight_set.backlight_level_millinits = backlight_millinits;
++		*(uint32_t *)&dpcd_backlight_set.backlight_level_millinits = backlight_millinits | 3;
+ 		*(uint16_t *)&dpcd_backlight_set.backlight_transition_time_ms = (uint16_t)transition_time_in_ms;
+ 
+ 		uint8_t backlight_control = isHDR ? 1 : 0;
+diff --git a/drivers/gpu/drm/drm_panel_backlight_quirks.c b/drivers/gpu/drm/drm_panel_backlight_quirks.c
+index 99d8b6b2d6bd..9df69a0acb19 100644
+--- a/drivers/gpu/drm/drm_panel_backlight_quirks.c
++++ b/drivers/gpu/drm/drm_panel_backlight_quirks.c
+@@ -7,23 +7,23 @@
+ #include <drm/drm_edid.h>
+ #include <drm/drm_utils.h>
+ 
+-struct drm_panel_min_backlight_quirk {
++struct drm_get_panel_backlight_quirk {
+ 	struct {
+ 		enum dmi_field field;
+ 		const char * const value;
+ 	} dmi_match;
+ 	struct drm_edid_ident ident;
+-	u8 min_brightness;
++	struct drm_panel_backlight_quirk quirk;
+ };
+ 
+-static const struct drm_panel_min_backlight_quirk drm_panel_min_backlight_quirks[] = {
++static const struct drm_get_panel_backlight_quirk drm_panel_min_backlight_quirks[] = {
+ 	/* 13 inch matte panel */
+ 	{
+ 		.dmi_match.field = DMI_BOARD_VENDOR,
+ 		.dmi_match.value = "Framework",
+ 		.ident.panel_id = drm_edid_encode_panel_id('B', 'O', 'E', 0x0bca),
+ 		.ident.name = "NE135FBM-N41",
+-		.min_brightness = 0,
++		.quirk = { .min_brightness = 1, },
+ 	},
+ 	/* 13 inch glossy panel */
+ 	{
+@@ -31,7 +31,7 @@ static const struct drm_panel_min_backlight_quirk drm_panel_min_backlight_quirks
+ 		.dmi_match.value = "Framework",
+ 		.ident.panel_id = drm_edid_encode_panel_id('B', 'O', 'E', 0x095f),
+ 		.ident.name = "NE135FBM-N41",
+-		.min_brightness = 0,
++		.quirk = { .min_brightness = 1, },
+ 	},
+ 	/* 13 inch 2.8k panel */
+ 	{
+@@ -39,12 +39,13 @@ static const struct drm_panel_min_backlight_quirk drm_panel_min_backlight_quirks
+ 		.dmi_match.value = "Framework",
+ 		.ident.panel_id = drm_edid_encode_panel_id('B', 'O', 'E', 0x0cb4),
+ 		.ident.name = "NE135A1M-NY1",
+-		.min_brightness = 0,
++		.quirk = { .min_brightness = 1, },
+ 	},
+ };
+ 
+-static bool drm_panel_min_backlight_quirk_matches(const struct drm_panel_min_backlight_quirk *quirk,
+-						  const struct drm_edid *edid)
++static bool drm_panel_min_backlight_quirk_matches(
++	const struct drm_get_panel_backlight_quirk *quirk,
++	const struct drm_edid *edid)
+ {
+ 	if (!dmi_match(quirk->dmi_match.field, quirk->dmi_match.value))
+ 		return false;
+@@ -56,39 +57,39 @@ static bool drm_panel_min_backlight_quirk_matches(const struct drm_panel_min_bac
+ }
+ 
+ /**
+- * drm_get_panel_min_brightness_quirk - Get minimum supported brightness level for a panel.
++ * drm_get_panel_backlight_quirk - Get backlight quirks for a panel
+  * @edid: EDID of the panel to check
+  *
+  * This function checks for platform specific (e.g. DMI based) quirks
+  * providing info on the minimum backlight brightness for systems where this
+- * cannot be probed correctly from the hard-/firm-ware.
++ * cannot be probed correctly from the hard-/firm-ware and other sources.
+  *
+  * Returns:
+- * A negative error value or
+- * an override value in the range [0, 255] representing 0-100% to be scaled to
+- * the drivers target range.
++ * a drm_panel_backlight_quirk struct if a quirk was found, otherwise an
++ * error pointer.
+  */
+-int drm_get_panel_min_brightness_quirk(const struct drm_edid *edid)
++const struct drm_panel_backlight_quirk *
++drm_get_panel_backlight_quirk(const struct drm_edid *edid)
+ {
+-	const struct drm_panel_min_backlight_quirk *quirk;
++	const struct drm_get_panel_backlight_quirk *quirk;
+ 	size_t i;
+ 
+ 	if (!IS_ENABLED(CONFIG_DMI))
+-		return -ENODATA;
++		return ERR_PTR(-ENODATA);
+ 
+ 	if (!edid)
+-		return -EINVAL;
++		return ERR_PTR(-EINVAL);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(drm_panel_min_backlight_quirks); i++) {
+ 		quirk = &drm_panel_min_backlight_quirks[i];
+ 
+ 		if (drm_panel_min_backlight_quirk_matches(quirk, edid))
+-			return quirk->min_brightness;
++			return &quirk->quirk;
+ 	}
+ 
+-	return -ENODATA;
++	return ERR_PTR(-ENODATA);
+ }
+-EXPORT_SYMBOL(drm_get_panel_min_brightness_quirk);
++EXPORT_SYMBOL(drm_get_panel_backlight_quirk);
+ 
+ MODULE_DESCRIPTION("Quirks for panel backlight overrides");
+ MODULE_LICENSE("GPL");
+diff --git a/include/drm/drm_utils.h b/include/drm/drm_utils.h
+index 15fa9b6865f4..8341189a8bd6 100644
+--- a/include/drm/drm_utils.h
++++ b/include/drm/drm_utils.h
+@@ -16,7 +16,14 @@ struct drm_edid;
+ 
+ int drm_get_panel_orientation_quirk(int width, int height);
+ 
+-int drm_get_panel_min_brightness_quirk(const struct drm_edid *edid);
++struct drm_panel_backlight_quirk {
++	// The minimum brightness level supported by the panel
++        // 0 means no quirk. Subtract 1 to get the minimum backlight.
++        u16 min_brightness;
++};
++
++const struct drm_panel_backlight_quirk *
++drm_get_panel_backlight_quirk(const struct drm_edid *edid);
+ 
+ signed long drm_timeout_abs_to_jiffies(int64_t timeout_nsec);
+ 
+-- 
+2.50.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sat, 23 Aug 2025 14:19:02 +0200
+Subject: drm: panel-backlight-quirks: Add secondary DMI match
+
+Using a single DMI match only allows matching per manufacturer.
+Introduce a second optional match to allow matching make/model.
+In addition, make DMI optional to allow matching only by EDID.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/gpu/drm/drm_panel_backlight_quirks.c | 19 ++++++++++++++-----
+ 1 file changed, 14 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/gpu/drm/drm_panel_backlight_quirks.c b/drivers/gpu/drm/drm_panel_backlight_quirks.c
+index 9df69a0acb19..6c45d8647038 100644
+--- a/drivers/gpu/drm/drm_panel_backlight_quirks.c
++++ b/drivers/gpu/drm/drm_panel_backlight_quirks.c
+@@ -7,11 +7,14 @@
+ #include <drm/drm_edid.h>
+ #include <drm/drm_utils.h>
+ 
++struct drm_panel_match {
++	enum dmi_field field;
++	const char * const value;
++};
++
+ struct drm_get_panel_backlight_quirk {
+-	struct {
+-		enum dmi_field field;
+-		const char * const value;
+-	} dmi_match;
++	struct drm_panel_match dmi_match;
++	struct drm_panel_match dmi_match_other;
+ 	struct drm_edid_ident ident;
+ 	struct drm_panel_backlight_quirk quirk;
+ };
+@@ -47,7 +50,13 @@ static bool drm_panel_min_backlight_quirk_matches(
+ 	const struct drm_get_panel_backlight_quirk *quirk,
+ 	const struct drm_edid *edid)
+ {
+-	if (!dmi_match(quirk->dmi_match.field, quirk->dmi_match.value))
++	if (quirk->dmi_match.field &&
++	    !dmi_match(quirk->dmi_match.field, quirk->dmi_match.value))
++		return false;
++
++	if (quirk->dmi_match_other.field &&
++	    !dmi_match(quirk->dmi_match_other.field,
++		       quirk->dmi_match_other.value))
+ 		return false;
+ 
+ 	if (quirk->ident.panel_id && !drm_edid_match(edid, &quirk->ident))
+-- 
+2.50.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sat, 23 Aug 2025 15:00:10 +0200
+Subject: drm: panel-backlight-quirks: Add Steam Decks
+
+On the SteamOS kernel, Valve universally makes minimum brightness 0
+for all devices. SteamOS is (was?) meant for the Steam Deck, so
+enabling it universally is reasonable. However, it causes issues in
+certain devices. Therefore, introduce it just for the Steam Deck here.
+
+SteamOS kernel does not have a public mirror, but this replaces commit
+806dd74bb225 ("amd/drm: override backlight min value from 12 -> 0")
+in the latest, as of this writing, SteamOS kernel (6.11.11-valve24).
+See unofficial mirror reconstructed from sources below.
+
+Link: https://gitlab.com/evlaV/linux-integration/-/commit/806dd74bb225
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/gpu/drm/drm_panel_backlight_quirks.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/drivers/gpu/drm/drm_panel_backlight_quirks.c b/drivers/gpu/drm/drm_panel_backlight_quirks.c
+index 6c45d8647038..44a5c202fea0 100644
+--- a/drivers/gpu/drm/drm_panel_backlight_quirks.c
++++ b/drivers/gpu/drm/drm_panel_backlight_quirks.c
+@@ -44,6 +44,21 @@ static const struct drm_get_panel_backlight_quirk drm_panel_min_backlight_quirks
+ 		.ident.name = "NE135A1M-NY1",
+ 		.quirk = { .min_brightness = 1, },
+ 	},
++	/* Steam Deck models */
++	{
++		.dmi_match.field = DMI_SYS_VENDOR,
++		.dmi_match.value = "Valve",
++		.dmi_match_other.field = DMI_PRODUCT_NAME,
++		.dmi_match_other.value = "Jupiter",
++		.quirk = { .min_brightness = 1, },
++	},
++	{
++		.dmi_match.field = DMI_SYS_VENDOR,
++		.dmi_match.value = "Valve",
++		.dmi_match_other.field = DMI_PRODUCT_NAME,
++		.dmi_match_other.value = "Galileo",
++		.quirk = { .min_brightness = 1, },
++	},
+ };
+ 
+ static bool drm_panel_min_backlight_quirk_matches(
+-- 
+2.50.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Mon, 11 Aug 2025 17:43:46 +0200
+Subject: drm/amdgpu/vpe: increase VPE_IDLE_TIMEOUT to fix hang on Strix Halo
+
+On the Asus Z13 2025, which uses a Strix Halo platform, around 8% of the
+suspend resumes result in a soft lock around 1 second after the screen
+turns on (it freezes). This happens due to power gating VPE when it is
+not used, which happens 1 second after inactivity.
+
+Specifically, the VPE gating after resume is as follows: an initial
+ungate, followed by a gate in the resume process. Then,
+amdgpu_device_delayed_init_work_handler with a delay of 2s is scheduled
+to run tests, one of which is testing VPE in vpe_ring_test_ib. This
+causes an ungate, After that test, vpe_idle_work_handler is scheduled
+with VPE_IDLE_TIMEOUT (1s).
+
+When vpe_idle_work_handler runs and tries to gate VPE, it causes the
+SMU to hang and partially freezes half of the GPU IPs, with the thread
+that called the command being stuck processing it.
+
+Specifically, after that SMU command tries to run, we get the following:
+
+snd_hda_intel 0000:c4:00.1: Refused to change power state from D0 to D3hot
+...
+xhci_hcd 0000:c4:00.4: Refused to change power state from D0 to D3hot
+...
+amdgpu 0000:c4:00.0: amdgpu: SMU: I'm not done with your previous command: SMN_C2PMSG_66:0x00000032 SMN_C2PMSG_82:0x00000000
+amdgpu 0000:c4:00.0: amdgpu: Failed to power gate VPE!
+[drm:vpe_set_powergating_state [amdgpu]] *ERROR* Dpm disable vpe failed, ret = -62.
+amdgpu 0000:c4:00.0: [drm] *ERROR* [CRTC:93:crtc-0] flip_done timed out
+amdgpu 0000:c4:00.0: amdgpu: SMU: I'm not done with your previous command: SMN_C2PMSG_66:0x00000032 SMN_C2PMSG_82:0x00000000
+amdgpu 0000:c4:00.0: amdgpu: Failed to power gate JPEG!
+[drm:jpeg_v4_0_5_set_powergating_state [amdgpu]] *ERROR* Dpm disable jpeg failed, ret = -62.
+amdgpu 0000:c4:00.0: amdgpu: SMU: I'm not done with your previous command: SMN_C2PMSG_66:0x00000032 SMN_C2PMSG_82:0x00000000
+amdgpu 0000:c4:00.0: amdgpu: Failed to power gate VCN instance 0!
+[drm:vcn_v4_0_5_stop [amdgpu]] *ERROR* Dpm disable uvd failed, ret = -62.
+thunderbolt 0000:c6:00.5: 0: timeout reading config space 1 from 0xd3
+thunderbolt 0000:c6:00.5: 0: timeout reading config space 2 from 0x5
+thunderbolt 0000:c6:00.5: Refused to change power state from D0 to D3hot
+amdgpu 0000:c4:00.0: [drm] *ERROR* [CRTC:97:crtc-1] flip_done timed out
+amdgpu 0000:c4:00.0: amdgpu: SMU: I'm not done with your previous command: SMN_C2PMSG_66:0x00000032 SMN_C2PMSG_82:0x00000000
+amdgpu 0000:c4:00.0: amdgpu: Failed to power gate VCN instance 1!
+
+In addition to e.g., kwin errors in journalctl. 0000:c4.00.0 is the GPU.
+Interestingly, 0000:c4.00.6, which is another HDA block, 0000:c4.00.5,
+a PCI controller, and 0000:c4.00.2, resume normally. 0x00000032 is the
+PowerDownVpe(50) command which is the common failure point in all
+failed resumes.
+
+On a normal resume, we should get the following power gates:
+amdgpu 0000:c4:00.0: amdgpu: smu send message: PowerDownVpe(50) param: 0x00000000, resp: 0x00000001
+amdgpu 0000:c4:00.0: amdgpu: smu send message: PowerDownJpeg0(33) param: 0x00000000, resp: 0x00000001
+amdgpu 0000:c4:00.0: amdgpu: smu send message: PowerDownJpeg1(38) param: 0x00010000, resp: 0x00000001
+amdgpu 0000:c4:00.0: amdgpu: smu send message: PowerDownVcn1(4) param: 0x00010000, resp: 0x00000001
+amdgpu 0000:c4:00.0: amdgpu: smu send message: PowerDownVcn0(6) param: 0x00000000, resp: 0x00000001
+amdgpu 0000:c4:00.0: amdgpu: smu send message: PowerUpVcn0(7) param: 0x00000000, resp: 0x00000001
+amdgpu 0000:c4:00.0: amdgpu: smu send message: PowerUpVcn1(5) param: 0x00010000, resp: 0x00000001
+amdgpu 0000:c4:00.0: amdgpu: smu send message: PowerUpJpeg0(34) param: 0x00000000, resp: 0x00000001
+amdgpu 0000:c4:00.0: amdgpu: smu send message: PowerUpJpeg1(39) param: 0x00010000, resp: 0x00000001
+
+To fix this, increase VPE_IDLE_TIMEOUT to 2 seconds. This increases
+reliability from 4-25 suspends to 200+ (tested) suspends with a cycle
+time of 12s sleep, 8s resume. The suspected reason here is that 1s
+was a borderline delay before, and it does not give enough time for
+VPE to be ready to be gated on Strix Halo.
+
+Fixes: 5f82a0c90cca ("drm/amdgpu/vpe: enable vpe dpm")
+Cc: stable@vger.kernel.org
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/gpu/drm/amd/amdgpu/amdgpu_vpe.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_vpe.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_vpe.c
+index 121ee17b522b..24f09e457352 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_vpe.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_vpe.c
+@@ -34,8 +34,8 @@
+ /* VPE CSA resides in the 4th page of CSA */
+ #define AMDGPU_CSA_VPE_OFFSET 	(4096 * 3)
+ 
+-/* 1 second timeout */
+-#define VPE_IDLE_TIMEOUT	msecs_to_jiffies(1000)
++/* 2 second timeout */
++#define VPE_IDLE_TIMEOUT	msecs_to_jiffies(2000)
+ 
+ #define VPE_MAX_DPM_LEVEL			4
+ #define FIXED1_8_BITS_PER_FRACTIONAL_PART	8
+-- 
+2.50.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sat, 23 Aug 2025 15:13:23 +0200
+Subject: drm/amd/display: Adjust AUX brightness to be a granularity of 100
+
+Certain OLED devices malfunction on specific brightness levels.
+Specifically, when DP_SOURCE_BACKLIGHT_LEVEL is written to with
+the first byte being 0x00 and sometimes 0x01, the panel forcibly
+turns off until the device sleeps again.
+
+Below are some examples. This was found by iterating over brighness
+ranges while printing DP_SOURCE_BACKLIGHT_LEVEL. It was found that
+the screen would malfunction on specific values, and some of them
+were collected. Summary examples are found below.
+
+ 86016:  10101000000000000
+ 86272:  10101000100000000
+ 87808:  10101011100000000
+251648: 111101011100000000
+251649: 111101011100000001
+
+ 86144:  10101000010000000
+ 87809:  10101011100000001
+251650: 111101011100000010
+
+The reason for this is that the range manipulation is too granular.
+AUX should not be written to with a granularity of 1. Forcing 100,
+which on the Ayaneo 3 OLED yields 400*10=4000 values is plenty of
+granularity and fixes this issue. Iterating over the values through
+Python shows that the final byte is never 0x00, and testing over the
+entire range with a cadence of 0.2s/it and 73 increments (to saturate
+the range) shows no issues.
+
+Closes: https://gitlab.freedesktop.org/drm/amd/-/issues/3803
+Cc: stable@vger.kernel.org
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 25 +++++++++++--------
+ 1 file changed, 15 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
+index 1e0ca417461a..ee6491ec1203 100644
+--- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
++++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
+@@ -4644,7 +4644,8 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
+ }
+ 
+ static int get_brightness_range(const struct amdgpu_dm_backlight_caps *caps,
+-				unsigned int *min, unsigned int *max)
++				unsigned int *min, unsigned int *max,
++				unsigned int *multiple)
+ {
+ 	if (!caps)
+ 		return 0;
+@@ -4653,10 +4654,12 @@ static int get_brightness_range(const struct amdgpu_dm_backlight_caps *caps,
+ 		// Firmware limits are in nits, DC API wants millinits.
+ 		*max = 1000 * caps->aux_max_input_signal;
+ 		*min = 1000 * caps->aux_min_input_signal;
++		*multiple = 100;
+ 	} else {
+ 		// Firmware limits are 8-bit, PWM control is 16-bit.
+ 		*max = 0x101 * caps->max_input_signal;
+ 		*min = 0x101 * caps->min_input_signal;
++		*multiple = 1;
+ 	}
+ 	return 1;
+ }
+@@ -4719,23 +4722,25 @@ static void convert_custom_brightness(const struct amdgpu_dm_backlight_caps *cap
+ static u32 convert_brightness_from_user(const struct amdgpu_dm_backlight_caps *caps,
+ 					uint32_t brightness)
+ {
+-	unsigned int min, max;
++	unsigned int min, max, multiple, tmp;
+ 
+-	if (!get_brightness_range(caps, &min, &max))
++	if (!get_brightness_range(caps, &min, &max, &multiple))
+ 		return brightness;
+ 
+ 	convert_custom_brightness(caps, min, max, &brightness);
+ 
+ 	// Rescale 0..max to min..max
+-	return min + DIV_ROUND_CLOSEST_ULL((u64)(max - min) * brightness, max);
++	tmp = min + DIV_ROUND_CLOSEST_ULL((u64)(max - min) * brightness, max);
++	// Round to nearest multiple
++	return DIV_ROUND_CLOSEST(tmp, multiple) * multiple;
+ }
+ 
+ static u32 convert_brightness_to_user(const struct amdgpu_dm_backlight_caps *caps,
+ 				      uint32_t brightness)
+ {
+-	unsigned int min, max;
++	unsigned int min, max, multiple;
+ 
+-	if (!get_brightness_range(caps, &min, &max))
++	if (!get_brightness_range(caps, &min, &max, &multiple))
+ 		return brightness;
+ 
+ 	if (brightness < min)
+@@ -4868,7 +4873,7 @@ amdgpu_dm_register_backlight_device(struct amdgpu_dm_connector *aconnector)
+ 	struct backlight_properties props = { 0 };
+ 	struct amdgpu_dm_backlight_caps *caps;
+ 	char bl_name[16];
+-	int min, max;
++	int min, max, multiple;
+ 
+ 	if (aconnector->bl_idx == -1)
+ 		return;
+@@ -4881,15 +4886,15 @@ amdgpu_dm_register_backlight_device(struct amdgpu_dm_connector *aconnector)
+ 	}
+ 
+ 	caps = &dm->backlight_caps[aconnector->bl_idx];
+-	if (get_brightness_range(caps, &min, &max)) {
++	if (get_brightness_range(caps, &min, &max, &multiple)) {
+ 		if (power_supply_is_system_supplied() > 0)
+ 			props.brightness = (max - min) * DIV_ROUND_CLOSEST(caps->ac_level, 100);
+ 		else
+ 			props.brightness = (max - min) * DIV_ROUND_CLOSEST(caps->dc_level, 100);
+ 		/* min is zero, so max needs to be adjusted */
+ 		props.max_brightness = max - min;
+-		drm_dbg(drm, "Backlight caps: min: %d, max: %d, ac %d, dc %d\n", min, max,
+-			caps->ac_level, caps->dc_level);
++		drm_dbg(drm, "Backlight caps: min: %d, max: %d, ac %d, dc %d, multiple: %d\n", min, max,
++			caps->ac_level, caps->dc_level, multiple);
+ 	} else
+ 		props.brightness = props.max_brightness = MAX_BACKLIGHT_LEVEL;
+ 
 -- 
 2.50.1
 
