@@ -53422,32 +53422,6 @@ index e7b17f399966..10340ed2cdb4 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Fri, 11 Jul 2025 21:43:49 +0200
-Subject: drm/amd: completely disable custom brightness
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 59d831a1010b..06ee623c50ee 100644
---- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-+++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4673,6 +4673,7 @@ static void convert_custom_brightness(const struct amdgpu_dm_backlight_caps *cap
- 				      unsigned int min, unsigned int max,
- 				      uint32_t *user_brightness)
- {
-+	return;
- 	u32 brightness = scale_input_to_fw(min, max, *user_brightness);
- 	u8 prev_signal = 0, prev_lum = 0;
- 	int i = 0;
--- 
-2.50.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
 Date: Sat, 12 Jul 2025 11:35:37 +0200
 Subject: HID: asus: add Zenbook Duo Keyboard
 
@@ -55697,7 +55671,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  4 files changed, 38 insertions(+), 26 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 06ee623c50ee..1e0ca417461a 100644
+index 59d831a1010b..ff2e1889db18 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -3514,11 +3514,11 @@ static struct drm_mode_config_helper_funcs amdgpu_dm_mode_config_helperfuncs = {
@@ -56114,11 +56088,11 @@ Closes: https://gitlab.freedesktop.org/drm/amd/-/issues/3803
 Cc: stable@vger.kernel.org
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 25 +++++++++++--------
- 1 file changed, 15 insertions(+), 10 deletions(-)
+ .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 27 +++++++++++--------
+ 1 file changed, 16 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 1e0ca417461a..ee6491ec1203 100644
+index ff2e1889db18..110d4913199e 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -4644,7 +4644,8 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
@@ -56144,12 +56118,12 @@ index 1e0ca417461a..ee6491ec1203 100644
  	}
  	return 1;
  }
-@@ -4719,23 +4722,25 @@ static void convert_custom_brightness(const struct amdgpu_dm_backlight_caps *cap
+@@ -4718,23 +4721,25 @@ static void convert_custom_brightness(const struct amdgpu_dm_backlight_caps *cap
  static u32 convert_brightness_from_user(const struct amdgpu_dm_backlight_caps *caps,
  					uint32_t brightness)
  {
 -	unsigned int min, max;
-+	unsigned int min, max, multiple, tmp;
++	unsigned int min, max, multiple;
  
 -	if (!get_brightness_range(caps, &min, &max))
 +	if (!get_brightness_range(caps, &min, &max, &multiple))
@@ -56157,11 +56131,12 @@ index 1e0ca417461a..ee6491ec1203 100644
  
  	convert_custom_brightness(caps, min, max, &brightness);
  
- 	// Rescale 0..max to min..max
+-	// Rescale 0..max to min..max
 -	return min + DIV_ROUND_CLOSEST_ULL((u64)(max - min) * brightness, max);
-+	tmp = min + DIV_ROUND_CLOSEST_ULL((u64)(max - min) * brightness, max);
-+	// Round to nearest multiple
-+	return DIV_ROUND_CLOSEST(tmp, multiple) * multiple;
++	// Rescale 0..max to min..max rounding to nearest multiple
++	return rounddown(
++		min + DIV_ROUND_CLOSEST_ULL((u64)(max - min) * brightness, max),
++		multiple);
  }
  
  static u32 convert_brightness_to_user(const struct amdgpu_dm_backlight_caps *caps,
@@ -56175,7 +56150,7 @@ index 1e0ca417461a..ee6491ec1203 100644
  		return brightness;
  
  	if (brightness < min)
-@@ -4868,7 +4873,7 @@ amdgpu_dm_register_backlight_device(struct amdgpu_dm_connector *aconnector)
+@@ -4867,7 +4872,7 @@ amdgpu_dm_register_backlight_device(struct amdgpu_dm_connector *aconnector)
  	struct backlight_properties props = { 0 };
  	struct amdgpu_dm_backlight_caps *caps;
  	char bl_name[16];
@@ -56184,7 +56159,7 @@ index 1e0ca417461a..ee6491ec1203 100644
  
  	if (aconnector->bl_idx == -1)
  		return;
-@@ -4881,15 +4886,15 @@ amdgpu_dm_register_backlight_device(struct amdgpu_dm_connector *aconnector)
+@@ -4880,15 +4885,15 @@ amdgpu_dm_register_backlight_device(struct amdgpu_dm_connector *aconnector)
  	}
  
  	caps = &dm->backlight_caps[aconnector->bl_idx];
