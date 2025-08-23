@@ -9,7 +9,7 @@ The repository itself or the build process have had no changes, with the
 one addition being the large set of handheld and performance
 optimization patches Bazzite users have come to expect. These include
 the latest in handheld compatibility patches (OneXPlayer, ROG Ally,
-Steam Deck LCD/OLED, Surface devices), as well as the scheduler BORE.
+Steam Deck LCD/OLED, Surface devices) and stability fixes.
 
 Those patches are applied directly on top of the Fedora patchset
 `here <./handheld.patch>`__, after being rebased on top of the ARK
