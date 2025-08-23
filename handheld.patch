@@ -56026,7 +56026,6 @@ was a borderline delay before, and it does not give enough time for
 VPE to be ready to be gated on Strix Halo.
 
 Fixes: 5f82a0c90cca ("drm/amdgpu/vpe: enable vpe dpm")
-Cc: stable@vger.kernel.org
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
  drivers/gpu/drm/amd/amdgpu/amdgpu_vpe.c | 4 ++--
@@ -56059,12 +56058,14 @@ Subject: drm/amd/display: Adjust AUX brightness to be a granularity of 100
 Certain OLED devices malfunction on specific brightness levels.
 Specifically, when DP_SOURCE_BACKLIGHT_LEVEL is written to with
 the first byte being 0x00 and sometimes 0x01, the panel forcibly
-turns off until the device sleeps again.
+turns off until the device sleeps again. This is an issue on
+multiple handhelds, including OneXPlayer F1 Pro and Ayaneo 3
+(the panel is suspected to be the same-1080p 7in OLED).
 
 Below are some examples. This was found by iterating over brighness
 ranges while printing DP_SOURCE_BACKLIGHT_LEVEL. It was found that
 the screen would malfunction on specific values, and some of them
-were collected. Summary examples are found below.
+were collected.
 
  86016:  10101000000000000
  86272:  10101000100000000
@@ -56078,14 +56079,13 @@ were collected. Summary examples are found below.
 
 The reason for this is that the range manipulation is too granular.
 AUX should not be written to with a granularity of 1. Forcing 100,
-which on the Ayaneo 3 OLED yields 400*10=4000 values is plenty of
+which on the Ayaneo 3 OLED yields 400*10=4000 values, is plenty of
 granularity and fixes this issue. Iterating over the values through
 Python shows that the final byte is never 0x00, and testing over the
 entire range with a cadence of 0.2s/it and 73 increments (to saturate
-the range) shows no issues.
+the range) shows no issues. Windows likewise shows no issues.
 
 Closes: https://gitlab.freedesktop.org/drm/amd/-/issues/3803
-Cc: stable@vger.kernel.org
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
  .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 27 +++++++++++--------
