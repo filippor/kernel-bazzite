@@ -97,7 +97,7 @@ jobs:
           compression-level: 7
       
       - name: Convert to Arch
-        if: matrix.arch == 'x86_64' && matrix.fedora_version == 41 #arch_fedora
+        if: matrix.arch == 'x86_64' && matrix.fedora_version == 42 #arch_fedora
         run: |
           # Grab kernel ver from the log
           KERNEL_VER=$(ls -a | grep .build | head -n 1 | sed 's/.build-//' | sed 's/.log//')
@@ -112,7 +112,7 @@ jobs:
 
       - name: Upload Kernel arch package to action
         uses: actions/upload-artifact@v4
-        if: matrix.arch == 'x86_64' && matrix.fedora_version == 41 #arch_fedora
+        if: matrix.arch == 'x86_64' && matrix.fedora_version == 42 #arch_fedora
         with:
           name: linux-f${{ matrix.fedora_version }}-arch
           path: |
