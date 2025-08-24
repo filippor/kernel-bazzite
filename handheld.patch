@@ -55960,6 +55960,77 @@ index 6c45d8647038..44a5c202fea0 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sun, 24 Aug 2025 00:17:26 +0200
+Subject: drm: panel-orientation-quirks: Add Zeenix Pro
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/gpu/drm/drm_panel_orientation_quirks.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/gpu/drm/drm_panel_orientation_quirks.c b/drivers/gpu/drm/drm_panel_orientation_quirks.c
+index 918e9df73730..81e23fb3cb8c 100644
+--- a/drivers/gpu/drm/drm_panel_orientation_quirks.c
++++ b/drivers/gpu/drm/drm_panel_orientation_quirks.c
+@@ -617,6 +617,12 @@ static const struct dmi_system_id orientation_data[] = {
+ 		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Zeenix Lite"),
+ 		},
+ 		.driver_data = (void *)&lcd1080x1920_leftside_up,
++	}, {    /* Tectoy Zeenix Pro (AYN Loki Max Rebadge) */
++		.matches = {
++		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "Tectoy"),
++		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Zeenix Pro"),
++		},
++		.driver_data = (void *)&lcd1080x1920_leftside_up,
+ 	}, {	/* Valve Steam Deck (Jupiter) */
+ 		.matches = {
+ 		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "Valve"),
+-- 
+2.50.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Lauri Tirkkonen <lauri@hacktheplanet.fi>
+Date: Mon, 21 Jul 2025 09:59:40 +0900
+Subject: drm/amd/display: fix initial backlight brightness calculation
+
+DIV_ROUND_CLOSEST(x, 100) returns either 0 or 1 if 0<x<=100, so the
+division needs to be performed after the multiplication and not the
+other way around, to properly scale the value.
+
+Fixes: 8b5f3a229a70 ("drm/amd/display: Fix default DC and AC levels")
+Signed-off-by: Lauri Tirkkonen <lauri@hacktheplanet.fi>
+Cc: stable@vger.kernel.org
+Reviewed-by: Mario Limonciello <mario.limonciello@amd.com>
+Link: https://lore.kernel.org/r/aH2Q_HJvxKbW74vU@hacktheplanet.fi
+Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+---
+ drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
+index ff2e1889db18..cb75fcd5a8dd 100644
+--- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
++++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
+@@ -4882,9 +4882,9 @@ amdgpu_dm_register_backlight_device(struct amdgpu_dm_connector *aconnector)
+ 	caps = &dm->backlight_caps[aconnector->bl_idx];
+ 	if (get_brightness_range(caps, &min, &max)) {
+ 		if (power_supply_is_system_supplied() > 0)
+-			props.brightness = (max - min) * DIV_ROUND_CLOSEST(caps->ac_level, 100);
++			props.brightness = DIV_ROUND_CLOSEST((max - min) * caps->ac_level, 100);
+ 		else
+-			props.brightness = (max - min) * DIV_ROUND_CLOSEST(caps->dc_level, 100);
++			props.brightness = DIV_ROUND_CLOSEST((max - min) * caps->dc_level, 100);
+ 		/* min is zero, so max needs to be adjusted */
+ 		props.max_brightness = max - min;
+ 		drm_dbg(drm, "Backlight caps: min: %d, max: %d, ac %d, dc %d\n", min, max,
+-- 
+2.50.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
 Date: Mon, 11 Aug 2025 17:43:46 +0200
 Subject: drm/amdgpu/vpe: increase VPE_IDLE_TIMEOUT to fix hang on Strix Halo
 
@@ -56052,7 +56123,7 @@ index 121ee17b522b..24f09e457352 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sat, 23 Aug 2025 15:13:23 +0200
+Date: Sun, 24 Aug 2025 17:47:41 +0200
 Subject: drm/amd/display: Adjust AUX brightness to be a granularity of 100
 
 Certain OLED devices malfunction on specific brightness levels.
@@ -56088,11 +56159,11 @@ the range) shows no issues. Windows likewise shows no issues.
 Closes: https://gitlab.freedesktop.org/drm/amd/-/issues/3803
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 27 +++++++++++--------
- 1 file changed, 16 insertions(+), 11 deletions(-)
+ .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 24 +++++++++++--------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index ff2e1889db18..110d4913199e 100644
+index cb75fcd5a8dd..1c11d6d24f7f 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -4644,7 +4644,8 @@ static void amdgpu_dm_update_backlight_caps(struct amdgpu_display_manager *dm,
@@ -56118,7 +56189,7 @@ index ff2e1889db18..110d4913199e 100644
  	}
  	return 1;
  }
-@@ -4718,23 +4721,25 @@ static void convert_custom_brightness(const struct amdgpu_dm_backlight_caps *cap
+@@ -4718,23 +4721,24 @@ static void convert_custom_brightness(const struct amdgpu_dm_backlight_caps *cap
  static u32 convert_brightness_from_user(const struct amdgpu_dm_backlight_caps *caps,
  					uint32_t brightness)
  {
@@ -56131,12 +56202,10 @@ index ff2e1889db18..110d4913199e 100644
  
  	convert_custom_brightness(caps, min, max, &brightness);
  
--	// Rescale 0..max to min..max
+ 	// Rescale 0..max to min..max
 -	return min + DIV_ROUND_CLOSEST_ULL((u64)(max - min) * brightness, max);
-+	// Rescale 0..max to min..max rounding to nearest multiple
-+	return rounddown(
-+		min + DIV_ROUND_CLOSEST_ULL((u64)(max - min) * brightness, max),
-+		multiple);
++	return multiple * DIV_ROUND_DOWN_ULL(min + DIV_ROUND_CLOSEST_ULL(
++		(u64)(max - min) * brightness, max), multiple);
  }
  
  static u32 convert_brightness_to_user(const struct amdgpu_dm_backlight_caps *caps,
@@ -56150,7 +56219,7 @@ index ff2e1889db18..110d4913199e 100644
  		return brightness;
  
  	if (brightness < min)
-@@ -4867,7 +4872,7 @@ amdgpu_dm_register_backlight_device(struct amdgpu_dm_connector *aconnector)
+@@ -4867,7 +4871,7 @@ amdgpu_dm_register_backlight_device(struct amdgpu_dm_connector *aconnector)
  	struct backlight_properties props = { 0 };
  	struct amdgpu_dm_backlight_caps *caps;
  	char bl_name[16];
@@ -56159,16 +56228,16 @@ index ff2e1889db18..110d4913199e 100644
  
  	if (aconnector->bl_idx == -1)
  		return;
-@@ -4880,15 +4885,15 @@ amdgpu_dm_register_backlight_device(struct amdgpu_dm_connector *aconnector)
+@@ -4880,15 +4884,15 @@ amdgpu_dm_register_backlight_device(struct amdgpu_dm_connector *aconnector)
  	}
  
  	caps = &dm->backlight_caps[aconnector->bl_idx];
 -	if (get_brightness_range(caps, &min, &max)) {
 +	if (get_brightness_range(caps, &min, &max, &multiple)) {
  		if (power_supply_is_system_supplied() > 0)
- 			props.brightness = (max - min) * DIV_ROUND_CLOSEST(caps->ac_level, 100);
+ 			props.brightness = DIV_ROUND_CLOSEST((max - min) * caps->ac_level, 100);
  		else
- 			props.brightness = (max - min) * DIV_ROUND_CLOSEST(caps->dc_level, 100);
+ 			props.brightness = DIV_ROUND_CLOSEST((max - min) * caps->dc_level, 100);
  		/* min is zero, so max needs to be adjusted */
  		props.max_brightness = max - min;
 -		drm_dbg(drm, "Backlight caps: min: %d, max: %d, ac %d, dc %d\n", min, max,
@@ -56178,77 +56247,6 @@ index ff2e1889db18..110d4913199e 100644
  	} else
  		props.brightness = props.max_brightness = MAX_BACKLIGHT_LEVEL;
  
--- 
-2.50.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sun, 24 Aug 2025 00:17:26 +0200
-Subject: drm: panel-orientation-quirks: Add Zeenix Pro
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- drivers/gpu/drm/drm_panel_orientation_quirks.c | 6 ++++++
- 1 file changed, 6 insertions(+)
-
-diff --git a/drivers/gpu/drm/drm_panel_orientation_quirks.c b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-index 918e9df73730..81e23fb3cb8c 100644
---- a/drivers/gpu/drm/drm_panel_orientation_quirks.c
-+++ b/drivers/gpu/drm/drm_panel_orientation_quirks.c
-@@ -617,6 +617,12 @@ static const struct dmi_system_id orientation_data[] = {
- 		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Zeenix Lite"),
- 		},
- 		.driver_data = (void *)&lcd1080x1920_leftside_up,
-+	}, {    /* Tectoy Zeenix Pro (AYN Loki Max Rebadge) */
-+		.matches = {
-+		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "Tectoy"),
-+		  DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Zeenix Pro"),
-+		},
-+		.driver_data = (void *)&lcd1080x1920_leftside_up,
- 	}, {	/* Valve Steam Deck (Jupiter) */
- 		.matches = {
- 		  DMI_EXACT_MATCH(DMI_SYS_VENDOR, "Valve"),
--- 
-2.50.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Lauri Tirkkonen <lauri@hacktheplanet.fi>
-Date: Mon, 21 Jul 2025 09:59:40 +0900
-Subject: drm/amd/display: fix initial backlight brightness calculation
-
-DIV_ROUND_CLOSEST(x, 100) returns either 0 or 1 if 0<x<=100, so the
-division needs to be performed after the multiplication and not the
-other way around, to properly scale the value.
-
-Fixes: 8b5f3a229a70 ("drm/amd/display: Fix default DC and AC levels")
-Signed-off-by: Lauri Tirkkonen <lauri@hacktheplanet.fi>
-Cc: stable@vger.kernel.org
-Reviewed-by: Mario Limonciello <mario.limonciello@amd.com>
-Link: https://lore.kernel.org/r/aH2Q_HJvxKbW74vU@hacktheplanet.fi
-Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
-Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
----
- drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 110d4913199e..3ffef0511b4b 100644
---- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-+++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4887,9 +4887,9 @@ amdgpu_dm_register_backlight_device(struct amdgpu_dm_connector *aconnector)
- 	caps = &dm->backlight_caps[aconnector->bl_idx];
- 	if (get_brightness_range(caps, &min, &max, &multiple)) {
- 		if (power_supply_is_system_supplied() > 0)
--			props.brightness = (max - min) * DIV_ROUND_CLOSEST(caps->ac_level, 100);
-+			props.brightness = DIV_ROUND_CLOSEST((max - min) * caps->ac_level, 100);
- 		else
--			props.brightness = (max - min) * DIV_ROUND_CLOSEST(caps->dc_level, 100);
-+			props.brightness = DIV_ROUND_CLOSEST((max - min) * caps->dc_level, 100);
- 		/* min is zero, so max needs to be adjusted */
- 		props.max_brightness = max - min;
- 		drm_dbg(drm, "Backlight caps: min: %d, max: %d, ac %d, dc %d, multiple: %d\n", min, max,
 -- 
 2.50.1
 
